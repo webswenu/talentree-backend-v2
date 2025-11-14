@@ -1,0 +1,392 @@
+[
+  {
+    "questionNumber": 1,
+    "questionText": "Me preocupo de que el cliente se vaya satisfecho con la atención que recibió.",
+    "dimension": "Orientación al Cliente",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 2,
+    "questionText": "Busco entender las necesidades reales del cliente antes de ofrecer una solución.",
+    "dimension": "Orientación al Cliente",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 3,
+    "questionText": "Hago un esfuerzo extra para ayudar, aunque no sea estrictamente parte de mi trabajo.",
+    "dimension": "Orientación al Cliente",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 4,
+    "questionText": "Me interesa construir relaciones de confianza con los clientes.",
+    "dimension": "Orientación al Cliente",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 5,
+    "questionText": "Me explico de forma clara y respetuosa al hablar con los clientes.",
+    "dimension": "Comunicación Efectiva",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 6,
+    "questionText": "Escucho atentamente lo que el cliente quiere decir antes de responder.",
+    "dimension": "Comunicación Efectiva",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 7,
+    "questionText": "Evito usar tecnicismos o palabras que el cliente no entienda.",
+    "dimension": "Comunicación Efectiva",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 8,
+    "questionText": "Pido confirmación al cliente para asegurarme de que comprendió la información.",
+    "dimension": "Comunicación Efectiva",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 9,
+    "questionText": "Trato de ponerme en el lugar del cliente cuando tiene un problema.",
+    "dimension": "Empatía",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 10,
+    "questionText": "Mantengo una actitud amable incluso si el cliente está molesto.",
+    "dimension": "Empatía",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 11,
+    "questionText": "Me interesa comprender cómo se siente el cliente, no solo lo que dice.",
+    "dimension": "Empatía",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 12,
+    "questionText": "Siento satisfacción personal cuando logro ayudar a alguien.",
+    "dimension": "Empatía",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 13,
+    "questionText": "Busco soluciones rápidas y efectivas frente a los reclamos de clientes.",
+    "dimension": "Resolución de Problemas",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 14,
+    "questionText": "Si no tengo una respuesta inmediata, me comprometo a averiguarla y dar seguimiento.",
+    "dimension": "Resolución de Problemas",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 15,
+    "questionText": "Soy capaz de priorizar problemas para atender lo más urgente primero.",
+    "dimension": "Resolución de Problemas",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 16,
+    "questionText": "Cuando enfrento un error, busco resolverlo sin culpar a otros.",
+    "dimension": "Resolución de Problemas",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 17,
+    "questionText": "Mantengo la calma ante clientes difíciles o exigentes.",
+    "dimension": "Tolerancia a la Frustración",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 18,
+    "questionText": "No me dejo afectar por críticas o reclamos personales.",
+    "dimension": "Tolerancia a la Frustración",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 19,
+    "questionText": "Veo las quejas como oportunidades para mejorar.",
+    "dimension": "Tolerancia a la Frustración",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 20,
+    "questionText": "Aunque el cliente esté enojado, mantengo un trato respetuoso.",
+    "dimension": "Tolerancia a la Frustración",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 21,
+    "questionText": "Puedo atender varios clientes al mismo tiempo sin perder la calidad del servicio.",
+    "dimension": "Trabajo Bajo Presión",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 22,
+    "questionText": "Mantengo mi concentración aunque haya mucho ruido o interrupciones.",
+    "dimension": "Trabajo Bajo Presión",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 23,
+    "questionText": "Trabajo bien bajo plazos ajustados o momentos de alta demanda.",
+    "dimension": "Trabajo Bajo Presión",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 24,
+    "questionText": "Logro organizar mis tareas incluso en días caóticos.",
+    "dimension": "Trabajo Bajo Presión",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 25,
+    "questionText": "Trato de mantener una actitud positiva en todo momento.",
+    "dimension": "Actitud Positiva y Colaboración",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 26,
+    "questionText": "Colaboro con mis compañeros para ofrecer un mejor servicio al cliente.",
+    "dimension": "Actitud Positiva y Colaboración",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 27,
+    "questionText": "Me motiva recibir comentarios positivos de los clientes.",
+    "dimension": "Actitud Positiva y Colaboración",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 28,
+    "questionText": "Veo los desafíos laborales como oportunidades de aprendizaje.",
+    "dimension": "Actitud Positiva y Colaboración",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 29,
+    "questionText": "Me esfuerzo por ser un ejemplo de buen trato al cliente.",
+    "dimension": "Actitud Positiva y Colaboración",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  },
+  {
+    "questionNumber": 30,
+    "questionText": "Creo que la amabilidad es clave para el éxito en atención al público.",
+    "dimension": "Actitud Positiva y Colaboración",
+    "points": 1,
+    "options": {
+      "1": "Nunca",
+      "2": "Rara vez",
+      "3": "A veces",
+      "4": "Frecuentemente",
+      "5": "Siempre"
+    }
+  }
+]

@@ -1,0 +1,1022 @@
+[
+  {
+    "questionNumber": 1,
+    "questionText": "Actúo sin pensar en las consecuencias.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 2,
+    "questionText": "Me cuesta mantener la calma ante una situación tensa.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 3,
+    "questionText": "Reacciono de forma rápida cuando algo no resulta como espero.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 4,
+    "questionText": "Me irrito fácilmente si me corrigen en el trabajo.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 5,
+    "questionText": "Me cuesta esperar cuando algo me molesta.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 6,
+    "questionText": "Tomo decisiones sin analizar mucho la situación.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 7,
+    "questionText": "Me considero una persona impulsiva.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 8,
+    "questionText": "Me cuesta reconocer cuando cometo un error.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 9,
+    "questionText": "Cuando algo me sale mal, culpo a factores externos.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 10,
+    "questionText": "Me cuesta detenerme antes de actuar.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 11,
+    "questionText": "Evalúo los riesgos antes de iniciar una tarea.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 12,
+    "questionText": "Me preocupo de seguir las normas de seguridad.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 13,
+    "questionText": "Pienso en las posibles consecuencias antes de actuar.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 14,
+    "questionText": "Tomo medidas de precaución aunque otros no lo hagan.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 15,
+    "questionText": "Aviso cuando detecto un riesgo o falla en el trabajo.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 16,
+    "questionText": "Uso los elementos de protección personal sin que me lo pidan.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 17,
+    "questionText": "Me aseguro de entender bien una tarea antes de comenzar.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 18,
+    "questionText": "Evito actuar si no tengo la información suficiente.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 19,
+    "questionText": "Reviso mi entorno antes de operar una máquina o vehículo.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 20,
+    "questionText": "Me preocupa la seguridad de mis compañeros.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 21,
+    "questionText": "Me atraen las actividades que implican adrenalina.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 22,
+    "questionText": "Me gusta asumir desafíos que otros consideran peligrosos.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 23,
+    "questionText": "Me aburren las tareas demasiado rutinarias.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 24,
+    "questionText": "Prefiero actuar rápido a perder tiempo planificando.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 25,
+    "questionText": "A veces tomo riesgos para demostrar mis capacidades.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 26,
+    "questionText": "Me siento cómodo trabajando bajo presión.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 27,
+    "questionText": "Disfruto cuando una tarea requiere rapidez y decisión.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 28,
+    "questionText": "No me preocupa cometer errores si puedo resolverlos después.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 29,
+    "questionText": "Me considero una persona arriesgada.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 30,
+    "questionText": "Me gusta probar métodos nuevos, aunque no sean seguros.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 31,
+    "questionText": "Me distraigo fácilmente mientras trabajo.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 32,
+    "questionText": "Me cuesta concentrarme por largos periodos.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 33,
+    "questionText": "Pierdo detalles importantes por hacer varias cosas a la vez.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 34,
+    "questionText": "Puedo mantener la atención incluso en tareas monótonas.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 35,
+    "questionText": "Me doy cuenta rápido cuando algo no anda bien.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 36,
+    "questionText": "Me desconecto fácilmente de lo que estoy haciendo.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 37,
+    "questionText": "Mantengo mi mente en la tarea aunque haya ruido o interrupciones.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 38,
+    "questionText": "Me doy tiempo para revisar lo que hago antes de entregar un trabajo.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 39,
+    "questionText": "Verifico mis acciones antes de continuar.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 40,
+    "questionText": "Detecto errores pequeños en el trabajo.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 41,
+    "questionText": "Cumplo con los procedimientos de seguridad establecidos.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 42,
+    "questionText": "Sigo las instrucciones aunque me parezcan innecesarias.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 43,
+    "questionText": "Cumplo con los plazos y normas sin necesidad de supervisión.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 44,
+    "questionText": "Me considero una persona responsable.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 45,
+    "questionText": "Busco hacer bien mi trabajo más allá de lo exigido.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 46,
+    "questionText": "Acepto las observaciones de mis superiores.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 47,
+    "questionText": "Me preocupo por la calidad y seguridad del trabajo.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 48,
+    "questionText": "Reviso mis herramientas antes de comenzar.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 49,
+    "questionText": "Me esfuerzo por aprender de mis errores.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 50,
+    "questionText": "Mantengo mi área de trabajo ordenada y segura.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 51,
+    "questionText": "Confío en mi juicio cuando debo decidir rápidamente.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 52,
+    "questionText": "Tomo decisiones pensando en el bienestar del grupo.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 53,
+    "questionText": "Me cuesta decidir cuando hay riesgo de fallar.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 54,
+    "questionText": "Asumo la responsabilidad de mis decisiones.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 55,
+    "questionText": "Prefiero pedir ayuda antes de actuar en una situación dudosa.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 56,
+    "questionText": "Me informo bien antes de actuar en una emergencia.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 57,
+    "questionText": "Soy capaz de mantener la calma en momentos de peligro.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 58,
+    "questionText": "Me mantengo firme en mis decisiones cuando son correctas.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 59,
+    "questionText": "Sé priorizar lo importante en una situación de riesgo.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  },
+  {
+    "questionNumber": 60,
+    "questionText": "Puedo controlar mis emociones para actuar con seguridad.",
+    "questionType": "likert_scale",
+    "options": {
+      "scale": {
+        "1": "Totalmente en desacuerdo",
+        "2": "En desacuerdo",
+        "3": "Neutral",
+        "4": "De acuerdo",
+        "5": "Totalmente de acuerdo"
+      },
+      "min": 1,
+      "max": 5
+    },
+    "points": 1
+  }
+]

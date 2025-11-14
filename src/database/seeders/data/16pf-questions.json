@@ -1,0 +1,3742 @@
+[
+  {
+    "questionNumber": 1,
+    "questionText": "He comprendido bien las instrucciones para contestar el cuestionario",
+    "questionType": "multiple_choice_ternary",
+    "factor": "A",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Calidez"
+    }
+  },
+  {
+    "questionNumber": 2,
+    "questionText": "Estoy dispuesto (a) a contestar todas las afirmaciones con sinceridad",
+    "questionType": "multiple_choice_ternary",
+    "factor": "B",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Razonamiento"
+    }
+  },
+  {
+    "questionNumber": 3,
+    "questionText": "¿Cuáles de las siguientes palabras es diferente de las otras dos?",
+    "questionType": "multiple_choice_ternary",
+    "factor": "C",
+    "options": {
+      "A": "Algo",
+      "B": "Nada",
+      "C": "Mucho",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Estabilidad emocional"
+    }
+  },
+  {
+    "questionNumber": 4,
+    "questionText": "Poseo suficiente energía para enfrentarme a todos mis problemas",
+    "questionType": "multiple_choice_ternary",
+    "factor": "E",
+    "options": {
+      "A": "Si",
+      "B": "Frecuentemente",
+      "C": "Raras Veces",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Dominancia"
+    }
+  },
+  {
+    "questionNumber": 5,
+    "questionText": "Evito criticar a la gente y su ideas",
+    "questionType": "multiple_choice_ternary",
+    "factor": "F",
+    "options": {
+      "A": "Si",
+      "B": "Algunas Veces",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vivacidad"
+    }
+  },
+  {
+    "questionNumber": 6,
+    "questionText": "Hago agudas y sarcásticas observaciones a la gente si creo que las merece",
+    "questionType": "multiple_choice_ternary",
+    "factor": "G",
+    "options": {
+      "A": "Generalmente",
+      "B": "Algunas Veces",
+      "C": "Nunca",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Conciencia de normas"
+    }
+  },
+  {
+    "questionNumber": 7,
+    "questionText": "Me gusta más la musica semiclásica que las canciones populares",
+    "questionType": "multiple_choice_ternary",
+    "factor": "H",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Atrevimiento social"
+    }
+  },
+  {
+    "questionNumber": 8,
+    "questionText": "Si veo peleándose a los niños de mis vecinos",
+    "questionType": "multiple_choice_ternary",
+    "factor": "I",
+    "options": {
+      "A": "Les dejo solucionar sus problemas",
+      "B": "No estoy seguro",
+      "C": "Razono con ellos la solución",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Sensibilidad"
+    }
+  },
+  {
+    "questionNumber": 9,
+    "questionText": "En situaciones sociales",
+    "questionType": "multiple_choice_ternary",
+    "factor": "L",
+    "options": {
+      "A": "Facilmente soy de los que toman la iniciativa",
+      "B": "Intervengo algunas veces",
+      "C": "Prefiero quedarme tranquilamente a distancia",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vigilancia"
+    }
+  },
+  {
+    "questionNumber": 10,
+    "questionText": "Seria mas intere ser",
+    "questionType": "multiple_choice_ternary",
+    "factor": "M",
+    "options": {
+      "A": "Ingeniero en Construcción",
+      "B": "No estoy seguro",
+      "C": "Escritor de teatro",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Imaginación"
+    }
+  },
+  {
+    "questionNumber": 11,
+    "questionText": "Generalmente puedo tolerar a la gente presuntuosa, aunquefanfarronee o piensesn demasiado bien de si mismas",
+    "questionType": "multiple_choice_ternary",
+    "factor": "N",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": " NO",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Privacidad"
+    }
+  },
+  {
+    "questionNumber": 12,
+    "questionText": "Cuando una persona  no es honrada, casi siempre se le puede nortar en la cara",
+    "questionType": "multiple_choice_ternary",
+    "factor": "O",
+    "options": {
+      "A": "True",
+      "B": "Termino Medio",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Aprensión"
+    }
+  },
+  {
+    "questionNumber": 13,
+    "questionText": "Aceptaría mejor el riesgo de un trabajo donde pudiera tener ganancias mayores, aunque eventuales, que otro on sueldo pequeño, pero seguro",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q1",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Apertura al cambio"
+    }
+  },
+  {
+    "questionNumber": 14,
+    "questionText": "De vez en cuando siento un vago temor o un repentino miedo, sin comprender las razones",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q2",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Autosuficiencia"
+    }
+  },
+  {
+    "questionNumber": 15,
+    "questionText": "Cuando me critican por algo que no he hecho",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q3",
+    "options": {
+      "A": "No me siento culpable",
+      "B": "Termino Medio",
+      "C": "Todavía me siento culpable",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Perfeccionismo"
+    }
+  },
+  {
+    "questionNumber": 16,
+    "questionText": "Casi todo se puede comprar con dinero",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q4",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Tensión"
+    }
+  },
+  {
+    "questionNumber": 17,
+    "questionText": "La mayoría de las personas serían más felices si convivivieran más con la gemte de su novel e hicieran cosas como los demás",
+    "questionType": "multiple_choice_ternary",
+    "factor": "A",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Calidez"
+    }
+  },
+  {
+    "questionNumber": 18,
+    "questionText": "En ocasiones, mirandome al espejo me entran dudas sobre lo que es mi izquierda o derecha",
+    "questionType": "multiple_choice_ternary",
+    "factor": "B",
+    "options": {
+      "A": "True",
+      "B": "Termino Medio",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Razonamiento"
+    }
+  },
+  {
+    "questionNumber": 19,
+    "questionText": "Cuando algo realmete me pone furioso, suelo calmarme muey pronto",
+    "questionType": "multiple_choice_ternary",
+    "factor": "C",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Estabilidad emocional"
+    }
+  },
+  {
+    "questionNumber": 20,
+    "questionText": "Preferiria tener una casa",
+    "questionType": "multiple_choice_ternary",
+    "factor": "E",
+    "options": {
+      "A": "En un barrio con vida social",
+      "B": "Termino Medio",
+      "C": "Aislada en e bosque",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Dominancia"
+    }
+  },
+  {
+    "questionNumber": 21,
+    "questionText": "Con el mismo horario y sueldo, sería más interesante ser",
+    "questionType": "multiple_choice_ternary",
+    "factor": "F",
+    "options": {
+      "A": "El cocinero de un Restaurante",
+      "B": "No estoy seguro entre ambas",
+      "C": "El que sirve las mesas en el restaurante",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vivacidad"
+    }
+  },
+  {
+    "questionNumber": 22,
+    "questionText": "\"Cansado es a \"Trabajador\", como Orulloso es a ",
+    "questionType": "multiple_choice_ternary",
+    "factor": "G",
+    "options": {
+      "A": "Sonreir",
+      "B": "Tener Éxito",
+      "C": "Ser Feliz",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Conciencia de normas"
+    }
+  },
+  {
+    "questionNumber": 23,
+    "questionText": "Me pongo algo nervioso ante animales salvajes, incluso cuandi están encerrados en fuertes jaulas",
+    "questionType": "multiple_choice_ternary",
+    "factor": "H",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Atrevimiento social"
+    }
+  },
+  {
+    "questionNumber": 24,
+    "questionText": "Una Ley anticuada debería cambiarse",
+    "questionType": "multiple_choice_ternary",
+    "factor": "I",
+    "options": {
+      "A": "Solo después de muchas discusiones",
+      "B": "Termino Medio",
+      "C": "Inmediatamente",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Sensibilidad"
+    }
+  },
+  {
+    "questionNumber": 25,
+    "questionText": "La mayor parte de las personas me considera interlocutor agradable",
+    "questionType": "multiple_choice_ternary",
+    "factor": "L",
+    "options": {
+      "A": "Si",
+      "B": "No Estoy Seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vigilancia"
+    }
+  },
+  {
+    "questionNumber": 26,
+    "questionText": "Me gusta salir a divertirme o ir a un espectaculo",
+    "questionType": "multiple_choice_ternary",
+    "factor": "M",
+    "options": {
+      "A": "Más de una vez por semana (lo corriente)",
+      "B": "Alrededor de una vez por semana ",
+      "C": "Menos de una vez por semana",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Imaginación"
+    }
+  },
+  {
+    "questionNumber": 27,
+    "questionText": "Cuando veo gente desastrada y sucia",
+    "questionType": "multiple_choice_ternary",
+    "factor": "N",
+    "options": {
+      "A": "Lo acepto simplemente",
+      "B": "Término medio",
+      "C": "Me disgusta y me fastiia",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Privacidad"
+    }
+  },
+  {
+    "questionNumber": 28,
+    "questionText": "Estano en un grupo social me siento u poco turbado si de ponto paso a ser el foco de atención",
+    "questionType": "multiple_choice_ternary",
+    "factor": "O",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Aprensión"
+    }
+  },
+  {
+    "questionNumber": 29,
+    "questionText": "Cuando voy por la calle prefiero detenerme antes a ver a un artista pintando que a escuchar gente discutir",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q1",
+    "options": {
+      "A": "Vernadero",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Apertura al cambio"
+    }
+  },
+  {
+    "questionNumber": 30,
+    "questionText": "Cuando me ponen al frente de algo, insisto en que sigan mis instrucciones, en caso contratio, renuncio",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q2",
+    "options": {
+      "A": "Si",
+      "B": "Algunas Veces",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Autosuficiencia"
+    }
+  },
+  {
+    "questionNumber": 31,
+    "questionText": "Sería mejor que las vacaciones fueran más largas y obligatorias para todas las personas",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q3",
+    "options": {
+      "A": "De acuerdo",
+      "B": "No estoy de acuerdo",
+      "C": "En desacuerdo",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Perfeccionismo"
+    }
+  },
+  {
+    "questionNumber": 32,
+    "questionText": "Hablo acerca de mis sentimientos",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q4",
+    "options": {
+      "A": "Sólo si es necesario",
+      "B": "Termino Medio",
+      "C": "Fácilmente, siempre que tengo la ocasión",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Tensión"
+    }
+  },
+  {
+    "questionNumber": 33,
+    "questionText": "Me siento muy abatido cuando la gente me ritica en un grupo",
+    "questionType": "multiple_choice_ternary",
+    "factor": "A",
+    "options": {
+      "A": "True",
+      "B": "Termino Medio",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Calidez"
+    }
+  },
+  {
+    "questionNumber": 34,
+    "questionText": "Si mi jefe me llama a su despacho",
+    "questionType": "multiple_choice_ternary",
+    "factor": "B",
+    "options": {
+      "A": "Aprovecho para pedirle algo que deseo",
+      "B": "Termino Medio",
+      "C": "Temo haber hecho algo mal",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Razonamiento"
+    }
+  },
+  {
+    "questionNumber": 35,
+    "questionText": "Mis decisiones se apoyan más en",
+    "questionType": "multiple_choice_ternary",
+    "factor": "C",
+    "options": {
+      "A": "El corazón",
+      "B": "Los sentimientos y la razón por igual",
+      "C": "La cabeza",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Estabilidad emocional"
+    }
+  },
+  {
+    "questionNumber": 36,
+    "questionText": "En mi adolescencia pertenecia a grupos deportivos",
+    "questionType": "multiple_choice_ternary",
+    "factor": "E",
+    "options": {
+      "A": "Algunas veces",
+      "B": "A menudo",
+      "C": "La mayoría de las veces",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Dominancia"
+    }
+  },
+  {
+    "questionNumber": 37,
+    "questionText": "Cuando hablo con alguien, me gusta",
+    "questionType": "multiple_choice_ternary",
+    "factor": "F",
+    "options": {
+      "A": "Decir las cosas tal como se me ocurren",
+      "B": "Termino Medio",
+      "C": "Organizar antes mis ideas",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vivacidad"
+    }
+  },
+  {
+    "questionNumber": 38,
+    "questionText": "A veces me pongo en estado de tensión y agitación cuando pienso en los sucesos del día",
+    "questionType": "multiple_choice_ternary",
+    "factor": "G",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Conciencia de normas"
+    }
+  },
+  {
+    "questionNumber": 39,
+    "questionText": "He sido elegido para hacer algo",
+    "questionType": "multiple_choice_ternary",
+    "factor": "H",
+    "options": {
+      "A": "Sólo en pocas ocasiones",
+      "B": "Varias veces",
+      "C": "Muchas veces",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Atrevimiento social"
+    }
+  },
+  {
+    "questionNumber": 40,
+    "questionText": "¿Cuál de las siguientes cosas es diferente de las otras dos?",
+    "questionType": "multiple_choice_ternary",
+    "factor": "I",
+    "options": {
+      "A": "Vela",
+      "B": "Luna",
+      "C": "Luz Eléctrica",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Sensibilidad"
+    }
+  },
+  {
+    "questionNumber": 41,
+    "questionText": "\"Sorpresa\" es a \"Extraño\", como \"Miedo es a",
+    "questionType": "multiple_choice_ternary",
+    "factor": "L",
+    "options": {
+      "A": "Valeroso",
+      "B": "Ansioso",
+      "C": "Terrible",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vigilancia"
+    }
+  },
+  {
+    "questionNumber": 42,
+    "questionText": "A veces no puedo dormirme porque tengo una iea que me da vueltas en la cabeza",
+    "questionType": "multiple_choice_ternary",
+    "factor": "M",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Imaginación"
+    }
+  },
+  {
+    "questionNumber": 43,
+    "questionText": "Me siento inquieto cuando trabajo en un proyecto que requiere una acción rápida que afecta a los demás",
+    "questionType": "multiple_choice_ternary",
+    "factor": "N",
+    "options": {
+      "A": "True",
+      "B": "Termino Medio",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Privacidad"
+    }
+  },
+  {
+    "questionNumber": 44,
+    "questionText": "Indudablemente tengo menos amigos que la mayoría de las personas",
+    "questionType": "multiple_choice_ternary",
+    "factor": "O",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Aprensión"
+    }
+  },
+  {
+    "questionNumber": 45,
+    "questionText": "Aborrecería tener que estar en un lugar donde hubiera poca gente con quien hablar",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q1",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Apertura al cambio"
+    }
+  },
+  {
+    "questionNumber": 46,
+    "questionText": "Creo que es más importante mucha libertad que buena educación y respeto a la ley ",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q2",
+    "options": {
+      "A": "Vernadero",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Autosuficiencia"
+    }
+  },
+  {
+    "questionNumber": 47,
+    "questionText": "Siempre me alegra formar parte de un grupo grande, como en una reunión, un baile o una asamblea",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q3",
+    "options": {
+      "A": "Si ",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Perfeccionismo"
+    }
+  },
+  {
+    "questionNumber": 48,
+    "questionText": "En mi época de estudiante me gustaba(gusta)",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q4",
+    "options": {
+      "A": "La música",
+      "B": "No estoy seguro",
+      "C": "La actividad de tipo manual",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Tensión"
+    }
+  },
+  {
+    "questionNumber": 49,
+    "questionText": "Si una persona se enoja conmigo",
+    "questionType": "multiple_choice_ternary",
+    "factor": "A",
+    "options": {
+      "A": "Intento calmarla",
+      "B": "No estoy seguro",
+      "C": "Me irrito con ella",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Calidez"
+    }
+  },
+  {
+    "questionNumber": 50,
+    "questionText": "Para los padres es más importante",
+    "questionType": "multiple_choice_ternary",
+    "factor": "B",
+    "options": {
+      "A": "Ayudar a sus hijos a desarrollarse afectivamente",
+      "B": "Termino Medio",
+      "C": "Enseñarles a controlar sus emociones",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Razonamiento"
+    }
+  },
+  {
+    "questionNumber": 51,
+    "questionText": "Siento de vez en cuando la necesidad de ocuparme en una actividad física enérgica",
+    "questionType": "multiple_choice_ternary",
+    "factor": "C",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Estabilidad emocional"
+    }
+  },
+  {
+    "questionNumber": 52,
+    "questionText": "Hay veces en que no me siento con humor para ver a alguien",
+    "questionType": "multiple_choice_ternary",
+    "factor": "E",
+    "options": {
+      "A": "Muy raramente",
+      "B": "Termino Medio",
+      "C": "Muy a menudo",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Dominancia"
+    }
+  },
+  {
+    "questionNumber": 53,
+    "questionText": "A veces los demás me advierten que yo muestro mi excitación demasiado claramente en voz y en los modales",
+    "questionType": "multiple_choice_ternary",
+    "factor": "F",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vivacidad"
+    }
+  },
+  {
+    "questionNumber": 54,
+    "questionText": "Lo que el mundo necesita es",
+    "questionType": "multiple_choice_ternary",
+    "factor": "G",
+    "options": {
+      "A": "Ciudadanos más sensatos y constantes",
+      "B": "No estoy seguro",
+      "C": "Más \"idealistas\" con proyectos para un mundo mejor",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Conciencia de normas"
+    }
+  },
+  {
+    "questionNumber": 55,
+    "questionText": "Preferiría tener un negocio propio, no ompartido con otra persona",
+    "questionType": "multiple_choice_ternary",
+    "factor": "H",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Atrevimiento social"
+    }
+  },
+  {
+    "questionNumber": 56,
+    "questionText": "Tengo mi habitación organizada de un modo inteligente y estético, con las cosas colocadas casi siempre en lugares conocidos",
+    "questionType": "multiple_choice_ternary",
+    "factor": "I",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Sensibilidad"
+    }
+  },
+  {
+    "questionNumber": 57,
+    "questionText": "En ocasiones dudo si la gente con quien estoy hablando se interesa realmente por lo que digo",
+    "questionType": "multiple_choice_ternary",
+    "factor": "L",
+    "options": {
+      "A": "Si ",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vigilancia"
+    }
+  },
+  {
+    "questionNumber": 58,
+    "questionText": "Si tuviera que escoger, preferiría ser",
+    "questionType": "multiple_choice_ternary",
+    "factor": "M",
+    "options": {
+      "A": "Guardabosques",
+      "B": "No estoy seguro",
+      "C": "Profesor de Educación Media",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Imaginación"
+    }
+  },
+  {
+    "questionNumber": 59,
+    "questionText": "¿Cuál de las siguientes fracciones es diferente de las otras dos?",
+    "questionType": "multiple_choice_ternary",
+    "factor": "N",
+    "options": {
+      "A": "0.42857142857142855",
+      "B": "3/9",
+      "C": "3/11",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Privacidad"
+    }
+  },
+  {
+    "questionNumber": 60,
+    "questionText": "\"Tamaño\" es a \"Longitud\" como \"Delito es a",
+    "questionType": "multiple_choice_ternary",
+    "factor": "O",
+    "options": {
+      "A": "Prisión",
+      "B": "Castigo",
+      "C": "Robo",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Aprensión"
+    }
+  },
+  {
+    "questionNumber": 61,
+    "questionText": "En mi vida personal cosigo casi siempre todos mis propósitos",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q1",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Apertura al cambio"
+    }
+  },
+  {
+    "questionNumber": 62,
+    "questionText": "Tengo algunas características en las que me siento claramente superior a la mayor parte de la gente",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q2",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Autosuficiencia"
+    }
+  },
+  {
+    "questionNumber": 63,
+    "questionText": "Sólo asisto a actos sociales cuando estoy obligado, y me mantengo aparte en las demás ocasiones",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q3",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Perfeccionismo"
+    }
+  },
+  {
+    "questionNumber": 64,
+    "questionText": "Es mejor ser cauto y esperar un poco, que ser optimista y esperar siempre el éxito",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q4",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Tensión"
+    }
+  },
+  {
+    "questionNumber": 65,
+    "questionText": "Algunas veces la gente dice que soy descuidado (a), aunque me considera una persona agradable",
+    "questionType": "multiple_choice_ternary",
+    "factor": "A",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Calidez"
+    }
+  },
+  {
+    "questionNumber": 66,
+    "questionText": "Suelo permanecer callado delante de personas mayores (con mucha más experiencia, edad o jerarquía)",
+    "questionType": "multiple_choice_ternary",
+    "factor": "B",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Razonamiento"
+    }
+  },
+  {
+    "questionNumber": 67,
+    "questionText": "Tengo un buen sentido de la orientación (sitúo fácilmente los puntos cardinales), cuando me encuentro en algún lugar desconocido",
+    "questionType": "multiple_choice_ternary",
+    "factor": "C",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Estabilidad emocional"
+    }
+  },
+  {
+    "questionNumber": 68,
+    "questionText": "Cuando leo en una revista un artículo tendencioso o injusto, me inclino más a olvidarlo que a replicar o a \"devolver el golpe\"",
+    "questionType": "multiple_choice_ternary",
+    "factor": "E",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Dominancia"
+    }
+  },
+  {
+    "questionNumber": 69,
+    "questionText": "En tareas de grupo, preferiría",
+    "questionType": "multiple_choice_ternary",
+    "factor": "F",
+    "options": {
+      "A": "Intentar mejorar los preparativos",
+      "B": "Termino Medio",
+      "C": "Llevar las actas o registros y procurar que se cumplan las normas",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vivacidad"
+    }
+  },
+  {
+    "questionNumber": 70,
+    "questionText": "Me gustaría más andar con personas corteses que con individuos rebeldes y toscos",
+    "questionType": "multiple_choice_ternary",
+    "factor": "G",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Conciencia de normas"
+    }
+  },
+  {
+    "questionNumber": 71,
+    "questionText": "Si mis conocidos me tratan mal o muestran que yo les disgusto",
+    "questionType": "multiple_choice_ternary",
+    "factor": "H",
+    "options": {
+      "A": "No me importa nada",
+      "B": "Termino Medio",
+      "C": "Me siento afectado",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Atrevimiento social"
+    }
+  },
+  {
+    "questionNumber": 72,
+    "questionText": "Siempre estoy alertaante los intentos de propaganda en las cosas que leo",
+    "questionType": "multiple_choice_ternary",
+    "factor": "I",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Sensibilidad"
+    }
+  },
+  {
+    "questionNumber": 73,
+    "questionText": "Me gustaría más gozar de la vida tranquilamente y a mi modo, que ser admirado por mis resultados",
+    "questionType": "multiple_choice_ternary",
+    "factor": "L",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vigilancia"
+    }
+  },
+  {
+    "questionNumber": 74,
+    "questionText": "Para estar informado, prefiero",
+    "questionType": "multiple_choice_ternary",
+    "factor": "M",
+    "options": {
+      "A": "Discutir los acontecimientos con la gente",
+      "B": "Termino Medio",
+      "C": "Apoyarme en las informaciones periodísticas de actualidad",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Imaginación"
+    }
+  },
+  {
+    "questionNumber": 75,
+    "questionText": "Me encuentro formado (maduro) para la mayor parte de las cosas",
+    "questionType": "multiple_choice_ternary",
+    "factor": "N",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Privacidad"
+    }
+  },
+  {
+    "questionNumber": 76,
+    "questionText": "Me encuentro más rechazado que ayudado por el tipo de críticas que la gente suele hacer",
+    "questionType": "multiple_choice_ternary",
+    "factor": "O",
+    "options": {
+      "A": "A menudo",
+      "B": "Ocasionalmente",
+      "C": "Nunca",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Aprensión"
+    }
+  },
+  {
+    "questionNumber": 77,
+    "questionText": "En las fiestas de cumpleaños",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q1",
+    "options": {
+      "A": "Me gusta hacer regalos personales",
+      "B": "No estoy seguro",
+      "C": "Pienso que comprar regalos es un poco latoso",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Apertura al cambio"
+    }
+  },
+  {
+    "questionNumber": 78,
+    "questionText": "\"AB\" es a \"dc\" como \"SR\" es a",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q2",
+    "options": {
+      "A": "qp",
+      "B": "pq",
+      "C": "tu",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Autosuficiencia"
+    }
+  },
+  {
+    "questionNumber": 79,
+    "questionText": "\"Mejor\" es a \"pésimo\" como \"Menor\" es a",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q3",
+    "options": {
+      "A": "Mayor",
+      "B": "Óptimo",
+      "C": "Máximo",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Perfeccionismo"
+    }
+  },
+  {
+    "questionNumber": 80,
+    "questionText": "Mis amigos me han fallado",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q4",
+    "options": {
+      "A": "Rara vez",
+      "B": "Ocasionalmente",
+      "C": "Muchas veces",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Tensión"
+    }
+  },
+  {
+    "questionNumber": 81,
+    "questionText": "Cuando me siento abatido hago grandes esfuerzos por ocultar mis sentimientos a los demás",
+    "questionType": "multiple_choice_ternary",
+    "factor": "A",
+    "options": {
+      "A": "True",
+      "B": "Termino Medio",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Calidez"
+    }
+  },
+  {
+    "questionNumber": 82,
+    "questionText": "Gasto gran parte de mi tiempo libre hablando con los amigos sobre situaciones sociales agradables vividas en el pasado",
+    "questionType": "multiple_choice_ternary",
+    "factor": "B",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Razonamiento"
+    }
+  },
+  {
+    "questionNumber": 83,
+    "questionText": "Pensando en las dificultades de mi trabajo",
+    "questionType": "multiple_choice_ternary",
+    "factor": "C",
+    "options": {
+      "A": "Intento organizarme andes de que aparezcan",
+      "B": "Termino Medio",
+      "C": "Por supuesto que puedo dominarlas cuando vengan",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Estabilidad emocional"
+    }
+  },
+  {
+    "questionNumber": 84,
+    "questionText": "Me cuesta bastante hablar o dirigir la palabra a un grupo numeroso",
+    "questionType": "multiple_choice_ternary",
+    "factor": "E",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Dominancia"
+    }
+  },
+  {
+    "questionNumber": 85,
+    "questionText": "He experimentado en varias situaciones sociales el \"nerviosismo de hablar en público\"",
+    "questionType": "multiple_choice_ternary",
+    "factor": "F",
+    "options": {
+      "A": "Muy frecuentemente",
+      "B": "Ocasionalmente",
+      "C": "Casi Nunca",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vivacidad"
+    }
+  },
+  {
+    "questionNumber": 86,
+    "questionText": "Prefiero leer",
+    "questionType": "multiple_choice_ternary",
+    "factor": "G",
+    "options": {
+      "A": "Una narración realista de contiendas o políticas",
+      "B": "No estoy seguro",
+      "C": "Una novela imaginativa y delicada",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Conciencia de normas"
+    }
+  },
+  {
+    "questionNumber": 87,
+    "questionText": "Cuando la gente autoritaria trata de dominarme, hago justamente lo contrario de lo que quiere",
+    "questionType": "multiple_choice_ternary",
+    "factor": "H",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Atrevimiento social"
+    }
+  },
+  {
+    "questionNumber": 88,
+    "questionText": "Suelo olvidar muchas cosas triviales sin importancia, tales como los nombres de las calles y tiendas de la ciudad",
+    "questionType": "multiple_choice_ternary",
+    "factor": "I",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Sensibilidad"
+    }
+  },
+  {
+    "questionNumber": 89,
+    "questionText": "Me gustaría la profesión de Veterinario, ocupado en las enfermedades y curación de los animales",
+    "questionType": "multiple_choice_ternary",
+    "factor": "L",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vigilancia"
+    }
+  },
+  {
+    "questionNumber": 90,
+    "questionText": "Me resulta incómodo que me dediquen elogios o cumplidos",
+    "questionType": "multiple_choice_ternary",
+    "factor": "M",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Imaginación"
+    }
+  },
+  {
+    "questionNumber": 91,
+    "questionText": "Siendo adolescente, cuando mi opinión era distinta de la de mis padres, normalmente",
+    "questionType": "multiple_choice_ternary",
+    "factor": "N",
+    "options": {
+      "A": "Mantenía mi opinión",
+      "B": "Termino Medio",
+      "C": "Aceptaba su autoridad",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Privacidad"
+    }
+  },
+  {
+    "questionNumber": 92,
+    "questionText": "Me gusta tomar parte activa en las tareas sociales, trabajos de comité, etc.",
+    "questionType": "multiple_choice_ternary",
+    "factor": "O",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Aprensión"
+    }
+  },
+  {
+    "questionNumber": 93,
+    "questionText": "Al llevar a cabo una tarea, no estoy satisfecho hasta que se ha considerado con toda atención el menor detalle",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q1",
+    "options": {
+      "A": "True",
+      "B": "Termino Medio",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Apertura al cambio"
+    }
+  },
+  {
+    "questionNumber": 94,
+    "questionText": "Tengo ocasiones en que es difícil alejar un sentimiento de compasión hacia mí mismo",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q2",
+    "options": {
+      "A": "A menudo",
+      "B": "Algunas Veces",
+      "C": "Nunca",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Autosuficiencia"
+    }
+  },
+  {
+    "questionNumber": 95,
+    "questionText": "Siempre soy capaz de controlar perfectamente la expresión de mis sentimientos",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q3",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Perfeccionismo"
+    }
+  },
+  {
+    "questionNumber": 96,
+    "questionText": "Ante un nuevo invento práctico, me gustaría",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q4",
+    "options": {
+      "A": "Trabajar sobre él",
+      "B": "No estoy seguro",
+      "C": "Venderlo a la gente",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Tensión"
+    }
+  },
+  {
+    "questionNumber": 97,
+    "questionText": "La siguiente serie de letras XOOOOXXOOOXXX continúa con el grupo",
+    "questionType": "multiple_choice_ternary",
+    "factor": "A",
+    "options": {
+      "A": "OXXX",
+      "B": "OOXX",
+      "C": "XOOO",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Calidez"
+    }
+  },
+  {
+    "questionNumber": 98,
+    "questionText": "Algunas personas parecen ignorarme o evitarme, aunque no sé porqué",
+    "questionType": "multiple_choice_ternary",
+    "factor": "B",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Razonamiento"
+    }
+  },
+  {
+    "questionNumber": 99,
+    "questionText": "La gente me trata menos razonablemente de lo que merecen mis buenas intenciones",
+    "questionType": "multiple_choice_ternary",
+    "factor": "C",
+    "options": {
+      "A": "A menudo",
+      "B": "Ocasionalmente",
+      "C": "Nunca",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Estabilidad emocional"
+    }
+  },
+  {
+    "questionNumber": 100,
+    "questionText": "Aunque no sea en un grupo mixto de mujeres y hombres, me disgusta que se use un lenguaje obceno",
+    "questionType": "multiple_choice_ternary",
+    "factor": "E",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Dominancia"
+    }
+  },
+  {
+    "questionNumber": 101,
+    "questionText": "Me gusta hacer cosas atrevidas y temerarias sólo por el placer de divertirme",
+    "questionType": "multiple_choice_ternary",
+    "factor": "F",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vivacidad"
+    }
+  },
+  {
+    "questionNumber": 102,
+    "questionText": "Me resulta molesta la vista de una habitación muy sucia",
+    "questionType": "multiple_choice_ternary",
+    "factor": "G",
+    "options": {
+      "A": "Si ",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Conciencia de normas"
+    }
+  },
+  {
+    "questionNumber": 103,
+    "questionText": "Cuando estoy en un grupo pequeño, me agrada quedarme en un segundo término y dejar que otros lleven el peso de la conversación",
+    "questionType": "multiple_choice_ternary",
+    "factor": "H",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Atrevimiento social"
+    }
+  },
+  {
+    "questionNumber": 104,
+    "questionText": "Me resulta fácil mezclarme con la gente en una reunión social",
+    "questionType": "multiple_choice_ternary",
+    "factor": "I",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Sensibilidad"
+    }
+  },
+  {
+    "questionNumber": 105,
+    "questionText": "Sería más interesante ser",
+    "questionType": "multiple_choice_ternary",
+    "factor": "L",
+    "options": {
+      "A": "Orientador vocacional para ayudar a los jovenes en la búsqueda de profesión",
+      "B": "No estoy seguro",
+      "C": "Directivo de una empresa industrial",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vigilancia"
+    }
+  },
+  {
+    "questionNumber": 106,
+    "questionText": "Por regla general, mis jefes y mi familia me encuentran defectos sólo cuando realmente existen",
+    "questionType": "multiple_choice_ternary",
+    "factor": "M",
+    "options": {
+      "A": "True",
+      "B": "Termino Medio",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Imaginación"
+    }
+  },
+  {
+    "questionNumber": 107,
+    "questionText": "Me disgusta el modo con que algunas personas se fijan en otras en la calle o en las tiendas",
+    "questionType": "multiple_choice_ternary",
+    "factor": "N",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Privacidad"
+    }
+  },
+  {
+    "questionNumber": 108,
+    "questionText": "Como los alimentos con gusto y placer, aunque no siempre tan cuidadosa y educadamente como otras personas",
+    "questionType": "multiple_choice_ternary",
+    "factor": "O",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Aprensión"
+    }
+  },
+  {
+    "questionNumber": 109,
+    "questionText": "Temo algún castigo incluso cuando no he hecho nada malo",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q1",
+    "options": {
+      "A": "A menudo",
+      "B": "Ocasionalmente",
+      "C": "Nunca",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Apertura al cambio"
+    }
+  },
+  {
+    "questionNumber": 110,
+    "questionText": "Me gustaría más tener un trabajo con",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q2",
+    "options": {
+      "A": "Un determinado sueldo fijo",
+      "B": "Termino Medio",
+      "C": "Un sueldo más alto pero siempre que demuestre a los demás que lo merezco",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Autosuficiencia"
+    }
+  },
+  {
+    "questionNumber": 111,
+    "questionText": "Me molesta que la gente piense que mi comportamiento es demasiado raro o fuera de lo corriente",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q3",
+    "options": {
+      "A": "Mucho",
+      "B": "Algo",
+      "C": "Nada en absoluto",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Perfeccionismo"
+    }
+  },
+  {
+    "questionNumber": 112,
+    "questionText": "A veces dejo que sentimientos de envidia o celos influyan en mis acciones",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q4",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Tensión"
+    }
+  },
+  {
+    "questionNumber": 113,
+    "questionText": "En ocasiones, contrariedades muy pequeñas me irritan mucho",
+    "questionType": "multiple_choice_ternary",
+    "factor": "A",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Calidez"
+    }
+  },
+  {
+    "questionNumber": 114,
+    "questionText": "Siempre duermo bien, nunca hablo en sueños ni me levanto nonámbulo",
+    "questionType": "multiple_choice_ternary",
+    "factor": "B",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Razonamiento"
+    }
+  },
+  {
+    "questionNumber": 115,
+    "questionText": "Me resultaría más interesante trabajar en una empresa",
+    "questionType": "multiple_choice_ternary",
+    "factor": "C",
+    "options": {
+      "A": "Atentiendo a los clientes",
+      "B": "Termino Medio",
+      "C": "Llevando las cuentas o los archivos",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Estabilidad emocional"
+    }
+  },
+  {
+    "questionNumber": 116,
+    "questionText": "\"Pala\" es a \"Cavar\" como \"Cuchillo\" es a",
+    "questionType": "multiple_choice_ternary",
+    "factor": "E",
+    "options": {
+      "A": "Cortar",
+      "B": "Afilar",
+      "C": "Picar",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Dominancia"
+    }
+  },
+  {
+    "questionNumber": 117,
+    "questionText": "Cuando la gente no es razonable, yo normalmente",
+    "questionType": "multiple_choice_ternary",
+    "factor": "F",
+    "options": {
+      "A": "Me quedo tranquilo",
+      "B": "Termino Medio",
+      "C": "La menosprecio",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vivacidad"
+    }
+  },
+  {
+    "questionNumber": 118,
+    "questionText": "Si los demás hablan en voz alta cuando estoy escuchando música",
+    "questionType": "multiple_choice_ternary",
+    "factor": "G",
+    "options": {
+      "A": "Puedo concentrarme en ella sin que me molesten",
+      "B": "Termino Medio",
+      "C": "Eso me impide disfrutar de ella y me incomoda",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Conciencia de normas"
+    }
+  },
+  {
+    "questionNumber": 119,
+    "questionText": "Creo que se me describe mejor como",
+    "questionType": "multiple_choice_ternary",
+    "factor": "H",
+    "options": {
+      "A": "Comedido y reposado",
+      "B": "Termino Medio",
+      "C": "Enérgico",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Atrevimiento social"
+    }
+  },
+  {
+    "questionNumber": 120,
+    "questionText": "Preferiría vestirme con sencillez y corrección que con un estilo personal y llamativo",
+    "questionType": "multiple_choice_ternary",
+    "factor": "I",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Sensibilidad"
+    }
+  },
+  {
+    "questionNumber": 121,
+    "questionText": "Me niego a admitir sugerencias bien intencionadas de los demás, aunque sé que no debería hacerlo",
+    "questionType": "multiple_choice_ternary",
+    "factor": "L",
+    "options": {
+      "A": "Algunas veces",
+      "B": "Casi Nunca",
+      "C": "Nunca",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vigilancia"
+    }
+  },
+  {
+    "questionNumber": 122,
+    "questionText": "Cuando es necesario que alguien emplee un poco de diplomacia y persuasión para conseguir que la gente actúe, generalmente sólo me lo encargan a mi",
+    "questionType": "multiple_choice_ternary",
+    "factor": "M",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Imaginación"
+    }
+  },
+  {
+    "questionNumber": 123,
+    "questionText": "Me considero a mí mismo como una persona muy abierta y sociable",
+    "questionType": "multiple_choice_ternary",
+    "factor": "N",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Privacidad"
+    }
+  },
+  {
+    "questionNumber": 124,
+    "questionText": "Me gusta la música",
+    "questionType": "multiple_choice_ternary",
+    "factor": "O",
+    "options": {
+      "A": "Ligera, movida y animada",
+      "B": "Termino Medio",
+      "C": "Emotiva y sentimental",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Aprensión"
+    }
+  },
+  {
+    "questionNumber": 125,
+    "questionText": "Si estoy completamente seguro (a) de que una persona es injusta o se comporta egoístamente, se lo digo, incluso si esto me causa un problema",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q1",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Apertura al cambio"
+    }
+  },
+  {
+    "questionNumber": 126,
+    "questionText": "En un viaje largo, preferiría",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q2",
+    "options": {
+      "A": "Leer algo profundo pero interesante",
+      "B": "No estoy seguro",
+      "C": "Pasar el tiempo charlando sobre cualquier cosa con un compañero de viajes",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Autosuficiencia"
+    }
+  },
+  {
+    "questionNumber": 127,
+    "questionText": "En una situación que puede llegar a ser peligrosa, creo que es mejor alborotar o hablar alto, aún cuando se pierda la calma y la cortesía",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q3",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Perfeccionismo"
+    }
+  },
+  {
+    "questionNumber": 128,
+    "questionText": "Es muy exagerada la idea de que la enfermedad proviene tanto de causas mentales como físicas",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q4",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Tensión"
+    }
+  },
+  {
+    "questionNumber": 129,
+    "questionText": "En cualquier gran ceremonia oficial debería mantenerse la pompa y el esplendor",
+    "questionType": "multiple_choice_ternary",
+    "factor": "A",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Calidez"
+    }
+  },
+  {
+    "questionNumber": 130,
+    "questionText": "Cuando hay que hacer algo, me gustaría más trabajar",
+    "questionType": "multiple_choice_ternary",
+    "factor": "B",
+    "options": {
+      "A": "En equipo",
+      "B": "No estoy seguro",
+      "C": "Yo solo",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Razonamiento"
+    }
+  },
+  {
+    "questionNumber": 131,
+    "questionText": "Creo firmemente que \"tal vez el jefe no tenga siempre la razón\", pero siempre tiene la razón por ser el jefe",
+    "questionType": "multiple_choice_ternary",
+    "factor": "C",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Estabilidad emocional"
+    }
+  },
+  {
+    "questionNumber": 132,
+    "questionText": "Suelo enojarme con las personas demasiado pronto",
+    "questionType": "multiple_choice_ternary",
+    "factor": "E",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Dominancia"
+    }
+  },
+  {
+    "questionNumber": 133,
+    "questionText": "Siempre puedo cambiar viejos hábitos sin dificultad y sin volver a ellos",
+    "questionType": "multiple_choice_ternary",
+    "factor": "F",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vivacidad"
+    }
+  },
+  {
+    "questionNumber": 134,
+    "questionText": "Si el sueldo fuera el mismo, preferiría ser",
+    "questionType": "multiple_choice_ternary",
+    "factor": "G",
+    "options": {
+      "A": "Abogado",
+      "B": "No estoy seguro",
+      "C": "Navegante o piloto",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Conciencia de normas"
+    }
+  },
+  {
+    "questionNumber": 135,
+    "questionText": "\"Llama\" es a \"calor\" como \"rosa\" es a",
+    "questionType": "multiple_choice_ternary",
+    "factor": "H",
+    "options": {
+      "A": "Espina",
+      "B": "Pétalo",
+      "C": "Aroma",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Atrevimiento social"
+    }
+  },
+  {
+    "questionNumber": 136,
+    "questionText": "Cuando se acerca el momento de algo que he planeado y he esperado, en ocasiones pierdo la ilusión por ello",
+    "questionType": "multiple_choice_ternary",
+    "factor": "I",
+    "options": {
+      "A": "True",
+      "B": "Termino Medio",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Sensibilidad"
+    }
+  },
+  {
+    "questionNumber": 137,
+    "questionText": "Puedo trabajar cuidadosamente en la mayor parte de las cosas sin que me molesnten las personas que hacen mucho ruido a mi alrededor",
+    "questionType": "multiple_choice_ternary",
+    "factor": "L",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vigilancia"
+    }
+  },
+  {
+    "questionNumber": 138,
+    "questionText": "En ocasiones hablo a desconocidos sobre cosas que considero importantes, aunque no me pregunten sobre ellas",
+    "questionType": "multiple_choice_ternary",
+    "factor": "M",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Imaginación"
+    }
+  },
+  {
+    "questionNumber": 139,
+    "questionText": "Me atrae más pasar una tarde ocupado en una tarea tranquila a la que tenga afición que estar en una reunión animada",
+    "questionType": "multiple_choice_ternary",
+    "factor": "N",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Privacidad"
+    }
+  },
+  {
+    "questionNumber": 140,
+    "questionText": "Cuando debo decidir algo, tengo siempre presentes las reglas básicas de lo justo y lo injusto",
+    "questionType": "multiple_choice_ternary",
+    "factor": "O",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Aprensión"
+    }
+  },
+  {
+    "questionNumber": 141,
+    "questionText": "En el trato social",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q1",
+    "options": {
+      "A": "Muestro mis emociones tal como las siento",
+      "B": "Termino Medio",
+      "C": "Guardo mis emociones para mis adentros",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Apertura al cambio"
+    }
+  },
+  {
+    "questionNumber": 142,
+    "questionText": "Admiro más la belleza de un poema que la de un arma de fuego bien construida",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q2",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Autosuficiencia"
+    }
+  },
+  {
+    "questionNumber": 143,
+    "questionText": "A veces digo extravagancias en broma, sólo para sorprender a la gente y ver qué responden",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q3",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Perfeccionismo"
+    }
+  },
+  {
+    "questionNumber": 144,
+    "questionText": "Me agradaría ser un periodista que escribiera sobre teatro, conciertos, ópera, etc.",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q4",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Tensión"
+    }
+  },
+  {
+    "questionNumber": 145,
+    "questionText": "Nunca siento la necesidad de garabatear, dibujar o moverme cuando estoy sentado en una reunión",
+    "questionType": "multiple_choice_ternary",
+    "factor": "A",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Calidez"
+    }
+  },
+  {
+    "questionNumber": 146,
+    "questionText": "Si alguien me dice aldo que yo sé que no es cierto, suelo pensar",
+    "questionType": "multiple_choice_ternary",
+    "factor": "B",
+    "options": {
+      "A": "\"Es un mentiroso\"",
+      "B": "Termino Medio",
+      "C": "\"Evidentemente no está bien informado\"",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Razonamiento"
+    }
+  },
+  {
+    "questionNumber": 147,
+    "questionText": "La gente me considera con justicia una persona activa pero con éxito sólo mediano",
+    "questionType": "multiple_choice_ternary",
+    "factor": "C",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Estabilidad emocional"
+    }
+  },
+  {
+    "questionNumber": 148,
+    "questionText": "Si se suscitara una controversia violenta entre otros miembros de un grupo de discusión",
+    "questionType": "multiple_choice_ternary",
+    "factor": "E",
+    "options": {
+      "A": "Me gustaría ver quién es el ganador",
+      "B": "Termino Medio",
+      "C": "Desearía que se suavizara de nuevo la situación",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Dominancia"
+    }
+  },
+  {
+    "questionNumber": 149,
+    "questionText": "Me gusta planear mis cosas solo, sin interrupciones y sugerencias de otros",
+    "questionType": "multiple_choice_ternary",
+    "factor": "F",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vivacidad"
+    }
+  },
+  {
+    "questionNumber": 150,
+    "questionText": "Me gusta seguir mis propios caminos, en vez de actuar según las normas establecidas",
+    "questionType": "multiple_choice_ternary",
+    "factor": "G",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Conciencia de normas"
+    }
+  },
+  {
+    "questionNumber": 151,
+    "questionText": "Me pongo nervioso (tenso) cuando pienso en todas las cosas que tengo que hacer",
+    "questionType": "multiple_choice_ternary",
+    "factor": "H",
+    "options": {
+      "A": "Si",
+      "B": "Algunas Veces",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Atrevimiento social"
+    }
+  },
+  {
+    "questionNumber": 152,
+    "questionText": "No me perturba que la gente me haga alguna sugerencia cuando estoy jugando",
+    "questionType": "multiple_choice_ternary",
+    "factor": "I",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Sensibilidad"
+    }
+  },
+  {
+    "questionNumber": 153,
+    "questionText": "Me parece más interesante ser",
+    "questionType": "multiple_choice_ternary",
+    "factor": "L",
+    "options": {
+      "A": "Artista",
+      "B": "No estoy seguro",
+      "C": "Secretario de un club social",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vigilancia"
+    }
+  },
+  {
+    "questionNumber": 154,
+    "questionText": "¿Cuál de las siguientes palabras es diferete de las otras dos?",
+    "questionType": "multiple_choice_ternary",
+    "factor": "M",
+    "options": {
+      "A": "Ancho",
+      "B": "zigzag",
+      "C": "Recto",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Imaginación"
+    }
+  },
+  {
+    "questionNumber": 155,
+    "questionText": "He tenido sueños tan intensos que no me han dejado dormir bien",
+    "questionType": "multiple_choice_ternary",
+    "factor": "N",
+    "options": {
+      "A": "A menudo",
+      "B": "Ocasionalmente",
+      "C": "Prácticamente nunca",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Privacidad"
+    }
+  },
+  {
+    "questionNumber": 156,
+    "questionText": "Aunque tenga pocas posibilidades de éxito, creo que todavía me merece la pena correr el riesgo",
+    "questionType": "multiple_choice_ternary",
+    "factor": "O",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Aprensión"
+    }
+  },
+  {
+    "questionNumber": 157,
+    "questionText": "Cuando yo sé muy bien lo que el grupo tiene que hacer, me gusta ser el único en dar órdenes",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q1",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Apertura al cambio"
+    }
+  },
+  {
+    "questionNumber": 158,
+    "questionText": "Me consideran una persona muy entusiasta",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q2",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Autosuficiencia"
+    }
+  },
+  {
+    "questionNumber": 159,
+    "questionText": "Soy una persona bastante estricta, e insisto siempre en hacer las cosas tan correctamente como sea posible",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q3",
+    "options": {
+      "A": "True",
+      "B": "Termino Medio",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Perfeccionismo"
+    }
+  },
+  {
+    "questionNumber": 160,
+    "questionText": "Me disgusta un poco que la gente me esté mirando cuando trabajo",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q4",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Tensión"
+    }
+  },
+  {
+    "questionNumber": 161,
+    "questionText": "Como no siempre es posible conseguir las cosas utilizando gradualmente métodos razonables, a veces es necesario emplear la fuerza",
+    "questionType": "multiple_choice_ternary",
+    "factor": "A",
+    "options": {
+      "A": "True",
+      "B": "Termino Medio",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Calidez"
+    }
+  },
+  {
+    "questionNumber": 162,
+    "questionText": "Si se pasa por alto una buena observación mía",
+    "questionType": "multiple_choice_ternary",
+    "factor": "B",
+    "options": {
+      "A": "La dejo pasar",
+      "B": "Termino Medio",
+      "C": "Doy a la gente oportunidad de volver a escucharla",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Razonamiento"
+    }
+  },
+  {
+    "questionNumber": 163,
+    "questionText": "Me gustaría hacer el trabajo de un oficial encargado de los casos de delincuentes bajo fianza",
+    "questionType": "multiple_choice_ternary",
+    "factor": "C",
+    "options": {
+      "A": "Si ",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Estabilidad emocional"
+    }
+  },
+  {
+    "questionNumber": 164,
+    "questionText": "Hay que ser prudente antes de mezclarse con cualquier desconocido, puesto que hay peligros de infección y de otro tipo",
+    "questionType": "multiple_choice_ternary",
+    "factor": "E",
+    "options": {
+      "A": "Si",
+      "B": "no estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Dominancia"
+    }
+  },
+  {
+    "questionNumber": 165,
+    "questionText": "En un viaje al extranjero, preferriría ir en un grupo organizado, con un experto, que planear yo mismo los lugares que deseo visitar",
+    "questionType": "multiple_choice_ternary",
+    "factor": "F",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vivacidad"
+    }
+  },
+  {
+    "questionNumber": 166,
+    "questionText": "Si la gente se aprovecha de mi amistad, no me quedo resentido y lo olvido pronto",
+    "questionType": "multiple_choice_ternary",
+    "factor": "G",
+    "options": {
+      "A": "True",
+      "B": "Termino Medio",
+      "C": "Falo",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Conciencia de normas"
+    }
+  },
+  {
+    "questionNumber": 167,
+    "questionText": "Creo que la sociedad debería aceptar nuevas costumbres, de acuerdo con la razón, y olvidar los viejos usos y tradiciones",
+    "questionType": "multiple_choice_ternary",
+    "factor": "H",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Atrevimiento social"
+    }
+  },
+  {
+    "questionNumber": 168,
+    "questionText": "Aprendo mejor",
+    "questionType": "multiple_choice_ternary",
+    "factor": "I",
+    "options": {
+      "A": "Leyendo un libro bien escrito",
+      "B": "Termino Medio",
+      "C": "Participando en un grupo de discusión",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Sensibilidad"
+    }
+  },
+  {
+    "questionNumber": 169,
+    "questionText": "Me gusta esperar a estar seguro de lo que voy a decir  es correcto, antes de exponer mis ideas",
+    "questionType": "multiple_choice_ternary",
+    "factor": "L",
+    "options": {
+      "A": "Siempre",
+      "B": "Generalmente",
+      "C": "Sólo si es posible",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vigilancia"
+    }
+  },
+  {
+    "questionNumber": 170,
+    "questionText": "Algunas veces me \"sacan de quicio\" de un modo insoportable pequeña cosas, aunque reconozca que son triviales",
+    "questionType": "multiple_choice_ternary",
+    "factor": "M",
+    "options": {
+      "A": "Siempre",
+      "B": "Generalmente",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Imaginación"
+    }
+  },
+  {
+    "questionNumber": 171,
+    "questionText": "No suelo decir, sin pensarlas, cosas que luego lamento mucho",
+    "questionType": "multiple_choice_ternary",
+    "factor": "N",
+    "options": {
+      "A": "True",
+      "B": "No estoy seguro",
+      "C": "False",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Privacidad"
+    }
+  },
+  {
+    "questionNumber": 172,
+    "questionText": "Si se pidiera colaborar en una campaña caritativa",
+    "questionType": "multiple_choice_ternary",
+    "factor": "O",
+    "options": {
+      "A": "Aceptaría",
+      "B": "No estoy seguro",
+      "C": "Ditía cortésmente que estoy ocupado",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Aprensión"
+    }
+  },
+  {
+    "questionNumber": 173,
+    "questionText": "\"Pronto\" es a \"nunca\" como \"cerca\" es a ",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q1",
+    "options": {
+      "A": "En ningún sitio",
+      "B": "Lejos",
+      "C": "En otro sitio",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Apertura al cambio"
+    }
+  },
+  {
+    "questionNumber": 174,
+    "questionText": "Si cometo una falta social desagradable, puedo olvidarla pronto",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q2",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Autosuficiencia"
+    }
+  },
+  {
+    "questionNumber": 175,
+    "questionText": "Se me considera un \"hombre de ideas\" que casi siempre puede apuntar alguna solución  a un problema",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q3",
+    "options": {
+      "A": "Si",
+      "B": " Término medio",
+      "C": "no",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Perfeccionismo"
+    }
+  },
+  {
+    "questionNumber": 176,
+    "questionText": "Creo que está más de acuerdo conmigo mostrar",
+    "questionType": "multiple_choice_ternary",
+    "factor": "Q4",
+    "options": {
+      "A": "Aplomo en las pugnas y discusiones de una reunión",
+      "B": "No estoy seguro",
+      "C": "Tolerancia con los deseos de los demás",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Tensión"
+    }
+  },
+  {
+    "questionNumber": 177,
+    "questionText": "Me gusta un trabajo que presente cambios, variedades y viajes, aunque implique algún peligro",
+    "questionType": "multiple_choice_ternary",
+    "factor": "A",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Calidez"
+    }
+  },
+  {
+    "questionNumber": 178,
+    "questionText": "Me gusta un trabajo que requiera capacidadde atención  y exactitud",
+    "questionType": "multiple_choice_ternary",
+    "factor": "B",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Razonamiento"
+    }
+  },
+  {
+    "questionNumber": 179,
+    "questionText": "Soy de ese tipo de personas con tanta energía que siempre están ocupadas",
+    "questionType": "multiple_choice_ternary",
+    "factor": "C",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Estabilidad emocional"
+    }
+  },
+  {
+    "questionNumber": 180,
+    "questionText": "En mi época de estudiante prefería (prefiero)",
+    "questionType": "multiple_choice_ternary",
+    "factor": "E",
+    "options": {
+      "A": "Lengua o Literatuta",
+      "B": "No estoy seguro",
+      "C": "Matemáticas o Aristética",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Dominancia"
+    }
+  },
+  {
+    "questionNumber": 181,
+    "questionText": "Algunas veces me ha turbado que la gente diga a mi espalda cosas desagradables de mi sin fundamento",
+    "questionType": "multiple_choice_ternary",
+    "factor": "F",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vivacidad"
+    }
+  },
+  {
+    "questionNumber": 182,
+    "questionText": "Hablar con personas corrientes, convencionales y rutinarias",
+    "questionType": "multiple_choice_ternary",
+    "factor": "G",
+    "options": {
+      "A": "Es a menudo muy interesante e instructivo",
+      "B": "Termino Medio",
+      "C": "Me molesta porque no hay profundidad o se trata de chismes y cosas sin importancia",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Conciencia de normas"
+    }
+  },
+  {
+    "questionNumber": 183,
+    "questionText": "Algunas cosas me irritan tanto que creo que entonces lo mejor es no hablar",
+    "questionType": "multiple_choice_ternary",
+    "factor": "H",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Atrevimiento social"
+    }
+  },
+  {
+    "questionNumber": 184,
+    "questionText": "En la formación del niño, es más importate",
+    "questionType": "multiple_choice_ternary",
+    "factor": "I",
+    "options": {
+      "A": "Darle bastante afecto",
+      "B": "Termino Medio",
+      "C": "Procurar que aprenda hábitos y actitudes deseables",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Sensibilidad"
+    }
+  },
+  {
+    "questionNumber": 185,
+    "questionText": "Los demás me consideran una persona firme e imperturbable, impasible ante los vaivenes de las circunstancias",
+    "questionType": "multiple_choice_ternary",
+    "factor": "L",
+    "options": {
+      "A": "Si",
+      "B": "Termino Medio",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Vigilancia"
+    }
+  },
+  {
+    "questionNumber": 186,
+    "questionText": "Creo que en el mundo actual es mas importante resolver",
+    "questionType": "multiple_choice_ternary",
+    "factor": "M",
+    "options": {
+      "A": "El problema de la intención moral",
+      "B": "No estoy seguro",
+      "C": "Los problemas políticos",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Imaginación"
+    }
+  },
+  {
+    "questionNumber": 187,
+    "questionText": "Creo que no me he saltado ninguna afirmación y he contestado a todas de modo apropiado",
+    "questionType": "multiple_choice_ternary",
+    "factor": "N",
+    "options": {
+      "A": "Si",
+      "B": "No estoy seguro",
+      "C": "No",
+      "scoring": {
+        "A": 0,
+        "B": 1,
+        "C": 2
+      }
+    },
+    "metadata": {
+      "polarity": 1,
+      "factorDescription": "Privacidad"
+    }
+  }
+]

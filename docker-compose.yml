@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:13
+    container_name: talentree-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-talentree_db}
+      POSTGRES_USER: ${POSTGRES_USER:-talentree_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-talentree_password}
+    ports:
+      - '15432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Redis para cache
+  redis:
+    image: redis:7-alpine
+    container_name: talentree-redis
+    ports:
+      - '16379:6379'
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: talentree-backend
+    environment:
+      # Database Configuration
+      DB_TYPE: ${DB_TYPE:-postgres}
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USERNAME: ${DB_USERNAME:-talentree_user}
+      DB_PASSWORD: ${DB_PASSWORD:-talentree_password}
+      DB_DATABASE: ${DB_DATABASE:-talentree_db}
+      DB_SYNCHRONIZE: ${DB_SYNCHRONIZE:-true}
+      DB_LOGGING: ${DB_LOGGING:-true}
+      DB_DROP_SCHEMA: ${DB_DROP_SCHEMA:-false}
+
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET:-talentree_jwt_secret_2024_very_secure_key}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-1d}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-talentree_refresh_secret_2024_very_secure_key}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-7d}
+
+      # Server Configuration
+      PORT: ${PORT:-3000}
+      API_PREFIX: ${API_PREFIX:-api/v1}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173,https://talentree.cl}
+
+      # Cache Configuration
+      CACHE_TTL_MS: ${CACHE_TTL_MS:-300000}
+      CACHE_MAX: ${CACHE_MAX:-1000}
+
+      # Email Configuration
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS:-no-reply@talentree.com}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+
+      # AWS S3 Configuration
+      AWS_REGION: ${AWS_REGION:-us-east-2}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-talentree-bucket}
+    ports:
+      - '3002:3000'
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -1,0 +1,410 @@
+[
+  {
+    "questionNumber": 1,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Decidido",
+        "I": "Alegre",
+        "S": "Paciente",
+        "C": "Preciso"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 1
+    }
+  },
+  {
+    "questionNumber": 2,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Competitivo",
+        "I": "Sociable",
+        "S": "Leal",
+        "C": "Analítico"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 2
+    }
+  },
+  {
+    "questionNumber": 3,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Directo",
+        "I": "Entusiasta",
+        "S": "Tranquilo",
+        "C": "Cuidadoso"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 3
+    }
+  },
+  {
+    "questionNumber": 4,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Determinante",
+        "I": "Optimista",
+        "S": "Amable",
+        "C": "Perfeccionista"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 4
+    }
+  },
+  {
+    "questionNumber": 5,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Valiente",
+        "I": "Persuasivo",
+        "S": "Constante",
+        "C": "Controlado"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 5
+    }
+  },
+  {
+    "questionNumber": 6,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Eficiente",
+        "I": "Comunicativo",
+        "S": "Discreto",
+        "C": "Meticuloso"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 6
+    }
+  },
+  {
+    "questionNumber": 7,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Firme",
+        "I": "Espontáneo",
+        "S": "Tolerante",
+        "C": "Ordenado"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 7
+    }
+  },
+  {
+    "questionNumber": 8,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Audaz",
+        "I": "Inspirador",
+        "S": "Predecible",
+        "C": "Crítico"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 8
+    }
+  },
+  {
+    "questionNumber": 9,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Desafiante",
+        "I": "Divertido",
+        "S": "Considerado",
+        "C": "Lógico"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 9
+    }
+  },
+  {
+    "questionNumber": 10,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Resuelto",
+        "I": "Afectuoso",
+        "S": "Equilibrado",
+        "C": "Disciplinado"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 10
+    }
+  },
+  {
+    "questionNumber": 11,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Seguro",
+        "I": "Popular",
+        "S": "Complaciente",
+        "C": "Cauto"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 11
+    }
+  },
+  {
+    "questionNumber": 12,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Enérgico",
+        "I": "Hablador",
+        "S": "Reservado",
+        "C": "Prudente"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 12
+    }
+  },
+  {
+    "questionNumber": 13,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Autoritario",
+        "I": "Amigable",
+        "S": "Comprensivo",
+        "C": "Organizado"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 13
+    }
+  },
+  {
+    "questionNumber": 14,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Emprendedor",
+        "I": "Animado",
+        "S": "Estable",
+        "C": "Exacto"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 14
+    }
+  },
+  {
+    "questionNumber": 15,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Líder",
+        "I": "Carismático",
+        "S": "Fiable",
+        "C": "Responsable"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 15
+    }
+  },
+  {
+    "questionNumber": 16,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Independiente",
+        "I": "Colaborador",
+        "S": "Apacible",
+        "C": "Objetivo"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 16
+    }
+  },
+  {
+    "questionNumber": 17,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Persuasivo",
+        "I": "Motivador",
+        "S": "Atento",
+        "C": "Detallista"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 17
+    }
+  },
+  {
+    "questionNumber": 18,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Objetivo",
+        "I": "Convincente",
+        "S": "Solidario",
+        "C": "Cumplidor"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 18
+    }
+  },
+  {
+    "questionNumber": 19,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Agresivo",
+        "I": "Emotivo",
+        "S": "Cuidadoso",
+        "C": "Estructurado"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 19
+    }
+  },
+  {
+    "questionNumber": 20,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Controlador",
+        "I": "Encantador",
+        "S": "Callado",
+        "C": "Minucioso"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 20
+    }
+  },
+  {
+    "questionNumber": 21,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Ambicioso",
+        "I": "Expresivo",
+        "S": "Calmado",
+        "C": "Científico"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 21
+    }
+  },
+  {
+    "questionNumber": 22,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Osado",
+        "I": "Cordial",
+        "S": "Confiable",
+        "C": "Razonable"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 22
+    }
+  },
+  {
+    "questionNumber": 23,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Práctico",
+        "I": "Simpático",
+        "S": "Cauteloso",
+        "C": "Correcto"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 23
+    }
+  },
+  {
+    "questionNumber": 24,
+    "questionText": "Seleccione la palabra que MÁS lo describe y la que MENOS lo describe del siguiente grupo:",
+    "questionType": "forced_choice",
+    "options": {
+      "words": {
+        "D": "Eficaz",
+        "I": "Entregado",
+        "S": "Sereno",
+        "C": "Formal"
+      },
+      "format": "mas_menos"
+    },
+    "metadata": {
+      "blockNumber": 24
+    }
+  }
+]

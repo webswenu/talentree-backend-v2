@@ -1,0 +1,262 @@
+[
+  {
+    "questionNumber": 1,
+    "questionText": "Si un empleado tarda 20 minutos en revisar un informe y otro tarda el doble, ¿cuánto tardan en total?",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "30 minutos",
+      "B": "40 minutos",
+      "C": "50 minutos",
+      "D": "60 minutos"
+    },
+    "correctAnswer": "C",
+    "points": 1
+  },
+  {
+    "questionNumber": 2,
+    "questionText": "¿Qué palabra no pertenece al grupo? Martillo, Clavo, Tornillo, Zapato",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "Martillo",
+      "B": "Clavo",
+      "C": "Tornillo",
+      "D": "Zapato"
+    },
+    "correctAnswer": "D",
+    "points": 1
+  },
+  {
+    "questionNumber": 3,
+    "questionText": "Un turno de trabajo comienza a las 8:00 y termina a las 16:30. ¿Cuántas horas dura el turno?",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "7.5",
+      "B": "8",
+      "C": "8.5",
+      "D": "9"
+    },
+    "correctAnswer": "C",
+    "points": 1
+  },
+  {
+    "questionNumber": 4,
+    "questionText": "Si un producto cuesta $24.000 y tiene un descuento del 25%, ¿cuánto se paga?",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "$18.000",
+      "B": "$19.000",
+      "C": "$20.000",
+      "D": "$21.000"
+    },
+    "correctAnswer": "A",
+    "points": 1
+  },
+  {
+    "questionNumber": 5,
+    "questionText": "Si hoy es lunes, ¿qué día será dentro de 10 días?",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "Miércoles",
+      "B": "Viernes",
+      "C": "Sábado",
+      "D": "Jueves"
+    },
+    "correctAnswer": "C",
+    "points": 1
+  },
+  {
+    "questionNumber": 6,
+    "questionText": "Completa la serie: 2, 4, 8, 16, __",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "18",
+      "B": "24",
+      "C": "32",
+      "D": "36"
+    },
+    "correctAnswer": "C",
+    "points": 1
+  },
+  {
+    "questionNumber": 7,
+    "questionText": "El supervisor de Pedro tiene tres veces su edad. Si Pedro tiene 15 años, ¿qué edad tiene el supervisor?",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "30",
+      "B": "45",
+      "C": "50",
+      "D": "60"
+    },
+    "correctAnswer": "B",
+    "points": 1
+  },
+  {
+    "questionNumber": 8,
+    "questionText": "¿Cuál de los siguientes números es el mayor?",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "0.5",
+      "B": "0.75",
+      "C": "0.25",
+      "D": "0.33"
+    },
+    "correctAnswer": "B",
+    "points": 1
+  },
+  {
+    "questionNumber": 9,
+    "questionText": "En la siguiente secuencia falta un número: 5, 10, 15, __, 25",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "18",
+      "B": "20",
+      "C": "22",
+      "D": "24"
+    },
+    "correctAnswer": "B",
+    "points": 1
+  },
+  {
+    "questionNumber": 10,
+    "questionText": "¿Qué palabra completa correctamente la analogía? Agua es a sed como comida es a __",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "Hambre",
+      "B": "Cena",
+      "C": "Día",
+      "D": "Dulce"
+    },
+    "correctAnswer": "A",
+    "points": 1
+  },
+  {
+    "questionNumber": 11,
+    "questionText": "Si un obrero puede hacer un muro en 6 días, ¿cuántos obreros necesitaría para hacerlo en 3 días?",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "2",
+      "B": "3",
+      "C": "4",
+      "D": "6"
+    },
+    "correctAnswer": "A",
+    "points": 1
+  },
+  {
+    "questionNumber": 12,
+    "questionText": "Si un camión lleva 8 cajas y cada caja pesa 12 kg, ¿cuál es el peso total?",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "96 kg",
+      "B": "100 kg",
+      "C": "84 kg",
+      "D": "92 kg"
+    },
+    "correctAnswer": "A",
+    "points": 1
+  },
+  {
+    "questionNumber": 13,
+    "questionText": "¿Cuál de las siguientes figuras tiene más lados?",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "Cuadrado",
+      "B": "Pentágono",
+      "C": "Triángulo",
+      "D": "Rectángulo"
+    },
+    "correctAnswer": "B",
+    "points": 1
+  },
+  {
+    "questionNumber": 14,
+    "questionText": "Si el doble de un número es 18, ¿cuál es el número?",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "7",
+      "B": "8",
+      "C": "9",
+      "D": "10"
+    },
+    "correctAnswer": "C",
+    "points": 1
+  },
+  {
+    "questionNumber": 15,
+    "questionText": "Un tren parte a las 9:15 y llega a las 11:00. ¿Cuánto dura el viaje?",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "1 hora",
+      "B": "1 hora 45 min",
+      "C": "2 horas",
+      "D": "2 horas 15 min"
+    },
+    "correctAnswer": "B",
+    "points": 1
+  },
+  {
+    "questionNumber": 16,
+    "questionText": "¿Cuál es el sinónimo de 'eficiente'?",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "Lento",
+      "B": "Capaz",
+      "C": "Tardío",
+      "D": "Torpe"
+    },
+    "correctAnswer": "B",
+    "points": 1
+  },
+  {
+    "questionNumber": 17,
+    "questionText": "¿Cuál de las siguientes palabras es un antónimo de 'ordenado'?",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "Limpio",
+      "B": "Metódico",
+      "C": "Desordenado",
+      "D": "Cuidadoso"
+    },
+    "correctAnswer": "C",
+    "points": 1
+  },
+  {
+    "questionNumber": 18,
+    "questionText": "Completa la analogía: Libro es a leer como tenedor es a __",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "Cocinar",
+      "B": "Comer",
+      "C": "Servir",
+      "D": "Cortar"
+    },
+    "correctAnswer": "B",
+    "points": 1
+  },
+  {
+    "questionNumber": 19,
+    "questionText": "En la secuencia 9, 12, 15, 18, __, el número siguiente es:",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "19",
+      "B": "20",
+      "C": "21",
+      "D": "22"
+    },
+    "correctAnswer": "C",
+    "points": 1
+  },
+  {
+    "questionNumber": 20,
+    "questionText": "Si un trabajador gana $900.000 mensuales, ¿cuánto gana en un trimestre?",
+    "questionType": "multiple_choice",
+    "options": {
+      "A": "$2.400.000",
+      "B": "$2.600.000",
+      "C": "$2.700.000",
+      "D": "$2.800.000"
+    },
+    "correctAnswer": "C",
+    "points": 1
+  }
+]
