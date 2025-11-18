@@ -17,7 +17,7 @@ export class Company {
   @Column()
   name: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true })
   rut: string;
 
   @Column({ nullable: true })

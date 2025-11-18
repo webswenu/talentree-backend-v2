@@ -28,6 +28,7 @@ import {
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { UserRole } from '../../common/enums/user-role.enum';
 
 @Controller('processes')
@@ -37,6 +38,12 @@ export class ProcessesController {
     private readonly processesService: ProcessesService,
     private readonly processVideoRequirementsService: ProcessVideoRequirementsService,
   ) {}
+
+  @Get('available')
+  @Public()
+  findPublicProcesses(@Query() filters: ProcessFilterDto) {
+    return this.processesService.findPublicProcesses(filters);
+  }
 
   @Post()
   @Roles(UserRole.ADMIN_TALENTREE)

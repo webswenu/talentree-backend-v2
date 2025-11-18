@@ -5,7 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In, QueryFailedError } from 'typeorm';
+import { Repository, In, QueryFailedError, DataSource } from 'typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as bcrypt from 'bcrypt';
@@ -43,9 +43,11 @@ export class WorkersService {
     private readonly s3Service: S3Service,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createWorkerDto: CreateWorkerDto): Promise<Worker> {
+    // Validaciones previas
     const existingWorker = await this.workerRepository.findOne({
       where: [{ rut: createWorkerDto.rut }, { email: createWorkerDto.email }],
     });
@@ -56,34 +58,63 @@ export class WorkersService {
       );
     }
 
-    // Si viene contraseña, crear también el usuario
-    if (createWorkerDto.password) {
-      const existingUser = await this.userRepository.findOne({
-        where: { email: createWorkerDto.email },
-      });
+    const existingUser = await this.userRepository.findOne({
+      where: { email: createWorkerDto.email },
+    });
 
-      if (existingUser) {
-        throw new BadRequestException(
-          'Ya existe un usuario con este email',
-        );
-      }
+    if (existingUser) {
+      throw new BadRequestException(
+        'Ya existe un usuario con este email',
+      );
+    }
 
-      const hashedPassword = await bcrypt.hash(createWorkerDto.password, 10);
-      const user = this.userRepository.create({
+    // Usar transacción para asegurar que se creen ambos o ninguno
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // Si NO viene contraseña, generar una por defecto
+      const password = createWorkerDto.password || 'Talentree2024!';
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Crear el usuario primero
+      const user = queryRunner.manager.create(User, {
         email: createWorkerDto.email,
         password: hashedPassword,
         firstName: createWorkerDto.firstName,
         lastName: createWorkerDto.lastName,
+        phone: createWorkerDto.phone,
         role: UserRole.WORKER,
+        isActive: true,
+        isEmailVerified: false,
       });
-      await this.userRepository.save(user);
+      const savedUser = await queryRunner.manager.save(User, user);
+
+      // Eliminar password del DTO antes de crear el worker
+      const { password: _, ...workerData } = createWorkerDto;
+
+      // Crear el worker vinculado al usuario
+      const worker = queryRunner.manager.create(Worker, {
+        ...workerData,
+        user: savedUser,
+      });
+      const savedWorker = await queryRunner.manager.save(Worker, worker);
+
+      await queryRunner.commitTransaction();
+
+      // Retornar el worker con sus relaciones
+      return this.workerRepository.findOne({
+        where: { id: savedWorker.id },
+        relations: ['user'],
+      });
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error(`Error al crear trabajador: ${error.message}`);
+      throw new BadRequestException('Error al crear el trabajador');
+    } finally {
+      await queryRunner.release();
     }
-
-    // Eliminar password del DTO antes de crear el worker
-    const { password, ...workerData } = createWorkerDto;
-
-    const worker = this.workerRepository.create(workerData);
-    return this.workerRepository.save(worker);
   }
 
   async findAll(filters?: WorkerFilterDto): Promise<PaginatedResult<Worker>> {

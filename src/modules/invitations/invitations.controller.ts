@@ -55,7 +55,13 @@ export class InvitationsController {
 
       companyId = company.id;
     } else {
-      companyId = createInvitationDto['companyId'];
+      // Para ADMIN_TALENTREE, el companyId debe venir en el DTO
+      if (!createInvitationDto.companyId) {
+        throw new BadRequestException(
+          'Debes seleccionar una empresa para la invitación',
+        );
+      }
+      companyId = createInvitationDto.companyId;
     }
 
     return this.invitationsService.create(

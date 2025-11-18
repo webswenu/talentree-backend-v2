@@ -39,20 +39,28 @@ export class CompaniesService {
   async create(createCompanyDto: CreateCompanyDto): Promise<Company> {
     const { userId, ...companyData } = createCompanyDto;
 
-    const user = await this.usersService.findOne(userId);
+    // Verificar RUT duplicado solo si se proporciona
+    if (companyData.rut) {
+      const existingCompany = await this.companyRepository.findOne({
+        where: { rut: companyData.rut },
+      });
 
-    const existingCompany = await this.companyRepository.findOne({
-      where: { rut: companyData.rut },
-    });
-
-    if (existingCompany) {
-      throw new ConflictException('El RUT ya está registrado');
+      if (existingCompany) {
+        throw new ConflictException('El RUT ya está registrado');
+      }
     }
 
+    // Solo buscar usuario si se proporciona userId
+    let user = null;
+    if (userId) {
+      user = await this.usersService.findOne(userId);
+    }
+
+    // Crear empresa con o sin usuario
     const company = this.companyRepository.create({
       ...companyData,
-      user,
       contractStartDate: new Date(),
+      ...(user && { user }),
     });
 
     return this.companyRepository.save(company);
@@ -98,9 +106,43 @@ export class CompaniesService {
     id: string,
     updateCompanyDto: UpdateCompanyDto,
   ): Promise<Company> {
+    this.logger.log(
+      `[UPDATE] Actualizando empresa ${id} con datos:`,
+      updateCompanyDto,
+    );
+
     const company = await this.findOne(id);
-    Object.assign(company, updateCompanyDto);
-    return this.companyRepository.save(company);
+    this.logger.log(`[UPDATE] Empresa encontrada:`, {
+      id: company.id,
+      name: company.name,
+      currentUserId: company.user?.id,
+    });
+
+    // Extraer userId del DTO si existe
+    const { userId, ...restData } = updateCompanyDto;
+
+    // Asignar el resto de los datos
+    Object.assign(company, restData);
+
+    // Si viene userId, buscar el usuario y asignar la relación
+    if (userId) {
+      this.logger.log(`[UPDATE] Buscando usuario con ID: ${userId}`);
+      const user = await this.usersService.findOne(userId);
+      this.logger.log(`[UPDATE] Usuario encontrado:`, {
+        id: user.id,
+        email: user.email,
+      });
+      company.user = user;
+    }
+
+    this.logger.log(`[UPDATE] Guardando empresa con userId:`, company.user?.id);
+    const saved = await this.companyRepository.save(company);
+    this.logger.log(`[UPDATE] Empresa guardada:`, {
+      id: saved.id,
+      userId: saved.user?.id,
+    });
+
+    return saved;
   }
 
   async remove(id: string): Promise<void> {
@@ -111,10 +153,14 @@ export class CompaniesService {
       where: { company: { id } },
     });
 
-    console.log(`[CompaniesService.remove] Empresa ${id}, procesos encontrados: ${processesCount}`);
+    console.log(
+      `[CompaniesService.remove] Empresa ${id}, procesos encontrados: ${processesCount}`,
+    );
 
     if (processesCount > 0) {
-      console.log(`[CompaniesService.remove] Lanzando BadRequestException por procesos asociados`);
+      console.log(
+        `[CompaniesService.remove] Lanzando BadRequestException por procesos asociados`,
+      );
       throw new BadRequestException(
         `No se puede eliminar la empresa porque tiene ${processesCount} proceso(s) de selección asociado(s). Por favor, elimine o transfiera los procesos antes de eliminar la empresa.`,
       );
@@ -127,41 +173,57 @@ export class CompaniesService {
       console.log(`[CompaniesService.remove] Empresa eliminada exitosamente`);
     } catch (error: unknown) {
       console.log(`[CompaniesService.remove] Error capturado:`, error);
-      console.log(`[CompaniesService.remove] Tipo de error:`, error?.constructor?.name);
-      
+      console.log(
+        `[CompaniesService.remove] Tipo de error:`,
+        error?.constructor?.name,
+      );
+
       // Capturar cualquier error de base de datos y convertirlo en BadRequestException
       if (error instanceof QueryFailedError) {
         const pgError = error as any;
         const errorMessage = pgError.message || '';
         const errorCode = pgError.code;
-        
-        console.log(`[CompaniesService.remove] QueryFailedError detectado, código: ${errorCode}, mensaje: ${errorMessage}`);
-        
+
+        console.log(
+          `[CompaniesService.remove] QueryFailedError detectado, código: ${errorCode}, mensaje: ${errorMessage}`,
+        );
+
         // Código 23503 es foreign key constraint violation en PostgreSQL
-        if (errorCode === '23503' || errorMessage.includes('foreign key constraint')) {
+        if (
+          errorCode === '23503' ||
+          errorMessage.includes('foreign key constraint')
+        ) {
           // Detectar qué tabla está causando el problema
           if (errorMessage.includes('selection_processes')) {
-            console.log(`[CompaniesService.remove] Lanzando BadRequestException por selection_processes`);
+            console.log(
+              `[CompaniesService.remove] Lanzando BadRequestException por selection_processes`,
+            );
             throw new BadRequestException(
               'No se puede eliminar la empresa porque tiene procesos de selección asociados. Por favor, elimine o transfiera los procesos antes de eliminar la empresa.',
             );
           } else {
-            console.log(`[CompaniesService.remove] Lanzando BadRequestException genérico por foreign key`);
+            console.log(
+              `[CompaniesService.remove] Lanzando BadRequestException genérico por foreign key`,
+            );
             throw new BadRequestException(
               'No se puede eliminar la empresa porque tiene datos asociados. Por favor, elimine primero los datos relacionados.',
             );
           }
         }
       }
-      
+
       // Si es un BadRequestException, relanzarlo tal cual
       if (error instanceof BadRequestException) {
-        console.log(`[CompaniesService.remove] Relanzando BadRequestException existente`);
+        console.log(
+          `[CompaniesService.remove] Relanzando BadRequestException existente`,
+        );
         throw error;
       }
-      
+
       // Para cualquier otro error, lanzar BadRequestException genérico
-      console.log(`[CompaniesService.remove] Lanzando BadRequestException genérico para error desconocido`);
+      console.log(
+        `[CompaniesService.remove] Lanzando BadRequestException genérico para error desconocido`,
+      );
       throw new BadRequestException(
         'No se puede eliminar la empresa porque tiene datos asociados. Por favor, verifique las relaciones antes de eliminar.',
       );
@@ -340,7 +402,9 @@ export class CompaniesService {
     const company = await this.findOne(companyId);
 
     if (!company.logo) {
-      throw new BadRequestException('La empresa no tiene un logo para eliminar');
+      throw new BadRequestException(
+        'La empresa no tiene un logo para eliminar',
+      );
     }
 
     try {

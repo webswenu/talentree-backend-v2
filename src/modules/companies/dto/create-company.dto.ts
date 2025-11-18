@@ -28,5 +28,6 @@ export class CreateCompanyDto {
   logo?: string;
 
   @IsUUID()
-  userId: string;
+  @IsOptional()
+  userId?: string;
 }

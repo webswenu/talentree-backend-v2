@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsEnum,
   IsBoolean,
+  IsUUID,
 } from 'class-validator';
 import { UserRole } from '../../../common/enums/user-role.enum';
 
@@ -41,4 +42,8 @@ export class CreateUserDto {
   @IsOptional()
   @IsBoolean()
   isEmailVerified?: boolean;
+
+  @IsOptional()
+  @IsUUID()
+  companyId?: string;
 }

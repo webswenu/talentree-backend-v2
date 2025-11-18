@@ -1,4 +1,4 @@
-import { IsEmail, IsString, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsString, IsNotEmpty, IsUUID, IsOptional } from 'class-validator';
 
 export class CreateInvitationDto {
   @IsEmail()
@@ -12,4 +12,8 @@ export class CreateInvitationDto {
   @IsString()
   @IsNotEmpty()
   lastName: string;
+
+  @IsUUID()
+  @IsOptional()
+  companyId?: string;
 }

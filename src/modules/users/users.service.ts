@@ -57,6 +57,7 @@ export class UsersService {
 
     const savedUser = await this.userRepository.save(user);
 
+    // Solo crear Worker automáticamente (los demás roles se manejan desde frontend)
     if (savedUser.role === UserRole.WORKER) {
       const worker = this.workerRepository.create({
         firstName: savedUser.firstName,
@@ -74,7 +75,9 @@ export class UsersService {
   }
 
   async findAll(): Promise<User[]> {
-    return this.userRepository.find();
+    return this.userRepository.find({
+      relations: ['worker', 'company', 'belongsToCompany'],
+    });
   }
 
   async findOne(id: string): Promise<User> {

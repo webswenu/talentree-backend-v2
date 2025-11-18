@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsDateString, IsEmail } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsDateString, IsEmail, IsUUID } from 'class-validator';
 
 export class UpdateCompanyDto {
   @IsString()
@@ -52,4 +52,8 @@ export class UpdateCompanyDto {
   @IsDateString()
   @IsOptional()
   contractEndDate?: Date;
+
+  @IsUUID()
+  @IsOptional()
+  userId?: string;
 }

@@ -102,6 +102,26 @@ export class ProcessesService {
     return paginate(this.processRepository, filters || {}, queryBuilder);
   }
 
+  async findPublicProcesses(
+    filters?: ProcessFilterDto,
+  ): Promise<PaginatedResult<SelectionProcess>> {
+    const queryBuilder = this.processRepository
+      .createQueryBuilder('process')
+      .leftJoinAndSelect('process.company', 'company')
+      .where('process.status = :status', { status: ProcessStatus.ACTIVE });
+
+    if (filters?.search) {
+      queryBuilder.andWhere(
+        '(process.name ILIKE :search OR process.position ILIKE :search OR process.description ILIKE :search)',
+        { search: `%${filters.search}%` },
+      );
+    }
+
+    queryBuilder.orderBy('process.createdAt', 'DESC');
+
+    return paginate(this.processRepository, filters || {}, queryBuilder);
+  }
+
   async findByCompany(companyId: string): Promise<SelectionProcess[]> {
     return this.processRepository.find({
       where: { company: { id: companyId } },
