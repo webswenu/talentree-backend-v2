@@ -16,6 +16,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
+import { ProcessInvitationsModule } from './modules/process-invitations/process-invitations.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { InvitationsModule } from './modules/invitations/invitations.module';
     NotificationsModule,
     SettingsModule,
     InvitationsModule,
+    ProcessInvitationsModule,
   ],
   controllers: [],
   providers: [],
