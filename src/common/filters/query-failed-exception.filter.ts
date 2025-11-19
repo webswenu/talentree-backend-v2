@@ -28,12 +28,26 @@ export class QueryFailedExceptionFilter implements ExceptionFilter {
 
     // Código 23503 es foreign key constraint violation en PostgreSQL
     if (errorCode === '23503') {
-      let userMessage = 'No se puede realizar esta operación porque tiene datos asociados.';
+      let userMessage = 'No se puede realizar esta operación porque viola una restricción de integridad.';
+
+      // Detectar si es INSERT/UPDATE vs DELETE
+      const isInsertOrUpdate = errorMessage.toLowerCase().includes('insert') ||
+                                errorMessage.toLowerCase().includes('update');
 
       if (errorMessage.includes('selection_processes')) {
         userMessage =
           'No se puede eliminar la empresa porque tiene procesos de selección asociados. Por favor, elimine o transfiera los procesos antes de eliminar la empresa.';
-      } else if (errorMessage.includes('foreign key constraint')) {
+      } else if (isInsertOrUpdate) {
+        // Error en INSERT/UPDATE - referencia no existe
+        if (errorMessage.includes('test_responses')) {
+          userMessage =
+            'No se puede crear la respuesta del test porque el test referenciado no existe. Verifique que el test esté correctamente configurado.';
+        } else {
+          userMessage =
+            'No se puede realizar esta operación porque hace referencia a datos que no existen. Verifique los datos e intente nuevamente.';
+        }
+      } else {
+        // Error en DELETE - tiene datos asociados
         userMessage =
           'No se puede eliminar este recurso porque tiene datos asociados. Por favor, elimine primero los datos relacionados.';
       }
