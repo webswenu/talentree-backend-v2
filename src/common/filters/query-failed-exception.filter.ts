@@ -60,6 +60,22 @@ export class QueryFailedExceptionFilter implements ExceptionFilter {
       return;
     }
 
+    // Código 23505 es unique constraint violation
+    if (errorCode === '23505') {
+      let userMessage = 'Este registro ya existe en el sistema.';
+
+      if (errorMessage.includes('email') || errorMessage.includes('UQ_97672ac88f789774dd47f7c8be3') || errorMessage.includes('UQ_87f2092ffaae628ef63547d2442')) {
+        userMessage = 'El email ingresado ya está registrado en el sistema.';
+      }
+
+      response.status(HttpStatus.BAD_REQUEST).json({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: userMessage,
+        error: 'Bad Request',
+      });
+      return;
+    }
+
     // Otros errores de base de datos - también devolver BadRequest para evitar 500
     this.logger.warn(`Error de base de datos no manejado: código=${errorCode}`);
     response.status(HttpStatus.BAD_REQUEST).json({

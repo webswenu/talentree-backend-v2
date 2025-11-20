@@ -55,7 +55,7 @@ export class Worker {
   @Column({ nullable: true })
   cvUrl: string;
 
-  @OneToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @OneToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
