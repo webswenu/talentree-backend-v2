@@ -208,19 +208,40 @@ export class TestResponsesService {
     workerProcessId: string,
   ): Promise<void> {
     try {
+      // Get worker process with process and its tests
+      const workerProcess = await this.workerProcessRepository.findOne({
+        where: { id: workerProcessId },
+        relations: ['process', 'process.tests', 'process.fixedTests'],
+      });
+
+      if (!workerProcess) {
+        this.logger.warn(`WorkerProcess ${workerProcessId} not found`);
+        return;
+      }
+
+      // Count total tests assigned to the process
+      const totalTests =
+        (workerProcess.process.tests?.length || 0) +
+        (workerProcess.process.fixedTests?.length || 0);
+
+      if (totalTests === 0) {
+        this.logger.log(`Process has no tests assigned. Skipping report generation.`);
+        return;
+      }
+
       // Get all test responses for this worker process
       const allTestResponses = await this.testResponseRepository.find({
         where: { workerProcess: { id: workerProcessId } },
       });
 
-      if (allTestResponses.length === 0) {
-        return;
-      }
+      // Check if ALL tests assigned to the process have been completed
+      const completedTestsCount = allTestResponses.filter((tr) => tr.isCompleted).length;
 
-      // Check if ALL tests are completed
-      const allCompleted = allTestResponses.every((tr) => tr.isCompleted);
+      this.logger.log(
+        `WorkerProcess ${workerProcessId}: ${completedTestsCount} of ${totalTests} tests completed`,
+      );
 
-      if (!allCompleted) {
+      if (completedTestsCount < totalTests) {
         this.logger.log(
           `Not all tests completed for WorkerProcess ${workerProcessId}. Skipping report generation.`,
         );
@@ -233,7 +254,7 @@ export class TestResponsesService {
       );
 
       // Update WorkerProcess status to 'completed'
-      await this.updateWorkerProcessStatusOnAllTestsCompleted(workerProcessId, allTestResponses.length);
+      await this.updateWorkerProcessStatusOnAllTestsCompleted(workerProcessId, totalTests);
 
       await this.reportsService.generateReport(workerProcessId);
 
