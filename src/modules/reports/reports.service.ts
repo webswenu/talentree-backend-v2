@@ -383,17 +383,19 @@ export class ReportsService {
       );
     }
 
-    // Check if all required tests are completed
+    // Identify incomplete tests
     const incompleteTests = workerProcess.testResponses?.filter(
       (tr) => !tr.isCompleted,
-    );
-    if (incompleteTests && incompleteTests.length > 0) {
-      throw new BadRequestException(
-        `No se puede generar el reporte. Hay ${incompleteTests.length} test(s) sin completar`,
+    ) || [];
+
+    // Log incomplete tests if any
+    if (incompleteTests.length > 0) {
+      this.logger.warn(
+        `Generating report with ${incompleteTests.length} incomplete test(s) for WorkerProcess ${workerProcessId}`,
       );
     }
 
-    // Generate DOCX document
+    // Generate DOCX document (including incomplete tests information)
     const docxBuffer =
       await this.documentGeneratorService.generateWorkerProcessReport(
         workerProcess,

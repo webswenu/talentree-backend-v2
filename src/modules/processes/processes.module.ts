@@ -9,6 +9,7 @@ import { CompaniesModule } from '../companies/companies.module';
 import { UsersModule } from '../users/users.module';
 import { Test } from '../tests/entities/test.entity';
 import { FixedTest } from '../tests/entities/fixed-test.entity';
+import { WorkerProcess } from '../workers/entities/worker-process.entity';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { FixedTest } from '../tests/entities/fixed-test.entity';
       ProcessVideoRequirement,
       Test,
       FixedTest,
+      WorkerProcess,
     ]),
     CompaniesModule,
     UsersModule,

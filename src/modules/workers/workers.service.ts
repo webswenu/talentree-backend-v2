@@ -329,7 +329,14 @@ export class WorkersService {
   async getWorkerProcessById(id: string): Promise<WorkerProcess> {
     const workerProcess = await this.workerProcessRepository.findOne({
       where: { id },
-      relations: ['worker', 'process', 'testResponses'],
+      relations: [
+        'worker',
+        'process',
+        'process.company',
+        'testResponses',
+        'testResponses.test',
+        'testResponses.fixedTest',
+      ],
     });
 
     if (!workerProcess) {

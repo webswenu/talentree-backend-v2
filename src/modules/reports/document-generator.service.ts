@@ -349,8 +349,22 @@ export class DocumentGeneratorService {
 
     const dataRows = testResponses.map((tr) => {
       const testName = tr.fixedTest?.name || tr.test?.name || 'Test sin nombre';
-      const status = tr.isCompleted ? '✓ Completado' : 'Pendiente';
-      const statusColor = tr.isCompleted ? TALENTREE_COLORS.success : TALENTREE_COLORS.warning;
+
+      // Determine status based on test response status field
+      let status = 'Pendiente';
+      let statusColor = TALENTREE_COLORS.warning;
+
+      if (tr.status === 'completed') {
+        status = '✓ Completado';
+        statusColor = TALENTREE_COLORS.success;
+      } else if (tr.status === 'insufficient_answers') {
+        status = '⚠️ Incompleto';
+        statusColor = TALENTREE_COLORS.warning;
+      } else if (tr.isCompleted && !tr.status) {
+        // Fallback for old data that might not have status field
+        status = '✓ Completado';
+        statusColor = TALENTREE_COLORS.success;
+      }
 
       const startDate = tr.startedAt
         ? new Date(tr.startedAt).toLocaleDateString('es-CL')
@@ -474,6 +488,33 @@ export class DocumentGeneratorService {
         },
       }),
     );
+
+    // Check if test has insufficient answers
+    if (testResponse.status === 'insufficient_answers') {
+      const metadata = testResponse.metadata as any;
+      sections.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: '⚠️ TEST INCOMPLETO',
+              bold: true,
+              size: 24,
+              color: 'FF6B00', // Orange color for warning
+            }),
+          ],
+          spacing: { before: 200, after: 200 },
+        }),
+        new Paragraph({
+          text: `Este test no fue completado por el candidato. ${
+            metadata?.answeredQuestions !== undefined
+              ? `Se respondieron ${metadata.answeredQuestions} de ${metadata.totalQuestions} preguntas (${metadata.answerPercentage}%).`
+              : 'No se registraron respuestas suficientes.'
+          }`,
+          spacing: { before: 100, after: 300 },
+        }),
+      );
+      return sections;
+    }
 
     // Información básica del test
     const testDescr = testResponse.fixedTest?.description || testResponse.test?.description;

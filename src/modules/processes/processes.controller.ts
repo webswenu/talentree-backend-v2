@@ -123,8 +123,8 @@ export class ProcessesController {
     UserRole.WORKER,
     UserRole.GUEST,
   )
-  getTests(@Param('id') id: string) {
-    return this.processesService.getTests(id);
+  getTests(@Param('id') id: string, @Request() req) {
+    return this.processesService.getTests(id, req.user);
   }
 
   @Post(':id/tests/:testId')

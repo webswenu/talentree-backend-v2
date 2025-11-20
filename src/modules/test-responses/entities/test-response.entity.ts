@@ -36,6 +36,15 @@ export class TestResponse {
   @Column({ type: 'boolean', default: false })
   isCompleted: boolean;
 
+  @Column({
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+    default: null,
+    comment: 'Status of test response: completed, insufficient_answers, abandoned, null=in progress'
+  })
+  status: string;
+
   @Column({ type: 'text', nullable: true })
   evaluatorNotes: string;
 

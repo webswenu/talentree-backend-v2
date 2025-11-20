@@ -173,24 +173,55 @@ export class TestResponsesService {
 
     await this.testAnswerRepository.save(answers);
 
-    // Auto-evaluate based on test type
-    const requiresManualReview = isFixedTest
-      ? false // Fixed tests are always auto-evaluated
-      : testResponse.test.requiresManualReview;
+    // Determine test status based on answered questions
+    const totalQuestions = isFixedTest
+      ? testResponse.fixedTest.questions?.length || 0
+      : testResponse.test.questions?.length || 0;
+    const answeredQuestions = submitTestDto.answers.length;
+    const answerPercentage = totalQuestions > 0 ? (answeredQuestions / totalQuestions) * 100 : 0;
 
+    // Determine status: 'completed' ONLY if 100% answered, 'insufficient_answers' otherwise
+    const testStatus = answerPercentage === 100 ? 'completed' : 'insufficient_answers';
     const completedAt = new Date();
-    const isCompleted = true;
+    const isCompleted = true; // Always true when submitted
+
+    this.logger.log(
+      `Test ${responseId}: ${answeredQuestions}/${totalQuestions} preguntas respondidas (${answerPercentage.toFixed(1)}%) - Status: ${testStatus}`,
+    );
 
     // Save workerProcessId before evaluation (needed for report generation)
     const workerProcessId = testResponse.workerProcess.id;
 
-    if (!requiresManualReview) {
-      // autoEvaluate will save the entity with scoring data AND completion status
-      testResponse = await this.autoEvaluate(responseId, completedAt, isCompleted);
+    if (testStatus === 'completed') {
+      // Auto-evaluate based on test type
+      const requiresManualReview = isFixedTest
+        ? false // Fixed tests are always auto-evaluated
+        : testResponse.test.requiresManualReview;
+
+      if (!requiresManualReview) {
+        // autoEvaluate will save the entity with scoring data AND completion status
+        testResponse = await this.autoEvaluate(responseId, completedAt, isCompleted);
+        // Update status after evaluation
+        testResponse.status = testStatus;
+        testResponse = await this.testResponseRepository.save(testResponse);
+      } else {
+        // Save manually if no auto-evaluation
+        testResponse.completedAt = completedAt;
+        testResponse.isCompleted = isCompleted;
+        testResponse.status = testStatus;
+        testResponse = await this.testResponseRepository.save(testResponse);
+      }
     } else {
-      // Save manually if no auto-evaluation
-      testResponse.completedAt = completedAt;
+      // Mark as insufficient_answers - save metadata about why
       testResponse.isCompleted = isCompleted;
+      testResponse.completedAt = completedAt;
+      testResponse.status = testStatus;
+      testResponse.metadata = {
+        ...testResponse.metadata,
+        answeredQuestions,
+        totalQuestions,
+        answerPercentage: parseFloat(answerPercentage.toFixed(1)),
+      };
       testResponse = await this.testResponseRepository.save(testResponse);
     }
 
@@ -234,16 +265,19 @@ export class TestResponsesService {
         where: { workerProcess: { id: workerProcessId } },
       });
 
-      // Check if ALL tests assigned to the process have been completed
-      const completedTestsCount = allTestResponses.filter((tr) => tr.isCompleted).length;
+      // Count tests with status 'completed' (not 'insufficient_answers')
+      const completedTestsCount = allTestResponses.filter((tr) => tr.status === 'completed').length;
+      const insufficientTestsCount = allTestResponses.filter((tr) => tr.status === 'insufficient_answers').length;
+      const submittedTestsCount = allTestResponses.length;
 
       this.logger.log(
-        `WorkerProcess ${workerProcessId}: ${completedTestsCount} of ${totalTests} tests completed`,
+        `WorkerProcess ${workerProcessId}: ${completedTestsCount} completed / ${insufficientTestsCount} insufficient / ${submittedTestsCount} submitted / ${totalTests} total tests`,
       );
 
-      if (completedTestsCount < totalTests) {
+      // Check if all tests have been submitted (completed or insufficient)
+      if (submittedTestsCount < totalTests) {
         this.logger.log(
-          `Not all tests completed for WorkerProcess ${workerProcessId}. Skipping report generation.`,
+          `Not all tests submitted for WorkerProcess ${workerProcessId} (${submittedTestsCount}/${totalTests}). Skipping report generation.`,
         );
         return;
       }

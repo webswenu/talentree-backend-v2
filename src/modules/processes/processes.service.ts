@@ -22,6 +22,8 @@ import { paginate } from '../../common/helpers/pagination.helper';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
 import { Test } from '../tests/entities/test.entity';
 import { FixedTest } from '../tests/entities/fixed-test.entity';
+import { WorkerProcess } from '../workers/entities/worker-process.entity';
+import { TestResponse } from '../test-responses/entities/test-response.entity';
 
 @Injectable()
 export class ProcessesService {
@@ -32,6 +34,8 @@ export class ProcessesService {
     private readonly testRepository: Repository<Test>,
     @InjectRepository(FixedTest)
     private readonly fixedTestRepository: Repository<FixedTest>,
+    @InjectRepository(WorkerProcess)
+    private readonly workerProcessRepository: Repository<WorkerProcess>,
     private readonly companiesService: CompaniesService,
     private readonly usersService: UsersService,
   ) {}
@@ -183,7 +187,10 @@ export class ProcessesService {
     return process.evaluators || [];
   }
 
-  async getTests(id: string): Promise<{ tests: any[]; fixedTests: any[] }> {
+  async getTests(
+    id: string,
+    user?: any,
+  ): Promise<{ tests: any[]; fixedTests: any[] }> {
     const process = await this.processRepository.findOne({
       where: { id },
       relations: ['tests', 'tests.questions', 'fixedTests'],
@@ -193,9 +200,75 @@ export class ProcessesService {
       throw new NotFoundException(`Proceso con ID ${id} no encontrado`);
     }
 
+    // If user is a worker, find their test responses for this process
+    let testResponses: TestResponse[] = [];
+    console.log('🔍 User role:', user?.role, 'Worker ID:', user?.worker?.id);
+
+    if (user && user.role === UserRole.WORKER && user.worker?.id) {
+      console.log('✅ Looking for WorkerProcess for worker:', user.worker.id, 'process:', id);
+
+      const workerProcess = await this.workerProcessRepository.findOne({
+        where: {
+          worker: { id: user.worker.id },
+          process: { id },
+        },
+        relations: ['testResponses', 'testResponses.test', 'testResponses.fixedTest'],
+      });
+
+      console.log('📦 Found WorkerProcess:', workerProcess?.id, 'TestResponses:', workerProcess?.testResponses?.length);
+
+      if (workerProcess && workerProcess.testResponses) {
+        testResponses = workerProcess.testResponses;
+        console.log('📝 Test responses:', testResponses.map(tr => ({
+          id: tr.id,
+          testId: tr.test?.id,
+          fixedTestId: tr.fixedTest?.id,
+          status: tr.status
+        })));
+      }
+    } else {
+      console.log('⚠️ Not a worker or missing worker.id');
+    }
+
+    // Add status to each test
+    const testsWithStatus = (process.tests || []).map((test) => {
+      const response = testResponses.find((tr) => tr.test?.id === test.id);
+      if (!response) {
+        return { ...test, testStatus: 'available' };
+      }
+      // If status is null, test is in progress (started but not submitted)
+      if (!response.status) {
+        return { ...test, testStatus: 'in_progress' };
+      }
+      // If status is 'completed', test was completed successfully
+      if (response.status === 'completed') {
+        return { ...test, testStatus: 'completed' };
+      }
+      // Otherwise (insufficient_answers, abandoned), mark as incomplete
+      return { ...test, testStatus: 'incomplete' };
+    });
+
+    // Add status to each fixed test
+    const fixedTestsWithStatus = (process.fixedTests || []).map((fixedTest) => {
+      const response = testResponses.find((tr) => tr.fixedTest?.id === fixedTest.id);
+      if (!response) {
+        return { ...fixedTest, testStatus: 'available' };
+      }
+      // If status is null, test is in progress (started but not submitted)
+      if (!response.status) {
+        return { ...fixedTest, testStatus: 'in_progress' };
+      }
+      // If status is 'completed', test was completed successfully
+      if (response.status === 'completed') {
+        return { ...fixedTest, testStatus: 'completed' };
+      }
+      // Otherwise (insufficient_answers, abandoned), mark as incomplete
+      return { ...fixedTest, testStatus: 'incomplete' };
+    });
+
     return {
-      tests: process.tests || [],
-      fixedTests: process.fixedTests || [],
+      tests: testsWithStatus,
+      fixedTests: fixedTestsWithStatus,
     };
   }
 
