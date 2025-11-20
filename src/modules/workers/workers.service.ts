@@ -26,6 +26,9 @@ import { paginate } from '../../common/helpers/pagination.helper';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
 import { S3Service } from '../../common/services/s3.service';
 import { uploadFileAndGetPublicUrl, extractS3KeyFromUrl } from '../../common/helpers/s3.helper';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { NotificationType } from '../../common/enums/notification-type.enum';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class WorkersService {
@@ -44,6 +47,8 @@ export class WorkersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly dataSource: DataSource,
+    private readonly notificationsGateway: NotificationsGateway,
+    private readonly usersService: UsersService,
   ) {}
 
   async create(createWorkerDto: CreateWorkerDto): Promise<Worker> {
@@ -286,7 +291,64 @@ export class WorkersService {
       notes: applyDto.notes,
     });
 
-    return this.workerProcessRepository.save(workerProcess);
+    const savedWorkerProcess = await this.workerProcessRepository.save(workerProcess);
+
+    // Cargar relaciones para la notificación
+    const workerProcessWithRelations = await this.workerProcessRepository.findOne({
+      where: { id: savedWorkerProcess.id },
+      relations: ['worker', 'process', 'process.company'],
+    });
+
+    // Notificar a todos los administradores sobre el nuevo postulante
+    if (workerProcessWithRelations) {
+      try {
+        const admins = await this.usersService.findAdminUsers();
+        const adminIds = admins.map((admin) => admin.id);
+
+        if (adminIds.length > 0) {
+          await this.notificationsGateway.broadcastNotification(adminIds, {
+            title: 'Nuevo postulante en proceso',
+            message: `${workerProcessWithRelations.worker.firstName} ${workerProcessWithRelations.worker.lastName} se ha postulado al proceso "${workerProcessWithRelations.process.name}"`,
+            type: NotificationType.INFO,
+            link: `/admin/procesos/${workerProcessWithRelations.process.id}`,
+          });
+        }
+
+        // Notificar también a los usuarios de la empresa
+        if (workerProcessWithRelations.process.company?.id) {
+          const companyUsers = await this.usersService.findCompanyUsers(
+            workerProcessWithRelations.process.company.id
+          );
+          const companyUserIds = companyUsers.map((user) => user.id);
+
+          if (companyUserIds.length > 0) {
+            await this.notificationsGateway.broadcastNotification(companyUserIds, {
+              title: 'Nuevo postulante en tu proceso',
+              message: `${workerProcessWithRelations.worker.firstName} ${workerProcessWithRelations.worker.lastName} se ha postulado al proceso "${workerProcessWithRelations.process.name}"`,
+              type: NotificationType.INFO,
+              link: `/empresa/procesos/${workerProcessWithRelations.process.id}`,
+            });
+          }
+        }
+
+        // Notificar al trabajador sobre su postulación exitosa y tests asignados
+        const workerUserId = workerProcessWithRelations.worker.user?.id;
+        if (workerUserId) {
+          await this.notificationsGateway.broadcastNotification([workerUserId], {
+            title: 'Postulación exitosa',
+            message: `Te has postulado exitosamente al proceso "${workerProcessWithRelations.process.name}". Los tests han sido asignados.`,
+            type: NotificationType.INFO,
+            link: `/trabajador/procesos/${workerProcessWithRelations.process.id}/tests`,
+          });
+        }
+      } catch (error) {
+        this.logger.error(
+          `Error sending notification for new application: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+
+    return savedWorkerProcess;
   }
 
   async getWorkerProcesses(workerId: string): Promise<WorkerProcess[]> {
@@ -311,7 +373,7 @@ export class WorkersService {
   ): Promise<WorkerProcess> {
     const workerProcess = await this.workerProcessRepository.findOne({
       where: { id: workerProcessId },
-      relations: ['worker', 'process'],
+      relations: ['worker', 'worker.user', 'process'],
     });
 
     if (!workerProcess) {
@@ -320,10 +382,44 @@ export class WorkersService {
       );
     }
 
+    const oldStatus = workerProcess.status;
     Object.assign(workerProcess, updateDto);
     workerProcess.evaluatedAt = new Date();
 
-    return this.workerProcessRepository.save(workerProcess);
+    const savedWorkerProcess = await this.workerProcessRepository.save(workerProcess);
+
+    // Notificar al trabajador si su estado cambió
+    if (updateDto.status && oldStatus !== updateDto.status) {
+      try {
+        const workerUserId = workerProcess.worker.user?.id;
+        if (workerUserId) {
+          const statusLabels = {
+            [WorkerStatus.PENDING]: 'Pendiente',
+            [WorkerStatus.IN_PROCESS]: 'En Proceso',
+            [WorkerStatus.COMPLETED]: 'Completado',
+            [WorkerStatus.APPROVED]: 'Aprobado',
+            [WorkerStatus.REJECTED]: 'Rechazado',
+          };
+
+          await this.notificationsGateway.broadcastNotification([workerUserId], {
+            title: 'Cambio de estado en tu aplicación',
+            message: `Tu aplicación al proceso "${workerProcess.process.name}" ha cambiado a "${statusLabels[updateDto.status]}"`,
+            type: updateDto.status === WorkerStatus.APPROVED
+              ? NotificationType.SUCCESS
+              : updateDto.status === WorkerStatus.REJECTED
+                ? NotificationType.ERROR
+                : NotificationType.INFO,
+            link: `/trabajador/procesos/${workerProcess.process.id}`,
+          });
+        }
+      } catch (error) {
+        this.logger.error(
+          `Error sending notification for status change: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+
+    return savedWorkerProcess;
   }
 
   async getWorkerProcessById(id: string): Promise<WorkerProcess> {

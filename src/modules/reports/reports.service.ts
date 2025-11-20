@@ -19,6 +19,8 @@ import { WorkerProcess } from '../workers/entities/worker-process.entity';
 import { DocumentGeneratorService } from './document-generator.service';
 import { S3Service } from '../../common/services/s3.service';
 import { uploadBufferToS3, extractS3KeyFromUrl } from '../../common/helpers/s3.helper';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { NotificationType } from '../../common/enums/notification-type.enum';
 
 @Injectable()
 export class ReportsService {
@@ -32,6 +34,7 @@ export class ReportsService {
     private readonly usersService: UsersService,
     private readonly documentGeneratorService: DocumentGeneratorService,
     private readonly s3Service: S3Service,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   async create(
@@ -240,7 +243,60 @@ export class ReportsService {
         report.status = ReportStatus.REVISION_ADMIN;
       }
 
-      return this.reportRepository.save(report);
+      const savedReport = await this.reportRepository.save(report);
+
+      // Notificar a los administradores solo si es PDF y está pendiente de aprobación
+      if (
+        isPdf &&
+        (report.status === ReportStatus.PENDING_APPROVAL ||
+          report.status === ReportStatus.REVISION_EVALUADOR ||
+          report.status === ReportStatus.REVISION_ADMIN)
+      ) {
+        try {
+          // Cargar relaciones necesarias
+          const reportWithRelations = await this.reportRepository.findOne({
+            where: { id },
+            relations: ['worker', 'process', 'process.company'],
+          });
+
+          if (reportWithRelations) {
+            const admins = await this.usersService.findAdminUsers();
+            const adminIds = admins.map((admin) => admin.id);
+
+            if (adminIds.length > 0) {
+              await this.notificationsGateway.broadcastNotification(adminIds, {
+                title: 'Reporte pendiente de aprobación',
+                message: `Un nuevo reporte PDF para ${reportWithRelations.worker.firstName} ${reportWithRelations.worker.lastName} está listo para revisión`,
+                type: NotificationType.REPORT_READY,
+                link: `/admin/reportes/${id}`,
+              });
+            }
+
+            // Notificar también a los usuarios de la empresa
+            if (reportWithRelations.process?.company?.id) {
+              const companyUsers = await this.usersService.findCompanyUsers(
+                reportWithRelations.process.company.id
+              );
+              const companyUserIds = companyUsers.map((user) => user.id);
+
+              if (companyUserIds.length > 0) {
+                await this.notificationsGateway.broadcastNotification(companyUserIds, {
+                  title: 'Reporte listo para revisión',
+                  message: `El reporte de ${reportWithRelations.worker.firstName} ${reportWithRelations.worker.lastName} está disponible`,
+                  type: NotificationType.REPORT_READY,
+                  link: `/empresa/reportes/${id}`,
+                });
+              }
+            }
+          }
+        } catch (error) {
+          this.logger.error(
+            `Error sending notification for report pending approval: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+      }
+
+      return savedReport;
     } catch (error) {
       this.logger.error(
         `Failed to upload file to S3: ${error instanceof Error ? error.message : String(error)}`,
@@ -435,7 +491,26 @@ export class ReportsService {
         worker: workerProcess.worker,
       });
 
-      return this.reportRepository.save(report);
+      const savedReport = await this.reportRepository.save(report);
+
+      // Notificar al trabajador que su reporte está listo
+      try {
+        const workerUserId = workerProcess.worker.user?.id;
+        if (workerUserId) {
+          await this.notificationsGateway.broadcastNotification([workerUserId], {
+            title: 'Tu reporte está listo',
+            message: `Tu informe de evaluación para el proceso "${workerProcess.process?.name}" ha sido generado y está en revisión`,
+            type: NotificationType.REPORT_READY,
+            link: `/trabajador/reportes`,
+          });
+        }
+      } catch (error) {
+        this.logger.error(
+          `Error sending notification to worker for report ready: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+
+      return savedReport;
     } catch (error) {
       this.logger.error(
         `Failed to upload report to S3: ${error instanceof Error ? error.message : String(error)}`,

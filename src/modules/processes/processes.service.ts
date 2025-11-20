@@ -24,9 +24,14 @@ import { Test } from '../tests/entities/test.entity';
 import { FixedTest } from '../tests/entities/fixed-test.entity';
 import { WorkerProcess } from '../workers/entities/worker-process.entity';
 import { TestResponse } from '../test-responses/entities/test-response.entity';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { NotificationType } from '../../common/enums/notification-type.enum';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class ProcessesService {
+  private readonly logger = new Logger(ProcessesService.name);
+
   constructor(
     @InjectRepository(SelectionProcess)
     private readonly processRepository: Repository<SelectionProcess>,
@@ -38,6 +43,7 @@ export class ProcessesService {
     private readonly workerProcessRepository: Repository<WorkerProcess>,
     private readonly companiesService: CompaniesService,
     private readonly usersService: UsersService,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   async create(
@@ -64,7 +70,28 @@ export class ProcessesService {
       createdBy: user,
     });
 
-    return this.processRepository.save(process);
+    const savedProcess = await this.processRepository.save(process);
+
+    // Notificar a todos los administradores sobre el nuevo proceso
+    try {
+      const admins = await this.usersService.findAdminUsers();
+      const adminIds = admins.map((admin) => admin.id);
+
+      if (adminIds.length > 0) {
+        await this.notificationsGateway.broadcastNotification(adminIds, {
+          title: 'Nuevo proceso creado',
+          message: `Se ha creado el proceso "${savedProcess.name}" para ${company.name}`,
+          type: NotificationType.PROCESS_UPDATE,
+          link: `/admin/procesos/${savedProcess.id}`,
+        });
+      }
+    } catch (error) {
+      this.logger.error(
+        `Error sending notification for new process: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+
+    return savedProcess;
   }
 
   async findAll(
@@ -152,8 +179,58 @@ export class ProcessesService {
     updateProcessDto: UpdateProcessDto,
   ): Promise<SelectionProcess> {
     const process = await this.findOne(id);
+    const oldStatus = process.status;
+
     Object.assign(process, updateProcessDto);
-    return this.processRepository.save(process);
+    const savedProcess = await this.processRepository.save(process);
+
+    // Notificar si el estado cambió
+    if (updateProcessDto.status && oldStatus !== updateProcessDto.status) {
+      try {
+        const companyUsers = await this.usersService.findCompanyUsers(
+          process.company.id
+        );
+        const companyUserIds = companyUsers.map((user) => user.id);
+
+        const statusLabels = {
+          [ProcessStatus.DRAFT]: 'Borrador',
+          [ProcessStatus.ACTIVE]: 'Activo',
+          [ProcessStatus.PAUSED]: 'Pausado',
+          [ProcessStatus.COMPLETED]: 'Completado',
+          [ProcessStatus.CLOSED]: 'Cerrado',
+        };
+
+        if (companyUserIds.length > 0) {
+          await this.notificationsGateway.broadcastNotification(companyUserIds, {
+            title: 'Cambio de estado en proceso',
+            message: `El proceso "${process.name}" cambió de estado a "${statusLabels[updateProcessDto.status]}"`,
+            type: NotificationType.PROCESS_UPDATE,
+            link: `/empresa/procesos/${process.id}`,
+          });
+        }
+
+        // Notificar a todos los trabajadores cuando un proceso se activa
+        if (updateProcessDto.status === ProcessStatus.ACTIVE) {
+          const workers = await this.usersService.findByRole(UserRole.WORKER);
+          const workerIds = workers.filter(w => w.isActive).map((worker) => worker.id);
+
+          if (workerIds.length > 0) {
+            await this.notificationsGateway.broadcastNotification(workerIds, {
+              title: 'Nueva oferta disponible',
+              message: `El proceso "${savedProcess.name}" está ahora disponible para postulaciones`,
+              type: NotificationType.INFO,
+              link: `/trabajador/procesos/${savedProcess.id}`,
+            });
+          }
+        }
+      } catch (error) {
+        this.logger.error(
+          `Error sending notification for process status change: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+
+    return savedProcess;
   }
 
   async remove(id: string): Promise<void> {
@@ -179,7 +256,27 @@ export class ProcessesService {
     }
 
     process.evaluators = validEvaluators;
-    return this.processRepository.save(process);
+    const savedProcess = await this.processRepository.save(process);
+
+    // Notificar a los evaluadores asignados
+    if (validEvaluators.length > 0) {
+      try {
+        const evaluatorIds = validEvaluators.map((evaluator) => evaluator.id);
+
+        await this.notificationsGateway.broadcastNotification(evaluatorIds, {
+          title: 'Asignado a nuevo proceso',
+          message: `Has sido asignado como evaluador del proceso "${savedProcess.name}"`,
+          type: NotificationType.TEST_ASSIGNED,
+          link: `/evaluador/procesos/${savedProcess.id}`,
+        });
+      } catch (error) {
+        this.logger.error(
+          `Error sending notification to assigned evaluators: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+
+    return savedProcess;
   }
 
   async getEvaluators(id: string): Promise<User[]> {

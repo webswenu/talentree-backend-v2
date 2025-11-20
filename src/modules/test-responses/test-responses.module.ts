@@ -13,11 +13,15 @@ import { TestDISCScoringService } from './scoring/test-disc-scoring.service';
 import { TestILScoringService } from './scoring/test-il-scoring.service';
 import { TestICScoringService } from './scoring/test-ic-scoring.service';
 import { TestTACScoringService } from './scoring/test-tac-scoring.service';
+import { NotificationsModule } from '../notifications/notifications.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([TestResponse, TestAnswer, WorkerProcess, SelectionProcess]),
     forwardRef(() => ReportsModule),
+    NotificationsModule,
+    UsersModule,
   ],
   controllers: [TestResponsesController],
   providers: [TestResponsesService, TestCFRScoringService, Test16PFScoringService, TestDISCScoringService, TestILScoringService, TestICScoringService, TestTACScoringService],

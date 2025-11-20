@@ -10,6 +10,7 @@ import { UsersModule } from '../users/users.module';
 import { Test } from '../tests/entities/test.entity';
 import { FixedTest } from '../tests/entities/fixed-test.entity';
 import { WorkerProcess } from '../workers/entities/worker-process.entity';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { WorkerProcess } from '../workers/entities/worker-process.entity';
     ]),
     CompaniesModule,
     UsersModule,
+    NotificationsModule,
   ],
   controllers: [ProcessesController],
   providers: [ProcessesService, ProcessVideoRequirementsService],

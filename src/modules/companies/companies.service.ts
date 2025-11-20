@@ -20,6 +20,8 @@ import { paginate } from '../../common/helpers/pagination.helper';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
 import { S3Service } from '../../common/services/s3.service';
 import { uploadFileAndGetPublicUrl } from '../../common/helpers/s3.helper';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { NotificationType } from '../../common/enums/notification-type.enum';
 
 @Injectable()
 export class CompaniesService {
@@ -34,6 +36,7 @@ export class CompaniesService {
     private readonly workerProcessRepository: Repository<WorkerProcess>,
     private readonly usersService: UsersService,
     private readonly s3Service: S3Service,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   async create(createCompanyDto: CreateCompanyDto): Promise<Company> {
@@ -63,7 +66,29 @@ export class CompaniesService {
       ...(user && { user }),
     });
 
-    return this.companyRepository.save(company);
+    const savedCompany = await this.companyRepository.save(company);
+
+    // Notificar a todos los administradores sobre la nueva empresa
+    try {
+      const admins = await this.usersService.findAdminUsers();
+      const adminIds = admins.map((admin) => admin.id);
+
+      if (adminIds.length > 0) {
+        await this.notificationsGateway.broadcastNotification(adminIds, {
+          title: 'Nueva empresa registrada',
+          message: `La empresa "${savedCompany.name}" se ha registrado en la plataforma`,
+          type: NotificationType.INFO,
+          link: `/admin/empresas/${savedCompany.id}`,
+        });
+      }
+    } catch (error) {
+      this.logger.error(
+        `Error sending notification for new company: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      // No lanzar error para no bloquear la creación de la empresa
+    }
+
+    return savedCompany;
   }
 
   async findAll(filters?: CompanyFilterDto): Promise<PaginatedResult<Company>> {

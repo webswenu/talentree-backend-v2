@@ -114,6 +114,32 @@ export class UsersService {
     });
   }
 
+  async findByRole(role: UserRole): Promise<User[]> {
+    return this.userRepository.find({
+      where: { role },
+    });
+  }
+
+  async findAdminUsers(): Promise<User[]> {
+    return this.findByRole(UserRole.ADMIN_TALENTREE);
+  }
+
+  async findCompanyUsers(companyId: string): Promise<User[]> {
+    // Obtener el usuario dueño de la empresa + usuarios que pertenecen a la empresa
+    const companyOwner = await this.userRepository.findOne({
+      where: { company: { id: companyId } },
+    });
+
+    const companyMembers = await this.userRepository.find({
+      where: { belongsToCompany: { id: companyId } },
+    });
+
+    const allUsers = companyOwner ? [companyOwner, ...companyMembers] : companyMembers;
+
+    // Filtrar solo usuarios activos
+    return allUsers.filter(user => user.isActive);
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     await this.findOne(id);
 

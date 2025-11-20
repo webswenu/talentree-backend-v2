@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   ConflictException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -15,9 +16,13 @@ import { RegisterWorkerDto } from './dto/register-worker.dto';
 import { Worker } from '../workers/entities/worker.entity';
 import { User } from '../users/entities/user.entity';
 import { UserRole } from '../../common/enums/user-role.enum';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { NotificationType } from '../../common/enums/notification-type.enum';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
@@ -27,6 +32,7 @@ export class AuthService {
     private readonly workerRepository: Repository<Worker>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -178,6 +184,25 @@ export class AuthService {
       await queryRunner.manager.save(Worker, worker);
 
       await queryRunner.commitTransaction();
+
+      // Notificar a todos los administradores sobre el nuevo trabajador
+      try {
+        const admins = await this.usersService.findAdminUsers();
+        const adminIds = admins.map((admin) => admin.id);
+
+        if (adminIds.length > 0) {
+          await this.notificationsGateway.broadcastNotification(adminIds, {
+            title: 'Nuevo trabajador registrado',
+            message: `${registerDto.firstName} ${registerDto.lastName} se ha registrado en la plataforma`,
+            type: NotificationType.INFO,
+            link: `/admin/trabajadores`,
+          });
+        }
+      } catch (error) {
+        this.logger.error(
+          `Error sending notification for new worker: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
 
       const accessToken = this.generateAccessToken(
         savedUser.id,

@@ -25,6 +25,9 @@ import { TestICScoringService } from './scoring/test-ic-scoring.service';
 import { TestTACScoringService } from './scoring/test-tac-scoring.service';
 import { FixedTestCode } from '../tests/shared/enums/fixed-test-code.enum';
 import { WorkerStatus } from '../../common/enums/worker-status.enum';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { NotificationType } from '../../common/enums/notification-type.enum';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class TestResponsesService {
@@ -47,6 +50,8 @@ export class TestResponsesService {
     private readonly testILScoringService: TestILScoringService,
     private readonly testICScoringService: TestICScoringService,
     private readonly testTACScoringService: TestTACScoringService,
+    private readonly notificationsGateway: NotificationsGateway,
+    private readonly usersService: UsersService,
   ) {}
 
   async startTest(startTestDto: StartTestDto): Promise<TestResponse> {
@@ -210,6 +215,29 @@ export class TestResponsesService {
         testResponse.isCompleted = isCompleted;
         testResponse.status = testStatus;
         testResponse = await this.testResponseRepository.save(testResponse);
+
+        // Notificar a los evaluadores del proceso que hay un nuevo test para evaluar
+        try {
+          const processWithEvaluators = await this.selectionProcessRepository.findOne({
+            where: { id: testResponse.workerProcess.process.id },
+            relations: ['evaluators'],
+          });
+
+          if (processWithEvaluators?.evaluators?.length > 0) {
+            const evaluatorIds = processWithEvaluators.evaluators.map((evaluator) => evaluator.id);
+
+            await this.notificationsGateway.broadcastNotification(evaluatorIds, {
+              title: 'Nuevo test para evaluar',
+              message: `${testResponse.workerProcess.worker.firstName} ${testResponse.workerProcess.worker.lastName} ha completado el test "${testResponse.test.name}" y requiere evaluación manual`,
+              type: NotificationType.TEST_ASSIGNED,
+              link: `/evaluador/evaluaciones/${responseId}`,
+            });
+          }
+        } catch (error) {
+          this.logger.error(
+            `Error sending notification to evaluators for manual review: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
       }
     } else {
       // Mark as insufficient_answers - save metadata about why
@@ -227,6 +255,76 @@ export class TestResponsesService {
 
     // Check if all tests are completed and auto-generate report
     await this.checkAndGenerateReport(workerProcessId);
+
+    // Notificar a todos los administradores sobre el test completado
+    try {
+      // Recargar con relaciones necesarias
+      const testResponseWithRelations = await this.testResponseRepository.findOne({
+        where: { id: responseId },
+        relations: [
+          'workerProcess',
+          'workerProcess.worker',
+          'workerProcess.process',
+          'workerProcess.process.company',
+          'test',
+          'fixedTest',
+        ],
+      });
+
+      if (testResponseWithRelations) {
+        const admins = await this.usersService.findAdminUsers();
+        const adminIds = admins.map((admin) => admin.id);
+
+        const testName = isFixedTest
+          ? testResponseWithRelations.fixedTest?.name
+          : testResponseWithRelations.test?.name;
+
+        if (adminIds.length > 0) {
+          await this.notificationsGateway.broadcastNotification(adminIds, {
+            title: 'Test completado',
+            message: `${testResponseWithRelations.workerProcess.worker.firstName} ${testResponseWithRelations.workerProcess.worker.lastName} ha completado el test "${testName}"`,
+            type: NotificationType.TEST_ASSIGNED,
+            link: `/admin/procesos/${testResponseWithRelations.workerProcess.process.id}`,
+          });
+        }
+
+        // Notificar también a los usuarios de la empresa
+        if (testResponseWithRelations.workerProcess.process.company?.id) {
+          const companyUsers = await this.usersService.findCompanyUsers(
+            testResponseWithRelations.workerProcess.process.company.id
+          );
+          const companyUserIds = companyUsers.map((user) => user.id);
+
+          if (companyUserIds.length > 0) {
+            await this.notificationsGateway.broadcastNotification(companyUserIds, {
+              title: 'Test completado en tu proceso',
+              message: `${testResponseWithRelations.workerProcess.worker.firstName} ${testResponseWithRelations.workerProcess.worker.lastName} ha completado el test "${testName}"`,
+              type: NotificationType.TEST_ASSIGNED,
+              link: `/empresa/procesos/${testResponseWithRelations.workerProcess.process.id}`,
+            });
+          }
+        }
+
+        // Notificar al trabajador sobre el resultado de su evaluación (solo si fue auto-evaluado)
+        const wasAutoEvaluated = testResponseWithRelations.passed !== null && testResponseWithRelations.passed !== undefined;
+        if (wasAutoEvaluated) {
+          const workerUserId = testResponseWithRelations.workerProcess.worker.user?.id;
+          if (workerUserId) {
+            const passed = testResponseWithRelations.passed;
+            await this.notificationsGateway.broadcastNotification([workerUserId], {
+              title: passed ? 'Test aprobado' : 'Resultado de test',
+              message: `Has ${passed ? 'aprobado' : 'completado'} el test "${testName}"${passed ? ' exitosamente' : ''}`,
+              type: passed ? NotificationType.SUCCESS : NotificationType.INFO,
+              link: `/trabajador/procesos/${testResponseWithRelations.workerProcess.process.id}`,
+            });
+          }
+        }
+      }
+    } catch (error) {
+      this.logger.error(
+        `Error sending notification for completed test: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
 
     return testResponse;
   }
@@ -492,7 +590,14 @@ export class TestResponsesService {
   async recalculateScore(responseId: string): Promise<TestResponse> {
     const testResponse = await this.testResponseRepository.findOne({
       where: { id: responseId },
-      relations: ['test', 'answers', 'answers.question'],
+      relations: [
+        'test',
+        'answers',
+        'answers.question',
+        'workerProcess',
+        'workerProcess.worker',
+        'workerProcess.process',
+      ],
     });
 
     if (!testResponse) {
@@ -515,7 +620,62 @@ export class TestResponsesService {
       testResponse.test.passingScore !== null &&
       totalScore >= testResponse.test.passingScore;
 
-    return this.testResponseRepository.save(testResponse);
+    const savedTestResponse = await this.testResponseRepository.save(testResponse);
+
+    // Verificar si todas las respuestas han sido evaluadas
+    const allEvaluated = testResponse.answers.every((answer) => answer.score !== null && answer.score !== undefined);
+
+    // Notificar a los administradores solo si todas las respuestas están evaluadas
+    if (allEvaluated) {
+      try {
+        const admins = await this.usersService.findAdminUsers();
+        const adminIds = admins.map((admin) => admin.id);
+
+        if (adminIds.length > 0) {
+          await this.notificationsGateway.broadcastNotification(adminIds, {
+            title: 'Evaluación completada',
+            message: `Se ha completado la evaluación del test "${testResponse.test.name}" para ${testResponse.workerProcess.worker.firstName} ${testResponse.workerProcess.worker.lastName}`,
+            type: NotificationType.EVALUATION_COMPLETED,
+            link: `/admin/procesos/${testResponse.workerProcess.process.id}`,
+          });
+        }
+
+        // Notificar también a los usuarios de la empresa
+        if (testResponse.workerProcess.process.company?.id) {
+          const companyUsers = await this.usersService.findCompanyUsers(
+            testResponse.workerProcess.process.company.id
+          );
+          const companyUserIds = companyUsers.map((user) => user.id);
+
+          if (companyUserIds.length > 0) {
+            await this.notificationsGateway.broadcastNotification(companyUserIds, {
+              title: 'Evaluación completada en tu proceso',
+              message: `Se ha completado la evaluación del test "${testResponse.test.name}" para ${testResponse.workerProcess.worker.firstName} ${testResponse.workerProcess.worker.lastName}`,
+              type: NotificationType.EVALUATION_COMPLETED,
+              link: `/empresa/procesos/${testResponse.workerProcess.process.id}`,
+            });
+          }
+        }
+
+        // Notificar al trabajador sobre el resultado de su evaluación manual
+        const workerUserId = testResponse.workerProcess.worker.user?.id;
+        if (workerUserId) {
+          const passed = testResponse.passed;
+          await this.notificationsGateway.broadcastNotification([workerUserId], {
+            title: passed ? 'Evaluación aprobada' : 'Evaluación completada',
+            message: `Tu evaluación del test "${testResponse.test.name}" ha sido completada${passed ? ' y aprobada' : ''}`,
+            type: passed ? NotificationType.SUCCESS : NotificationType.INFO,
+            link: `/trabajador/procesos/${testResponse.workerProcess.process.id}`,
+          });
+        }
+      } catch (error) {
+        this.logger.error(
+          `Error sending notification for completed evaluation: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+
+    return savedTestResponse;
   }
 
   async findOne(id: string, user?: any): Promise<TestResponse> {
