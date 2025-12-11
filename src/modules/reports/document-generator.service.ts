@@ -13,6 +13,7 @@ import {
   BorderStyle,
   ShadingType,
   VerticalAlign,
+  ImageRun,
 } from 'docx';
 import { WorkerProcess } from '../workers/entities/worker-process.entity';
 import { TestResponse } from '../test-responses/entities/test-response.entity';
@@ -81,7 +82,8 @@ export class DocumentGeneratorService {
     if (workerProcess.testResponses && workerProcess.testResponses.length > 0) {
       for (let i = 0; i < workerProcess.testResponses.length; i++) {
         const testResponse = workerProcess.testResponses[i];
-        sections.push(...this.createDetailedTestSection(testResponse));
+        const testSections = await this.createDetailedTestSection(testResponse);
+        sections.push(...testSections);
 
         // Salto de página entre tests (excepto el último)
         if (i < workerProcess.testResponses.length - 1) {
@@ -460,7 +462,7 @@ export class DocumentGeneratorService {
 
   // ========== SECCIÓN DETALLADA DE CADA TEST ==========
 
-  private createDetailedTestSection(testResponse: TestResponse): Paragraph[] {
+  private async createDetailedTestSection(testResponse: TestResponse): Promise<Paragraph[]> {
     const sections: Paragraph[] = [];
 
     // Test name with branding
@@ -596,45 +598,131 @@ export class DocumentGeneratorService {
       );
     }
 
-    // Raw Scores
+    // Raw Scores - Generate chart for 16PF
     if (testResponse.rawScores && Object.keys(testResponse.rawScores).length > 0) {
-      sections.push(
-        this.createEmptyLine(),
-        new Paragraph({
-          children: [new TextRun({ text: 'Puntuaciones por Factor:', bold: true })],
-          spacing: { before: 200, after: 100 },
-        }),
-      );
+      const testCode = testResponse.fixedTest?.code || '';
 
-      for (const [factor, score] of Object.entries(testResponse.rawScores)) {
+      // For 16PF, show chart instead of list
+      if (testCode === 'TEST_16PF' || Object.keys(testResponse.rawScores).length >= 10) {
+        try {
+          const rawChartBuffer = await this.generateRawScoresChart(testResponse.rawScores as Record<string, number>);
+          if (rawChartBuffer) {
+            sections.push(
+              this.createEmptyLine(),
+              new Paragraph({
+                children: [new TextRun({ text: 'Puntuaciones Directas por Factor:', bold: true, size: 22 })],
+                spacing: { before: 200, after: 100 },
+              }),
+              this.createChartParagraph(rawChartBuffer),
+            );
+          }
+        } catch (error) {
+          this.logger.warn(`Could not generate raw scores chart: ${error.message}`);
+          // Fallback to list if chart fails
+          sections.push(
+            this.createEmptyLine(),
+            new Paragraph({
+              children: [new TextRun({ text: 'Puntuaciones por Factor:', bold: true })],
+              spacing: { before: 200, after: 100 },
+            }),
+          );
+          for (const [factor, score] of Object.entries(testResponse.rawScores)) {
+            sections.push(
+              new Paragraph({
+                text: `  • ${factor}: ${score}`,
+                spacing: { before: 50, after: 50 },
+                bullet: { level: 0 },
+              }),
+            );
+          }
+        }
+      } else {
+        // For other tests, show list
         sections.push(
+          this.createEmptyLine(),
           new Paragraph({
-            text: `  • ${factor}: ${score}`,
-            spacing: { before: 50, after: 50 },
-            bullet: { level: 0 },
+            children: [new TextRun({ text: 'Puntuaciones por Factor:', bold: true })],
+            spacing: { before: 200, after: 100 },
           }),
         );
+        for (const [factor, score] of Object.entries(testResponse.rawScores)) {
+          sections.push(
+            new Paragraph({
+              text: `  • ${factor}: ${score}`,
+              spacing: { before: 50, after: 50 },
+              bullet: { level: 0 },
+            }),
+          );
+        }
       }
     }
 
-    // Scaled Scores (for 16PF decatipos, etc.)
+    // Scaled Scores (for 16PF decatipos, etc.) - Only show chart, not list
     if (testResponse.scaledScores && Object.keys(testResponse.scaledScores).length > 0) {
-      sections.push(
-        this.createEmptyLine(),
-        new Paragraph({
-          children: [new TextRun({ text: 'Puntuaciones Escaladas (Decatipos/Percentiles):', bold: true })],
-          spacing: { before: 200, after: 100 },
-        }),
-      );
+      const testCode = testResponse.fixedTest?.code || '';
 
-      for (const [factor, score] of Object.entries(testResponse.scaledScores)) {
+      // For 16PF, show only the chart (no list)
+      if (testCode === 'TEST_16PF' || Object.keys(testResponse.scaledScores).length >= 10) {
+        try {
+          const chartBuffer = await this.generate16PFChart(testResponse.scaledScores as Record<string, number>);
+          if (chartBuffer) {
+            sections.push(
+              this.createEmptyLine(),
+              new Paragraph({
+                children: [new TextRun({ text: 'Perfil de Personalidad - Decatipos:', bold: true, size: 22 })],
+                spacing: { before: 200, after: 100 },
+              }),
+              this.createChartParagraph(chartBuffer),
+              new Paragraph({
+                children: [
+                  new TextRun({ text: 'Leyenda: ', bold: true, size: 16, color: TALENTREE_COLORS.textLight }),
+                  new TextRun({ text: '■ Rojo (1-3): Bajo ', size: 16, color: 'ef4444' }),
+                  new TextRun({ text: '■ Azul (4-7): Medio ', size: 16, color: '3b82f6' }),
+                  new TextRun({ text: '■ Verde (8-10): Alto', size: 16, color: '10b981' }),
+                ],
+                alignment: AlignmentType.CENTER,
+                spacing: { before: 50, after: 150 },
+              }),
+            );
+          }
+        } catch (error) {
+          this.logger.warn(`Could not generate decatipo chart: ${error.message}`);
+          // Fallback to list if chart fails
+          sections.push(
+            this.createEmptyLine(),
+            new Paragraph({
+              children: [new TextRun({ text: 'Puntuaciones Escaladas (Decatipos):', bold: true })],
+              spacing: { before: 200, after: 100 },
+            }),
+          );
+          for (const [factor, score] of Object.entries(testResponse.scaledScores)) {
+            sections.push(
+              new Paragraph({
+                text: `  • ${factor}: ${score}`,
+                spacing: { before: 50, after: 50 },
+                bullet: { level: 0 },
+              }),
+            );
+          }
+        }
+      } else {
+        // For other tests, show list
         sections.push(
+          this.createEmptyLine(),
           new Paragraph({
-            text: `  • ${factor}: ${score}`,
-            spacing: { before: 50, after: 50 },
-            bullet: { level: 0 },
+            children: [new TextRun({ text: 'Puntuaciones Escaladas:', bold: true })],
+            spacing: { before: 200, after: 100 },
           }),
         );
+        for (const [factor, score] of Object.entries(testResponse.scaledScores)) {
+          sections.push(
+            new Paragraph({
+              text: `  • ${factor}: ${score}`,
+              spacing: { before: 50, after: 50 },
+              bullet: { level: 0 },
+            }),
+          );
+        }
       }
     }
 
@@ -666,21 +754,67 @@ export class DocumentGeneratorService {
                 bullet: { level: 0 },
               }),
             );
-          } else if (typeof value === 'object') {
+          } else if (Array.isArray(value)) {
+            // Handle arrays (like recomendaciones)
             sections.push(
               new Paragraph({
-                children: [new TextRun({ text: `  ${key}:`, bold: true })],
+                children: [new TextRun({ text: `${key}:`, bold: true })],
                 spacing: { before: 100, after: 50 },
               }),
             );
-            for (const [subKey, subValue] of Object.entries(value)) {
+            for (const item of value) {
               sections.push(
                 new Paragraph({
-                  text: `    - ${subKey}: ${subValue}`,
+                  text: `  • ${typeof item === 'object' ? JSON.stringify(item) : item}`,
                   spacing: { before: 25, after: 25 },
-                  bullet: { level: 1 },
+                  bullet: { level: 0 },
                 }),
               );
+            }
+          } else if (typeof value === 'object' && value !== null) {
+            // Handle nested objects (like factorDescriptions)
+            if (key === 'factorDescriptions') {
+              // Special handling for 16PF factor descriptions
+              sections.push(
+                new Paragraph({
+                  children: [new TextRun({ text: 'Descripción por Factor:', bold: true, size: 22 })],
+                  spacing: { before: 150, after: 100 },
+                }),
+              );
+              for (const [factor, factorData] of Object.entries(value as Record<string, any>)) {
+                const fd = factorData as { decatipo?: number; nivel?: string; descripcion?: string };
+                sections.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: `Factor ${factor}: `, bold: true }),
+                      new TextRun({ text: `DT=${fd.decatipo || 'N/A'} `, color: TALENTREE_COLORS.primary }),
+                      new TextRun({ text: `(${fd.nivel || 'N/A'}) ` }),
+                      new TextRun({ text: `- ${fd.descripcion || 'Sin descripción'}`, italics: true }),
+                    ],
+                    spacing: { before: 50, after: 50 },
+                  }),
+                );
+              }
+            } else {
+              // Generic nested object handling
+              sections.push(
+                new Paragraph({
+                  children: [new TextRun({ text: `${key}:`, bold: true })],
+                  spacing: { before: 100, after: 50 },
+                }),
+              );
+              for (const [subKey, subValue] of Object.entries(value)) {
+                const displayValue = typeof subValue === 'object' && subValue !== null
+                  ? JSON.stringify(subValue)
+                  : String(subValue);
+                sections.push(
+                  new Paragraph({
+                    text: `  • ${subKey}: ${displayValue}`,
+                    spacing: { before: 25, after: 25 },
+                    bullet: { level: 0 },
+                  }),
+                );
+              }
             }
           }
         }
@@ -828,5 +962,263 @@ export class DocumentGeneratorService {
       completed: 'Completado',
     };
     return statusMap[status] || status;
+  }
+
+  // ========== GENERACIÓN DE GRÁFICOS ==========
+
+  /**
+   * Generates a horizontal bar chart for raw scores (Puntuaciones Directas)
+   * @param rawScores Object with factor names as keys and raw score values
+   * @returns Buffer with PNG image data, or null if generation fails
+   */
+  private async generateRawScoresChart(rawScores: Record<string, number>): Promise<Buffer | null> {
+    try {
+      const factors = Object.keys(rawScores);
+      const values = Object.values(rawScores);
+      const maxValue = Math.max(...values) + 2; // Add padding
+
+      const chartConfig = {
+        type: 'horizontalBar',
+        data: {
+          labels: factors,
+          datasets: [{
+            label: 'Puntuación Directa',
+            data: values,
+            backgroundColor: 'rgba(59, 130, 246, 0.7)',  // Blue
+            borderColor: 'rgb(59, 130, 246)',
+            borderWidth: 1,
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          scales: {
+            xAxes: [{
+              ticks: {
+                beginAtZero: true,
+                max: maxValue,
+              },
+              scaleLabel: {
+                display: true,
+                labelString: 'Puntuación Directa (PD)',
+                fontStyle: 'bold',
+              },
+              gridLines: {
+                color: 'rgba(0,0,0,0.1)',
+              }
+            }],
+            yAxes: [{
+              gridLines: {
+                display: false,
+              },
+              ticks: {
+                fontStyle: 'bold',
+              }
+            }]
+          },
+          legend: {
+            display: false,
+          },
+          title: {
+            display: true,
+            text: 'Puntuaciones Directas por Factor (16PF)',
+            fontSize: 16,
+            fontStyle: 'bold',
+            fontColor: '#1d4ed8',
+          },
+          plugins: {
+            datalabels: {
+              display: true,
+              anchor: 'end',
+              align: 'right',
+              color: '#333',
+              font: {
+                weight: 'bold',
+              }
+            }
+          }
+        }
+      };
+
+      const quickChartUrl = `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(chartConfig))}&w=600&h=500&bkg=white&f=png`;
+
+      this.logger.log('Generating raw scores chart from QuickChart.io');
+
+      const response = await fetch(quickChartUrl);
+
+      if (!response.ok) {
+        this.logger.error(`QuickChart API error: ${response.status} ${response.statusText}`);
+        return null;
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      this.logger.log(`Raw scores chart generated successfully (${buffer.length} bytes)`);
+      return buffer;
+    } catch (error) {
+      this.logger.error(`Failed to generate raw scores chart: ${error.message}`);
+      return null;
+    }
+  }
+
+  /**
+   * Generates a horizontal bar chart for 16PF decatipos using QuickChart.io API
+   * @param scaledScores Object with factor names as keys and decatipo values (1-10)
+   * @returns Buffer with PNG image data, or null if generation fails
+   */
+  private async generate16PFChart(scaledScores: Record<string, number>): Promise<Buffer | null> {
+    try {
+      const factors = Object.keys(scaledScores);
+      const values = Object.values(scaledScores);
+
+      // Color coding based on decatipo level
+      const backgroundColors = values.map(v => {
+        if (v <= 3) return 'rgba(239, 68, 68, 0.7)';   // Red - Low
+        if (v <= 7) return 'rgba(59, 130, 246, 0.7)';  // Blue - Medium
+        return 'rgba(16, 185, 129, 0.7)';              // Green - High
+      });
+
+      const borderColors = values.map(v => {
+        if (v <= 3) return 'rgb(239, 68, 68)';
+        if (v <= 7) return 'rgb(59, 130, 246)';
+        return 'rgb(16, 185, 129)';
+      });
+
+      const chartConfig = {
+        type: 'horizontalBar',
+        data: {
+          labels: factors,
+          datasets: [{
+            label: 'Decatipo',
+            data: values,
+            backgroundColor: backgroundColors,
+            borderColor: borderColors,
+            borderWidth: 1,
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          scales: {
+            xAxes: [{
+              ticks: {
+                beginAtZero: true,
+                max: 10,
+                stepSize: 1,
+              },
+              scaleLabel: {
+                display: true,
+                labelString: 'Decatipo (1-10)',
+                fontStyle: 'bold',
+              },
+              gridLines: {
+                color: 'rgba(0,0,0,0.1)',
+              }
+            }],
+            yAxes: [{
+              gridLines: {
+                display: false,
+              },
+              ticks: {
+                fontStyle: 'bold',
+              }
+            }]
+          },
+          legend: {
+            display: false,
+          },
+          title: {
+            display: true,
+            text: 'Perfil de Personalidad 16PF - Decatipos',
+            fontSize: 16,
+            fontStyle: 'bold',
+            fontColor: '#1d4ed8',
+          },
+          plugins: {
+            datalabels: {
+              display: true,
+              anchor: 'end',
+              align: 'right',
+              color: '#333',
+              font: {
+                weight: 'bold',
+              }
+            }
+          },
+          // Add reference lines for interpretation zones
+          annotation: {
+            annotations: [
+              {
+                type: 'line',
+                mode: 'vertical',
+                scaleID: 'x-axis-0',
+                value: 3.5,
+                borderColor: 'rgba(239, 68, 68, 0.5)',
+                borderWidth: 2,
+                borderDash: [5, 5],
+                label: {
+                  enabled: true,
+                  content: 'Bajo',
+                  position: 'top',
+                }
+              },
+              {
+                type: 'line',
+                mode: 'vertical',
+                scaleID: 'x-axis-0',
+                value: 7.5,
+                borderColor: 'rgba(16, 185, 129, 0.5)',
+                borderWidth: 2,
+                borderDash: [5, 5],
+                label: {
+                  enabled: true,
+                  content: 'Alto',
+                  position: 'top',
+                }
+              }
+            ]
+          }
+        }
+      };
+
+      const quickChartUrl = `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(chartConfig))}&w=600&h=500&bkg=white&f=png`;
+
+      this.logger.log('Generating 16PF chart from QuickChart.io');
+
+      const response = await fetch(quickChartUrl);
+
+      if (!response.ok) {
+        this.logger.error(`QuickChart API error: ${response.status} ${response.statusText}`);
+        return null;
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      this.logger.log(`16PF chart generated successfully (${buffer.length} bytes)`);
+      return buffer;
+    } catch (error) {
+      this.logger.error(`Failed to generate 16PF chart: ${error.message}`);
+      return null;
+    }
+  }
+
+  /**
+   * Creates a Paragraph with an embedded chart image
+   */
+  private createChartParagraph(imageBuffer: Buffer, width: number = 550, height: number = 450): Paragraph {
+    return new Paragraph({
+      children: [
+        new ImageRun({
+          data: imageBuffer,
+          transformation: {
+            width,
+            height,
+          },
+          type: 'png',
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 200, after: 200 },
+    });
   }
 }

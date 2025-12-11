@@ -1,15 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThanOrEqual, MoreThan, IsNull } from 'typeorm';
 import { SelectionProcess } from '../processes/entities/selection-process.entity';
 import { WorkerProcess } from '../workers/entities/worker-process.entity';
 import { TestResponse } from '../test-responses/entities/test-response.entity';
+import { Report } from '../reports/entities/report.entity';
 import { ProcessStatus } from '../../common/enums/process-status.enum';
 import { WorkerStatus } from '../../common/enums/worker-status.enum';
 import { NotificationsGateway } from './notifications.gateway';
 import { NotificationType } from '../../common/enums/notification-type.enum';
 import { UsersService } from '../users/users.service';
+import { ReportsService } from '../reports/reports.service';
 
 @Injectable()
 export class NotificationsSchedulerService {
@@ -22,8 +24,12 @@ export class NotificationsSchedulerService {
     private readonly workerProcessRepository: Repository<WorkerProcess>,
     @InjectRepository(TestResponse)
     private readonly testResponseRepository: Repository<TestResponse>,
+    @InjectRepository(Report)
+    private readonly reportRepository: Repository<Report>,
     private readonly notificationsGateway: NotificationsGateway,
     private readonly usersService: UsersService,
+    @Inject(forwardRef(() => ReportsService))
+    private readonly reportsService: ReportsService,
   ) {}
 
   /**
@@ -454,6 +460,141 @@ export class NotificationsSchedulerService {
     } catch (error) {
       this.logger.error(
         `Cron job notifyEvaluatorsAboutUrgentEvaluations failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  /**
+   * Cron job: Cerrar procesos vencidos y generar reportes automáticamente
+   * Se ejecuta todos los días a las 3:00 AM
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_3AM, {
+    name: 'closeExpiredProcessesAndGenerateReports',
+  })
+  async closeExpiredProcessesAndGenerateReports() {
+    this.logger.log('Running cron: closeExpiredProcessesAndGenerateReports');
+
+    try {
+      const now = new Date();
+
+      // Buscar procesos activos que ya vencieron
+      const expiredProcesses = await this.processRepository.find({
+        where: {
+          status: ProcessStatus.ACTIVE,
+          endDate: LessThanOrEqual(now),
+        },
+        relations: ['tests', 'fixedTests'],
+      });
+
+      for (const process of expiredProcesses) {
+        this.logger.log(
+          `Processing expired process: ${process.name} (ID: ${process.id})`,
+        );
+
+        try {
+          // Buscar todos los WorkerProcess de este proceso
+          const workerProcesses = await this.workerProcessRepository.find({
+            where: {
+              process: { id: process.id },
+              status: WorkerStatus.IN_PROCESS, // Solo los que están en proceso
+            },
+            relations: ['worker', 'worker.user'],
+          });
+
+          for (const workerProcess of workerProcesses) {
+            try {
+              // Verificar si ya existe un reporte para este WorkerProcess
+              const existingReport = await this.reportRepository.findOne({
+                where: { worker: { id: workerProcess.worker.id }, process: { id: process.id } },
+              });
+
+              if (existingReport) {
+                this.logger.log(
+                  `Report already exists for worker ${workerProcess.worker.id} in process ${process.id}, skipping`,
+                );
+                continue;
+              }
+
+              // Contar tests totales asignados al proceso
+              const totalTests =
+                (process.tests?.length || 0) + (process.fixedTests?.length || 0);
+
+              if (totalTests === 0) {
+                this.logger.log(
+                  `Process ${process.id} has no tests assigned, skipping report generation`,
+                );
+                continue;
+              }
+
+              // Contar tests respondidos por este trabajador
+              const testResponses = await this.testResponseRepository.find({
+                where: { workerProcess: { id: workerProcess.id } },
+              });
+
+              const submittedTestsCount = testResponses.length;
+
+              this.logger.log(
+                `Worker ${workerProcess.worker.firstName} ${workerProcess.worker.lastName}: ${submittedTestsCount}/${totalTests} tests submitted`,
+              );
+
+              // Cambiar estado del WorkerProcess a COMPLETED
+              workerProcess.status = WorkerStatus.COMPLETED;
+              await this.workerProcessRepository.save(workerProcess);
+
+              // Generar el reporte con lo que hay
+              this.logger.log(
+                `Generating report for worker ${workerProcess.worker.id} in process ${process.id}`,
+              );
+              await this.reportsService.generateReport(workerProcess.id);
+
+              // Notificar al trabajador que su proceso se cerró y el reporte está listo
+              const workerUserId = workerProcess.worker.user?.id;
+              if (workerUserId) {
+                await this.notificationsGateway.broadcastNotification(
+                  [workerUserId],
+                  {
+                    title: 'Proceso cerrado - Reporte generado',
+                    message: `El proceso "${process.name}" ha finalizado. Tu reporte ha sido generado con ${submittedTestsCount} de ${totalTests} tests completados.`,
+                    type: NotificationType.INFO,
+                    link: `/trabajador/reportes`,
+                  },
+                );
+              }
+
+              this.logger.log(
+                `Successfully closed and generated report for worker ${workerProcess.worker.id}`,
+              );
+            } catch (error) {
+              this.logger.error(
+                `Failed to process worker ${workerProcess.worker.id}: ${error instanceof Error ? error.message : String(error)}`,
+              );
+            }
+          }
+
+          // Cambiar el estado del proceso a COMPLETED
+          process.status = ProcessStatus.COMPLETED;
+          await this.processRepository.save(process);
+
+          this.logger.log(
+            `Process ${process.name} (ID: ${process.id}) marked as COMPLETED`,
+          );
+        } catch (error) {
+          this.logger.error(
+            `Failed to process expired process ${process.id}: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+      }
+
+      if (expiredProcesses.length > 0) {
+        this.logger.log(
+          `Processed ${expiredProcesses.length} expired process(es)`,
+        );
+      } else {
+        this.logger.log('No expired processes found');
+      }
+    } catch (error) {
+      this.logger.error(
+        `Cron job closeExpiredProcessesAndGenerateReports failed: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }

@@ -59,6 +59,33 @@ export class Test16PFScoringService {
   };
 
   /**
+   * Tabla normativa para el cálculo de decatipos
+   * Media y desviación estándar por factor (valores aproximados para población general adulta)
+   * Cada pregunta puede dar 0, 1, o 2 puntos, por lo que el máximo es numPreguntas * 2
+   *
+   * La fórmula de decatipos es: DT = (Z × 2) + 5.5
+   * Donde Z = (PD - Media) / DesviaciónEstándar
+   */
+  private readonly NORMATIVE_TABLE: { [factor: string]: { mean: number; sd: number } } = {
+    'A': { mean: 13.0, sd: 4.5 },   // Afectividad: max 26 (13 preguntas × 2)
+    'B': { mean: 8.0, sd: 3.0 },    // Razonamiento: max 16 (8 preguntas × 2)
+    'C': { mean: 12.0, sd: 4.0 },   // Estabilidad: max 24 (12 preguntas × 2)
+    'E': { mean: 11.0, sd: 3.8 },   // Dominancia: max 22 (11 preguntas × 2)
+    'F': { mean: 12.0, sd: 4.0 },   // Impulsividad: max 24 (12 preguntas × 2)
+    'G': { mean: 13.0, sd: 4.5 },   // Conformidad: max 26 (13 preguntas × 2)
+    'H': { mean: 13.0, sd: 4.5 },   // Atrevimiento: max 26 (13 preguntas × 2)
+    'I': { mean: 11.0, sd: 3.8 },   // Sensibilidad: max 22 (11 preguntas × 2)
+    'L': { mean: 10.0, sd: 3.5 },   // Suspicacia: max 20 (10 preguntas × 2)
+    'M': { mean: 12.0, sd: 4.0 },   // Imaginación: max 24 (12 preguntas × 2)
+    'N': { mean: 12.0, sd: 4.0 },   // Astucia: max 24 (12 preguntas × 2)
+    'O': { mean: 13.0, sd: 4.5 },   // Culpabilidad: max 26 (13 preguntas × 2)
+    'Q1': { mean: 11.0, sd: 3.8 },  // Rebeldía: max 22 (11 preguntas × 2)
+    'Q2': { mean: 12.0, sd: 4.0 },  // Autosuficiencia: max 24 (12 preguntas × 2)
+    'Q3': { mean: 12.0, sd: 4.0 },  // Autocontrol: max 24 (12 preguntas × 2)
+    'Q4': { mean: 12.0, sd: 4.0 },  // Tensión: max 24 (12 preguntas × 2)
+  };
+
+  /**
    * Calcula el puntaje del Test 16PF
    */
   calculateScore(answers: TestAnswer[]): Test16PFScoringResult {
@@ -112,25 +139,58 @@ export class Test16PFScoringService {
   private extractAnswerScore(answer: TestAnswer): number {
     const selectedOption = answer.answer;
     const options = answer.fixedTestQuestion?.options;
+    const questionNum = answer.fixedTestQuestion?.questionNumber;
 
     if (!options || !options.scoring) {
-      this.logger.warn('Pregunta sin opciones de scoring');
+      this.logger.warn(`[Q${questionNum}] Pregunta sin opciones de scoring`);
       return 0;
     }
 
-    // La respuesta puede ser "A", "B", "C" o un número
+    // La respuesta puede ser "A", "B", "C", el texto de la opción, un número, o un objeto
     let optionKey = selectedOption;
 
-    // Si la respuesta es un número, necesitamos mapearla a la letra
-    if (typeof selectedOption === 'number') {
-      const keys = ['A', 'B', 'C'];
-      optionKey = keys[selectedOption - 1] || 'A';
+    // Si la respuesta es un objeto con propiedad 'value' o similar
+    if (typeof selectedOption === 'object' && selectedOption !== null) {
+      optionKey = selectedOption.value || selectedOption.answer || selectedOption.option || Object.values(selectedOption)[0];
     }
 
-    const score = options.scoring[optionKey];
+    // Convertir a string
+    optionKey = String(optionKey).trim();
+
+    // Si la respuesta es un número, mapear a letra
+    if (/^\d+$/.test(optionKey)) {
+      const numKey = parseInt(optionKey, 10);
+      const keys = ['A', 'B', 'C'];
+      optionKey = keys[numKey - 1] || keys[numKey] || 'A';
+    }
+
+    // Intentar primero con la clave directa (A, B, C)
+    let score = options.scoring[optionKey.toUpperCase()];
+
+    // Si no encuentra por clave, buscar por el texto de la opción
+    if (score === undefined) {
+      // Buscar la clave cuyo valor coincide con la respuesta
+      for (const [key, value] of Object.entries(options)) {
+        if (key !== 'scoring' && key !== 'format' && value === optionKey) {
+          score = options.scoring[key];
+          break;
+        }
+      }
+    }
+
+    // Si aún no encuentra, puede ser que la respuesta sea el texto normalizado
+    if (score === undefined) {
+      const optionKeyLower = optionKey.toLowerCase();
+      for (const [key, value] of Object.entries(options)) {
+        if (key !== 'scoring' && key !== 'format' && String(value).toLowerCase() === optionKeyLower) {
+          score = options.scoring[key];
+          break;
+        }
+      }
+    }
 
     if (score === undefined) {
-      this.logger.warn(`Score no encontrado para opción ${optionKey}`);
+      this.logger.warn(`[Q${questionNum}] Score no encontrado para "${optionKey}". Opciones: ${JSON.stringify(options)}`);
       return 0;
     }
 
@@ -138,7 +198,11 @@ export class Test16PFScoringService {
   }
 
   /**
-   * Convierte los puntajes brutos a decatipos (escala 1-10)
+   * Convierte los puntajes brutos (PD) a decatipos (escala 1-10)
+   *
+   * Fórmula correcta de decatipos según psicometría:
+   * 1. Z = (PD - Media) / DesviaciónEstándar
+   * 2. DT = (Z × 2) + 5.5 (redondeado)
    *
    * El decatipo es una escala estandarizada donde:
    * - 1-3: Bajo
@@ -152,21 +216,40 @@ export class Test16PFScoringService {
     const decatipos: { [factor: string]: number } = {};
 
     for (const factor of this.FACTORS) {
-      const rawScore = rawScores[factor];
+      const rawScore = rawScores[factor];  // PD (Puntuación Directa)
       const questionCount = factorCounts[factor];
-      const expectedCount = this.EXPECTED_QUESTIONS_PER_FACTOR[factor] || 12;
 
-      // Calcular el máximo posible (cada pregunta puede dar 0, 1, o 2 puntos)
-      const maxPossible = expectedCount * 2;
+      // Si no hay respuestas para este factor, asignar decatipo medio
+      if (questionCount === 0) {
+        decatipos[factor] = 5;
+        continue;
+      }
 
-      // Normalizar a escala 0-1
-      const normalized = questionCount > 0 ? rawScore / maxPossible : 0;
+      // Obtener tabla normativa del factor
+      const norm = this.NORMATIVE_TABLE[factor];
+      if (!norm) {
+        this.logger.warn(`No hay tabla normativa para factor ${factor}, usando valor por defecto`);
+        decatipos[factor] = 5;
+        continue;
+      }
 
-      // Convertir a decatipo (1-10)
-      // Usamos una distribución lineal simple por ahora
-      const decatipo = Math.max(1, Math.min(10, Math.round(normalized * 10) + 1));
+      // Paso 1: Calcular Z score
+      // Z = (PD - Media) / DesviaciónEstándar
+      const z = (rawScore - norm.mean) / norm.sd;
 
-      decatipos[factor] = decatipo;
+      // Paso 2: Convertir Z a Decatipo
+      // DT = (Z × 2) + 5.5
+      let dt = Math.round((z * 2) + 5.5);
+
+      // Paso 3: Mantener entre 1 y 10
+      if (dt < 1) dt = 1;
+      if (dt > 10) dt = 10;
+
+      decatipos[factor] = dt;
+
+      this.logger.debug(
+        `Factor ${factor}: PD=${rawScore}, Media=${norm.mean}, SD=${norm.sd}, Z=${z.toFixed(2)}, DT=${dt}`
+      );
     }
 
     return decatipos;

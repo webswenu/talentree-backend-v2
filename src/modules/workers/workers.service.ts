@@ -29,6 +29,7 @@ import { uploadFileAndGetPublicUrl, extractS3KeyFromUrl } from '../../common/hel
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { NotificationType } from '../../common/enums/notification-type.enum';
 import { UsersService } from '../users/users.service';
+import { EmailHelper } from '../../common/helpers/email.helper';
 
 @Injectable()
 export class WorkersService {
@@ -341,6 +342,15 @@ export class WorkersService {
             link: `/trabajador/procesos/${workerProcessWithRelations.process.id}/tests`,
           });
         }
+
+        // Enviar email de bienvenida al proceso
+        await this.sendWelcomeToProcessEmail(
+          workerProcessWithRelations.worker.email,
+          `${workerProcessWithRelations.worker.firstName} ${workerProcessWithRelations.worker.lastName}`,
+          workerProcessWithRelations.process.name,
+          workerProcessWithRelations.process.company?.name || 'la empresa',
+          workerProcessWithRelations.process.position || 'el cargo',
+        );
       } catch (error) {
         this.logger.error(
           `Error sending notification for new application: ${error instanceof Error ? error.message : String(error)}`,
@@ -367,13 +377,52 @@ export class WorkersService {
     });
   }
 
+  /**
+   * Cuenta cuántos trabajadores están aprobados en un proceso
+   */
+  async countApprovedWorkers(processId: string): Promise<number> {
+    return this.workerProcessRepository.count({
+      where: {
+        process: { id: processId },
+        status: WorkerStatus.APPROVED,
+      },
+    });
+  }
+
+  /**
+   * Obtiene información de cupos de un proceso
+   */
+  async getProcessCapacity(processId: string): Promise<{
+    maxWorkers: number | null;
+    approvedCount: number;
+    availableSlots: number | null;
+    isFull: boolean;
+  }> {
+    const process = await this.processRepository.findOne({
+      where: { id: processId },
+    });
+
+    if (!process) {
+      throw new NotFoundException(`Proceso con ID ${processId} no encontrado`);
+    }
+
+    const approvedCount = await this.countApprovedWorkers(processId);
+
+    return {
+      maxWorkers: process.maxWorkers,
+      approvedCount,
+      availableSlots: process.maxWorkers ? process.maxWorkers - approvedCount : null,
+      isFull: process.maxWorkers ? approvedCount >= process.maxWorkers : false,
+    };
+  }
+
   async updateWorkerProcessStatus(
     workerProcessId: string,
     updateDto: UpdateWorkerProcessStatusDto,
   ): Promise<WorkerProcess> {
     const workerProcess = await this.workerProcessRepository.findOne({
       where: { id: workerProcessId },
-      relations: ['worker', 'worker.user', 'process'],
+      relations: ['worker', 'worker.user', 'process', 'process.company'],
     });
 
     if (!workerProcess) {
@@ -383,6 +432,19 @@ export class WorkersService {
     }
 
     const oldStatus = workerProcess.status;
+
+    // Validar cupos si se está aprobando
+    if (updateDto.status === WorkerStatus.APPROVED && oldStatus !== WorkerStatus.APPROVED) {
+      const capacity = await this.getProcessCapacity(workerProcess.process.id);
+
+      if (capacity.isFull) {
+        throw new BadRequestException(
+          `No hay cupos disponibles en el proceso "${workerProcess.process.name}". ` +
+          `Cupos máximos: ${capacity.maxWorkers}, Aprobados: ${capacity.approvedCount}`,
+        );
+      }
+    }
+
     Object.assign(workerProcess, updateDto);
     workerProcess.evaluatedAt = new Date();
 
@@ -412,6 +474,11 @@ export class WorkersService {
             link: `/trabajador/procesos/${workerProcess.process.id}`,
           });
         }
+
+        // Enviar email al trabajador si fue APROBADO o RECHAZADO
+        if (updateDto.status === WorkerStatus.APPROVED || updateDto.status === WorkerStatus.REJECTED) {
+          await this.sendStatusChangeEmail(workerProcess, updateDto.status);
+        }
       } catch (error) {
         this.logger.error(
           `Error sending notification for status change: ${error instanceof Error ? error.message : String(error)}`,
@@ -420,6 +487,295 @@ export class WorkersService {
     }
 
     return savedWorkerProcess;
+  }
+
+  /**
+   * Envía email al trabajador cuando es aprobado o rechazado
+   */
+  private async sendStatusChangeEmail(
+    workerProcess: WorkerProcess,
+    newStatus: WorkerStatus,
+  ): Promise<void> {
+    const workerEmail = workerProcess.worker.email;
+    const workerName = `${workerProcess.worker.firstName} ${workerProcess.worker.lastName}`;
+    const processName = workerProcess.process.name;
+    const companyName = workerProcess.process.company?.name || 'la empresa';
+
+    if (newStatus === WorkerStatus.APPROVED) {
+      await this.sendApprovalEmail(workerEmail, workerName, processName, companyName);
+    } else if (newStatus === WorkerStatus.REJECTED) {
+      await this.sendRejectionEmail(workerEmail, workerName, processName, companyName);
+    }
+  }
+
+  /**
+   * Envía email de aprobación al trabajador
+   */
+  private async sendApprovalEmail(
+    email: string,
+    workerName: string,
+    processName: string,
+    companyName: string,
+  ): Promise<void> {
+    const subject = `¡Felicidades! Has sido seleccionado para ${processName}`;
+
+    const textContent = `Hola ${workerName},
+
+¡Felicidades! Nos complace informarte que has sido seleccionado/a para el proceso "${processName}" en ${companyName}.
+
+Tu perfil y desempeño en las evaluaciones han cumplido con los requisitos del cargo. Pronto te contactaremos para informarte sobre los próximos pasos del proceso.
+
+¡Te damos la bienvenida al equipo!
+
+Saludos,
+Equipo Talentree`;
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+    .header h1 { margin: 0; font-size: 24px; }
+    .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+    .success-badge { background: #d1fae5; color: #065f46; padding: 15px 25px; border-radius: 50px; display: inline-block; font-weight: bold; margin: 20px 0; }
+    .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981; }
+    .footer { text-align: center; margin-top: 20px; color: #6b7280; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>¡Felicidades, ${workerName}!</h1>
+    </div>
+    <div class="content">
+      <div style="text-align: center;">
+        <span class="success-badge">✓ SELECCIONADO/A</span>
+      </div>
+
+      <p>Nos complace informarte que <strong>has sido seleccionado/a</strong> para el proceso:</p>
+
+      <div class="info-box">
+        <p style="margin: 0;"><strong>Proceso:</strong> ${processName}</p>
+        <p style="margin: 10px 0 0 0;"><strong>Empresa:</strong> ${companyName}</p>
+      </div>
+
+      <p>Tu perfil y desempeño en las evaluaciones han cumplido con los requisitos del cargo.</p>
+
+      <p><strong>Próximos pasos:</strong> Pronto te contactaremos para informarte sobre el proceso de incorporación.</p>
+
+      <p style="margin-top: 30px;">¡Te damos la bienvenida!</p>
+
+      <p>Saludos,<br><strong>Equipo Talentree</strong></p>
+    </div>
+    <div class="footer">
+      <p>Este es un correo automático enviado por el sistema de selección de Talentree.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    try {
+      await EmailHelper.sendEmail(email, subject, textContent, htmlContent);
+      this.logger.log(`Email de aprobación enviado a ${email} para proceso ${processName}`);
+    } catch (error) {
+      this.logger.error(`Error enviando email de aprobación a ${email}: ${error.message}`);
+    }
+  }
+
+  /**
+   * Envía email de rechazo al trabajador
+   */
+  private async sendRejectionEmail(
+    email: string,
+    workerName: string,
+    processName: string,
+    companyName: string,
+  ): Promise<void> {
+    const subject = `Actualización sobre tu postulación a ${processName}`;
+
+    const textContent = `Hola ${workerName},
+
+Gracias por tu interés en participar en el proceso de selección "${processName}" de ${companyName}.
+
+Después de una cuidadosa evaluación, lamentamos informarte que en esta ocasión hemos decidido continuar con otros candidatos cuyo perfil se ajusta más a los requerimientos específicos del cargo.
+
+Queremos agradecerte el tiempo y esfuerzo dedicados durante el proceso. Te animamos a seguir postulando a futuras oportunidades que se ajusten a tu perfil profesional.
+
+Te deseamos mucho éxito en tu búsqueda laboral.
+
+Saludos cordiales,
+Equipo Talentree`;
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+    .header h1 { margin: 0; font-size: 24px; }
+    .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+    .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #6366f1; }
+    .encouragement { background: #eef2ff; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }
+    .footer { text-align: center; margin-top: 20px; color: #6b7280; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Actualización de tu Postulación</h1>
+    </div>
+    <div class="content">
+      <p>Hola <strong>${workerName}</strong>,</p>
+
+      <p>Gracias por tu interés en participar en el proceso de selección:</p>
+
+      <div class="info-box">
+        <p style="margin: 0;"><strong>Proceso:</strong> ${processName}</p>
+        <p style="margin: 10px 0 0 0;"><strong>Empresa:</strong> ${companyName}</p>
+      </div>
+
+      <p>Después de una cuidadosa evaluación, lamentamos informarte que en esta ocasión hemos decidido continuar con otros candidatos cuyo perfil se ajusta más a los requerimientos específicos del cargo.</p>
+
+      <div class="encouragement">
+        <p style="margin: 0; font-weight: bold; color: #4f46e5;">¡No te desanimes!</p>
+        <p style="margin: 10px 0 0 0;">Te animamos a seguir postulando a futuras oportunidades que se ajusten a tu perfil profesional.</p>
+      </div>
+
+      <p>Queremos agradecerte el tiempo y esfuerzo dedicados durante el proceso.</p>
+
+      <p>Te deseamos mucho éxito en tu búsqueda laboral.</p>
+
+      <p style="margin-top: 30px;">Saludos cordiales,<br><strong>Equipo Talentree</strong></p>
+    </div>
+    <div class="footer">
+      <p>Este es un correo automático enviado por el sistema de selección de Talentree.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    try {
+      await EmailHelper.sendEmail(email, subject, textContent, htmlContent);
+      this.logger.log(`Email de rechazo enviado a ${email} para proceso ${processName}`);
+    } catch (error) {
+      this.logger.error(`Error enviando email de rechazo a ${email}: ${error.message}`);
+    }
+  }
+
+  /**
+   * Envía email de bienvenida cuando el trabajador se postula a un proceso
+   */
+  private async sendWelcomeToProcessEmail(
+    email: string,
+    workerName: string,
+    processName: string,
+    companyName: string,
+    position: string,
+  ): Promise<void> {
+    const subject = `¡Bienvenido al proceso de selección para ${position}!`;
+
+    const textContent = `Hola ${workerName},
+
+¡Gracias por postularte al proceso de selección "${processName}" en ${companyName}!
+
+Tu postulación ha sido recibida exitosamente. Ahora puedes comenzar a completar las evaluaciones asignadas.
+
+Pasos a seguir:
+1. Ingresa a la plataforma Talentree
+2. Ve a la sección "Mis Procesos"
+3. Completa los tests y evaluaciones asignadas
+
+Te recomendamos completar las evaluaciones lo antes posible para avanzar en el proceso de selección.
+
+¡Mucho éxito!
+
+Saludos,
+Equipo Talentree`;
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+    .header h1 { margin: 0; font-size: 24px; }
+    .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+    .welcome-badge { background: #d1fae5; color: #065f46; padding: 15px 25px; border-radius: 50px; display: inline-block; font-weight: bold; margin: 20px 0; }
+    .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #14b8a6; }
+    .steps { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+    .step { display: flex; align-items: center; margin: 15px 0; }
+    .step-number { background: #14b8a6; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold; }
+    .footer { text-align: center; margin-top: 20px; color: #6b7280; font-size: 14px; }
+    .cta-button { display: inline-block; background: #14b8a6; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>¡Bienvenido/a al Proceso!</h1>
+    </div>
+    <div class="content">
+      <p>Hola <strong>${workerName}</strong>,</p>
+
+      <div style="text-align: center;">
+        <span class="welcome-badge">✓ Postulación Recibida</span>
+      </div>
+
+      <p>¡Gracias por postularte! Tu interés en formar parte de nuestro equipo es muy importante para nosotros.</p>
+
+      <div class="info-box">
+        <p style="margin: 0;"><strong>Proceso:</strong> ${processName}</p>
+        <p style="margin: 10px 0 0 0;"><strong>Empresa:</strong> ${companyName}</p>
+        <p style="margin: 10px 0 0 0;"><strong>Cargo:</strong> ${position}</p>
+      </div>
+
+      <div class="steps">
+        <h3 style="margin-top: 0; color: #0d9488;">Próximos pasos:</h3>
+        <div class="step">
+          <span class="step-number">1</span>
+          <span>Ingresa a la plataforma Talentree</span>
+        </div>
+        <div class="step">
+          <span class="step-number">2</span>
+          <span>Ve a la sección "Mis Procesos"</span>
+        </div>
+        <div class="step">
+          <span class="step-number">3</span>
+          <span>Completa los tests y evaluaciones asignadas</span>
+        </div>
+      </div>
+
+      <p style="background: #fef3c7; padding: 15px; border-radius: 8px; color: #92400e;">
+        <strong>💡 Tip:</strong> Te recomendamos completar las evaluaciones lo antes posible para avanzar en el proceso de selección.
+      </p>
+
+      <p style="margin-top: 30px;">¡Mucho éxito!</p>
+
+      <p>Saludos,<br><strong>Equipo Talentree</strong></p>
+    </div>
+    <div class="footer">
+      <p>Este es un correo automático enviado por el sistema de selección de Talentree.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    try {
+      await EmailHelper.sendEmail(email, subject, textContent, htmlContent);
+      this.logger.log(`Email de bienvenida enviado a ${email} para proceso ${processName}`);
+    } catch (error) {
+      this.logger.error(`Error enviando email de bienvenida a ${email}: ${error.message}`);
+    }
   }
 
   async getWorkerProcessById(id: string): Promise<WorkerProcess> {

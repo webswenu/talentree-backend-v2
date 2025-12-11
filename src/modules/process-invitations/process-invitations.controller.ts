@@ -86,6 +86,16 @@ export class ProcessInvitationsController {
   }
 
   /**
+   * Obtiene las invitaciones pendientes del trabajador logueado
+   * Solo WORKER puede acceder
+   */
+  @Get('my-invitations')
+  @Roles(UserRole.WORKER)
+  findMyInvitations(@Request() req) {
+    return this.processInvitationsService.findByEmail(req.user.email);
+  }
+
+  /**
    * Obtiene una invitación por ID
    * Solo ADMIN_TALENTREE y COMPANY pueden ver detalles
    */

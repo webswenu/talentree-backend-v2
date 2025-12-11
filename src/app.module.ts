@@ -17,6 +17,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { SettingsModule } from './modules/settings/settings.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
 import { ProcessInvitationsModule } from './modules/process-invitations/process-invitations.module';
+import { ContactModule } from './modules/contact/contact.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { ProcessInvitationsModule } from './modules/process-invitations/process-
     SettingsModule,
     InvitationsModule,
     ProcessInvitationsModule,
+    ContactModule,
   ],
   controllers: [],
   providers: [],

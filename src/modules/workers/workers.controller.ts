@@ -128,6 +128,20 @@ export class WorkersController {
     return this.workersService.getProcessWorkers(processId);
   }
 
+  /**
+   * Obtiene información de cupos de un proceso (máximos, ocupados, disponibles)
+   */
+  @Get('process/:processId/capacity')
+  @Roles(
+    UserRole.ADMIN_TALENTREE,
+    UserRole.COMPANY,
+    UserRole.EVALUATOR,
+    UserRole.GUEST,
+  )
+  getProcessCapacity(@Param('processId') processId: string) {
+    return this.workersService.getProcessCapacity(processId);
+  }
+
   @Patch('worker-process/:id/status')
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.EVALUATOR, UserRole.GUEST)
   updateWorkerProcessStatus(

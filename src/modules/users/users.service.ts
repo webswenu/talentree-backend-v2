@@ -111,6 +111,22 @@ export class UsersService {
     return this.userRepository.findOne({
       where: { email },
       relations: ['worker', 'company', 'belongsToCompany'],
+      select: [
+        'id',
+        'email',
+        'password',
+        'firstName',
+        'lastName',
+        'phone',
+        'avatar',
+        'role',
+        'isActive',
+        'isEmailVerified',
+        'lastLogin',
+        'notificationPreferences',
+        'createdAt',
+        'updatedAt',
+      ],
     });
   }
 

@@ -268,7 +268,7 @@ export class ReportsService {
                 title: 'Reporte pendiente de aprobación',
                 message: `Un nuevo reporte PDF para ${reportWithRelations.worker.firstName} ${reportWithRelations.worker.lastName} está listo para revisión`,
                 type: NotificationType.REPORT_READY,
-                link: `/admin/reportes/${id}`,
+                link: `/admin/reportes`,
               });
             }
 
@@ -284,7 +284,7 @@ export class ReportsService {
                   title: 'Reporte listo para revisión',
                   message: `El reporte de ${reportWithRelations.worker.firstName} ${reportWithRelations.worker.lastName} está disponible`,
                   type: NotificationType.REPORT_READY,
-                  link: `/empresa/reportes/${id}`,
+                  link: `/empresa/reportes`,
                 });
               }
             }

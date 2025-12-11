@@ -245,7 +245,7 @@ export class ProcessInvitationsService {
     // Buscar la invitación por token
     const invitation = await this.invitationRepository.findOne({
       where: { token: acceptDto.token },
-      relations: ['process'],
+      relations: ['process', 'process.company'],
     });
 
     if (!invitation) {
@@ -348,6 +348,25 @@ export class ProcessInvitationsService {
     invitation.acceptedAt = new Date();
     await this.invitationRepository.save(invitation);
 
+    // Enviar email de bienvenida al proceso
+    try {
+      const workerName = `${user.firstName} ${user.lastName}`;
+      const processName = invitation.process.name;
+      const companyName = invitation.process.company?.name || 'la empresa';
+      const position = invitation.process.position || processName;
+
+      await this.sendWelcomeToProcessEmail(
+        user.email,
+        workerName,
+        processName,
+        companyName,
+        position,
+      );
+    } catch (error) {
+      // Log error pero no fallar - la aplicación se creó correctamente
+      console.error('Error sending welcome email:', error);
+    }
+
     return {
       status: 'applied',
       message: 'Invitación aceptada y aplicación al proceso completada',
@@ -441,6 +460,36 @@ export class ProcessInvitationsService {
     }
 
     return this.mapToResponseDto(invitation);
+  }
+
+  /**
+   * Obtiene todas las invitaciones pendientes de un trabajador por su email
+   * Usado para mostrar invitaciones en el dashboard del trabajador
+   */
+  async findByEmail(email: string): Promise<ProcessInvitationResponseDto[]> {
+    const invitations = await this.invitationRepository.find({
+      where: {
+        email: email.toLowerCase(),
+        status: ProcessInvitationStatus.PENDING,
+      },
+      relations: ['process', 'process.company'],
+      order: { createdAt: 'DESC' },
+    });
+
+    // Verificar invitaciones expiradas y actualizar estado
+    const now = new Date();
+    const validInvitations = [];
+
+    for (const invitation of invitations) {
+      if (now > invitation.expiresAt) {
+        invitation.status = ProcessInvitationStatus.EXPIRED;
+        await this.invitationRepository.save(invitation);
+      } else {
+        validInvitations.push(invitation);
+      }
+    }
+
+    return validInvitations.map((inv) => this.mapToResponseDto(inv));
   }
 
   /**
@@ -552,5 +601,107 @@ export class ProcessInvitationsService {
       .execute();
 
     return result.affected || 0;
+  }
+
+  /**
+   * Envía email de bienvenida al proceso
+   */
+  private async sendWelcomeToProcessEmail(
+    email: string,
+    workerName: string,
+    processName: string,
+    companyName: string,
+    position: string,
+  ): Promise<void> {
+    const subject = `¡Bienvenido al proceso de selección para ${position}!`;
+
+    const textContent = `Hola ${workerName},
+
+¡Gracias por aceptar la invitación y postularte al proceso de selección "${processName}" en ${companyName}!
+
+Tu postulación ha sido recibida exitosamente. Ahora puedes comenzar a completar las evaluaciones asignadas.
+
+Pasos a seguir:
+1. Ingresa a la plataforma Talentree
+2. Ve a la sección "Mis Procesos"
+3. Completa los tests y evaluaciones asignadas
+
+Te recomendamos completar las evaluaciones lo antes posible para avanzar en el proceso de selección.
+
+¡Mucho éxito!
+
+Saludos,
+Equipo Talentree`;
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+    .header h1 { margin: 0; font-size: 24px; }
+    .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+    .welcome-badge { background: #d1fae5; color: #065f46; padding: 15px 25px; border-radius: 50px; display: inline-block; font-weight: bold; margin: 20px 0; }
+    .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #14b8a6; }
+    .steps { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+    .step { display: flex; align-items: center; margin: 15px 0; }
+    .step-number { background: #14b8a6; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold; }
+    .footer { text-align: center; margin-top: 20px; color: #6b7280; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>¡Bienvenido/a al Proceso!</h1>
+    </div>
+    <div class="content">
+      <p>Hola <strong>${workerName}</strong>,</p>
+
+      <div style="text-align: center;">
+        <span class="welcome-badge">✓ Invitación Aceptada</span>
+      </div>
+
+      <p>¡Gracias por aceptar nuestra invitación! Tu interés en formar parte de nuestro equipo es muy importante para nosotros.</p>
+
+      <div class="info-box">
+        <p style="margin: 0;"><strong>Proceso:</strong> ${processName}</p>
+        <p style="margin: 10px 0 0 0;"><strong>Empresa:</strong> ${companyName}</p>
+        <p style="margin: 10px 0 0 0;"><strong>Cargo:</strong> ${position}</p>
+      </div>
+
+      <div class="steps">
+        <h3 style="margin-top: 0; color: #0d9488;">Próximos pasos:</h3>
+        <div class="step">
+          <span class="step-number">1</span>
+          <span>Ingresa a la plataforma Talentree</span>
+        </div>
+        <div class="step">
+          <span class="step-number">2</span>
+          <span>Ve a la sección "Mis Procesos"</span>
+        </div>
+        <div class="step">
+          <span class="step-number">3</span>
+          <span>Completa los tests y evaluaciones asignadas</span>
+        </div>
+      </div>
+
+      <p style="color: #059669; background: #d1fae5; padding: 15px; border-radius: 8px; text-align: center;">
+        <strong>💡 Tip:</strong> Te recomendamos completar las evaluaciones lo antes posible para avanzar en el proceso de selección.
+      </p>
+
+      <div class="footer">
+        <p>¡Mucho éxito en tu proceso!</p>
+        <p>Equipo Talentree</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    await EmailHelper.sendEmail(email, subject, textContent, htmlContent);
   }
 }

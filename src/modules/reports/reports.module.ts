@@ -13,7 +13,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
   imports: [
     TypeOrmModule.forFeature([Report, WorkerProcess, TestResponse]),
     UsersModule,
-    NotificationsModule,
+    forwardRef(() => NotificationsModule),
   ],
   controllers: [ReportsController],
   providers: [ReportsService, DocumentGeneratorService],
