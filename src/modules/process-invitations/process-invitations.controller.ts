@@ -96,6 +96,16 @@ export class ProcessInvitationsController {
   }
 
   /**
+   * Acepta una invitación por ID (para workers autenticados)
+   * Solo WORKER puede aceptar sus propias invitaciones
+   */
+  @Post('accept-by-id/:id')
+  @Roles(UserRole.WORKER)
+  acceptById(@Param('id') id: string, @Request() req) {
+    return this.processInvitationsService.acceptById(id, req.user.sub, req.user.email);
+  }
+
+  /**
    * Obtiene una invitación por ID
    * Solo ADMIN_TALENTREE y COMPANY pueden ver detalles
    */

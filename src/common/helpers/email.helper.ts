@@ -16,10 +16,14 @@ export class EmailHelper {
       );
     }
 
+    // Usar Amazon SES si está configurado, sino Gmail como fallback
+    const host = process.env.MAIL_HOST || 'smtp.gmail.com';
+    const port = parseInt(process.env.MAIL_PORT || '587', 10);
+
     this.transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
+      host,
+      port,
+      secure: port === 465, // true para 465, false para otros puertos
       auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASSWORD,

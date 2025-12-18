@@ -493,6 +493,123 @@ export class ProcessInvitationsService {
   }
 
   /**
+   * Acepta una invitación por ID (para workers autenticados desde el dashboard)
+   * Verifica que el email del usuario coincida con el de la invitación
+   */
+  async acceptById(
+    invitationId: string,
+    userId: string,
+    userEmail: string,
+  ): Promise<{
+    status: 'applied';
+    message: string;
+    invitation: ProcessInvitationResponseDto;
+  }> {
+    // Buscar la invitación por ID
+    const invitation = await this.invitationRepository.findOne({
+      where: { id: invitationId },
+      relations: ['process', 'process.company'],
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitación no encontrada');
+    }
+
+    // Verificar que el email coincida
+    if (invitation.email.toLowerCase() !== userEmail.toLowerCase()) {
+      throw new BadRequestException(
+        'Esta invitación fue enviada a un email diferente',
+      );
+    }
+
+    // Verificar estado
+    if (invitation.status === ProcessInvitationStatus.ACCEPTED) {
+      throw new BadRequestException('Esta invitación ya fue aceptada');
+    }
+
+    if (invitation.status === ProcessInvitationStatus.CANCELLED) {
+      throw new BadRequestException('Esta invitación fue cancelada');
+    }
+
+    // Verificar expiración
+    if (new Date() > invitation.expiresAt) {
+      if (invitation.status === ProcessInvitationStatus.PENDING) {
+        invitation.status = ProcessInvitationStatus.EXPIRED;
+        await this.invitationRepository.save(invitation);
+      }
+      throw new BadRequestException('Esta invitación ha expirado');
+    }
+
+    // Buscar el worker directamente por email (más confiable que la relación user.worker)
+    const worker = await this.workerRepository.findOne({
+      where: { email: userEmail.toLowerCase() },
+    });
+
+    if (!worker) {
+      throw new BadRequestException('Debes tener un perfil de trabajador para aceptar invitaciones');
+    }
+
+    console.log(`[acceptById] User email: ${userEmail}, Worker found: ${worker.id} (${worker.email}), Process: ${invitation.process.id}`);
+
+    // Verificar si ya está aplicado al proceso
+    const existingApplication = await this.workerProcessRepository.findOne({
+      where: {
+        worker: { id: worker.id },
+        process: { id: invitation.process.id },
+      },
+    });
+
+    if (existingApplication) {
+      // Ya está aplicado, solo marcar invitación como aceptada
+      invitation.status = ProcessInvitationStatus.ACCEPTED;
+      invitation.acceptedAt = new Date();
+      await this.invitationRepository.save(invitation);
+
+      return {
+        status: 'applied',
+        message: 'Ya estás aplicado a este proceso',
+        invitation: this.mapToResponseDto(invitation),
+      };
+    }
+
+    // Crear la aplicación al proceso
+    const workerProcess = this.workerProcessRepository.create({
+      worker: worker,
+      process: invitation.process,
+      status: WorkerStatus.PENDING,
+    });
+    await this.workerProcessRepository.save(workerProcess);
+
+    // Marcar invitación como aceptada
+    invitation.status = ProcessInvitationStatus.ACCEPTED;
+    invitation.acceptedAt = new Date();
+    await this.invitationRepository.save(invitation);
+
+    // Enviar email de bienvenida
+    try {
+      const processName = invitation.process.name;
+      const companyName = invitation.process.company?.name || 'la empresa';
+      const position = invitation.process.position || processName;
+
+      await this.sendWelcomeToProcessEmail(
+        userEmail,
+        invitation.firstName,
+        processName,
+        companyName,
+        position,
+      );
+    } catch (error) {
+      console.error('Error sending welcome email:', error);
+    }
+
+    return {
+      status: 'applied',
+      message: 'Invitación aceptada y aplicación al proceso completada',
+      invitation: this.mapToResponseDto(invitation),
+    };
+  }
+
+  /**
    * Cancela una invitación
    */
   async cancel(id: string): Promise<ProcessInvitationResponseDto> {
