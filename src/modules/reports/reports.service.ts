@@ -412,6 +412,33 @@ export class ReportsService {
     return this.reportRepository.save(report);
   }
 
+  /**
+   * Preview: Genera el DOCX sin subir a S3 (para pruebas de diseño)
+   */
+  async previewReport(workerProcessId: string): Promise<Buffer> {
+    const workerProcess = await this.workerProcessRepository.findOne({
+      where: { id: workerProcessId },
+      relations: [
+        'worker',
+        'worker.user',
+        'process',
+        'process.company',
+        'testResponses',
+        'testResponses.test',
+        'testResponses.fixedTest',
+      ],
+    });
+
+    if (!workerProcess) {
+      throw new NotFoundException(
+        `WorkerProcess con ID ${workerProcessId} no encontrado`,
+      );
+    }
+
+    // Generar y devolver el buffer directamente
+    return this.documentGeneratorService.generateWorkerProcessReport(workerProcess);
+  }
+
   async generateReport(workerProcessId: string): Promise<Report> {
     // Fetch WorkerProcess with all necessary relations
     const workerProcess = await this.workerProcessRepository.findOne({

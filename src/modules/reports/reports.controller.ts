@@ -128,4 +128,25 @@ export class ReportsController {
   generateReport(@Param('workerProcessId') workerProcessId: string) {
     return this.reportsService.generateReport(workerProcessId);
   }
+
+  /**
+   * Endpoint de prueba: Genera el DOCX y lo descarga directamente sin subir a S3
+   * Útil para probar el diseño del documento
+   */
+  @Get('preview/:workerProcessId')
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.EVALUATOR)
+  async previewReport(
+    @Param('workerProcessId') workerProcessId: string,
+    @Res() res: Response,
+  ) {
+    const buffer = await this.reportsService.previewReport(workerProcessId);
+
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'Content-Disposition': `attachment; filename="preview-reporte-${workerProcessId}.docx"`,
+      'Content-Length': buffer.length,
+    });
+
+    res.end(buffer);
+  }
 }
