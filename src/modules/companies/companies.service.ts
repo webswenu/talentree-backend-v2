@@ -22,6 +22,7 @@ import { S3Service } from '../../common/services/s3.service';
 import { uploadFileAndGetPublicUrl } from '../../common/helpers/s3.helper';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { NotificationType } from '../../common/enums/notification-type.enum';
+import { isValidRut, normalizeRut, stripRut } from '../../common/helpers/rut.helper';
 
 @Injectable()
 export class CompaniesService {
@@ -42,21 +43,48 @@ export class CompaniesService {
   async create(createCompanyDto: CreateCompanyDto): Promise<Company> {
     const { userId, ...companyData } = createCompanyDto;
 
-    // Verificar RUT duplicado solo si se proporciona
-    if (companyData.rut) {
-      const existingCompany = await this.companyRepository.findOne({
-        where: { rut: companyData.rut },
-      });
+    // Validar y normalizar el RUT antes de comparar y guardar
+    if (!isValidRut(companyData.rut)) {
+      throw new BadRequestException(
+        'El RUT ingresado no es válido. Verifique el número y el dígito verificador.',
+      );
+    }
+    companyData.rut = normalizeRut(companyData.rut);
 
-      if (existingCompany) {
-        throw new ConflictException('El RUT ya está registrado');
-      }
+    // La comparación ignora puntos y guión para detectar el mismo RUT escrito
+    // en distinto formato, incluso en registros antiguos sin normalizar.
+    const existingCompany = await this.companyRepository
+      .createQueryBuilder('company')
+      .where(
+        "REPLACE(REPLACE(UPPER(company.rut), '.', ''), '-', '') = :bareRut",
+        { bareRut: stripRut(companyData.rut) },
+      )
+      .getOne();
+
+    if (existingCompany) {
+      throw new ConflictException(
+        `El RUT ya está registrado por la empresa "${existingCompany.name}"`,
+      );
     }
 
     // Solo buscar usuario si se proporciona userId
     let user = null;
     if (userId) {
       user = await this.usersService.findOne(userId);
+
+      // La relación empresa-usuario es uno a uno y user_id es único: sin esta
+      // verificación el INSERT falla con una violación de unicidad que llega al
+      // usuario como un 400 genérico sin explicación.
+      const companyWithUser = await this.companyRepository.findOne({
+        where: { user: { id: userId } },
+        relations: ['user'],
+      });
+
+      if (companyWithUser) {
+        throw new ConflictException(
+          `El usuario seleccionado ya es representante de la empresa "${companyWithUser.name}"`,
+        );
+      }
     }
 
     // Crear empresa con o sin usuario
@@ -97,14 +125,14 @@ export class CompaniesService {
       .leftJoinAndSelect('company.user', 'user');
 
     if (filters?.active !== undefined) {
-      queryBuilder.andWhere('company.active = :active', {
+      queryBuilder.andWhere('company.isActive = :active', {
         active: filters.active,
       });
     }
 
     if (filters?.search) {
       queryBuilder.andWhere(
-        '(company.name ILIKE :search OR company.rut ILIKE :search OR company.businessName ILIKE :search)',
+        '(company.name ILIKE :search OR company.rut ILIKE :search OR company.industry ILIKE :search OR company.city ILIKE :search OR user.email ILIKE :search)',
         { search: `%${filters.search}%` },
       );
     }
