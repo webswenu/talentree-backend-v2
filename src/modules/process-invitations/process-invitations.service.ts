@@ -195,20 +195,34 @@ export class ProcessInvitationsService {
     createdById: string,
   ): Promise<{
     successful: ProcessInvitationResponseDto[];
-    failed: { email: string; reason: string }[];
+    failed: { fila: number; email: string; reason: string }[];
   }> {
     // Validar que el proceso existe
     await this.validateProcess(bulkDto.processId);
 
     const successful: ProcessInvitationResponseDto[] = [];
-    const failed: { email: string; reason: string }[] = [];
+    const failed: { fila: number; email: string; reason: string }[] = [];
 
-    for (const invitee of bulkDto.invitees) {
+    for (const [indice, invitee] of bulkDto.invitees.entries()) {
+      // La fila 1 de la planilla es el encabezado, asi que el primer invitado
+      // esta en la 2. Se informa el numero que la persona ve en su Excel, no
+      // el indice del arreglo.
+      const fila = indice + 2;
+      const emailComoVino = (invitee.email ?? '').trim();
+
       try {
+        // P-38: el formato del correo se comprueba aqui y no en el DTO, para
+        // que una fila mala no tumbe la carga completa.
+        if (!ProcessInvitationsService.ES_EMAIL.test(emailComoVino)) {
+          throw new BadRequestException(
+            `"${invitee.email}" no es una direccion de correo valida.`,
+          );
+        }
+
         const invitation = await this.create(
           {
             processId: bulkDto.processId,
-            email: invitee.email,
+            email: emailComoVino,
             firstName: invitee.firstName,
             lastName: invitee.lastName,
           },
@@ -217,14 +231,22 @@ export class ProcessInvitationsService {
         successful.push(invitation);
       } catch (error) {
         failed.push({
+          fila,
           email: invitee.email,
-          reason: error.message || 'Error desconocido',
+          reason: error?.message || 'No se pudo crear la invitacion.',
         });
       }
     }
 
     return { successful, failed };
   }
+
+  /**
+   * Comprobacion de correo deliberadamente permisiva: su trabajo es atrapar lo
+   * que claramente no es una direccion (falta la arroba, falta el dominio,
+   * quedaron espacios), no decidir si el buzon existe. Eso lo dira el envio.
+   */
+  private static readonly ES_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
   /**
    * Acepta una invitación
@@ -577,6 +599,11 @@ export class ProcessInvitationsService {
       worker: worker,
       process: invitation.process,
       status: WorkerStatus.PENDING,
+      // P-40: faltaba. La postulación por invitación quedaba sin fecha, así que
+      // en la tabla de candidatos aparecía vacía y no se podía ordenar ni saber
+      // desde cuándo esa persona estaba en el proceso. La postulación normal
+      // (workers.service.applyToProcess) sí la asigna: son el mismo evento.
+      appliedAt: new Date(),
     });
     await this.workerProcessRepository.save(workerProcess);
 

@@ -20,6 +20,9 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
 import { UserRole } from '../../common/enums/user-role.enum';
+import { UserFilterDto } from './dto/user-filter.dto';
+import { paginate } from '../../common/helpers/pagination.helper';
+import { PaginatedResult } from '../../common/dto/pagination.dto';
 import * as bcrypt from 'bcrypt';
 import { S3Service } from '../../common/services/s3.service';
 import { uploadFileAndGetPublicUrl } from '../../common/helpers/s3.helper';
@@ -74,10 +77,43 @@ export class UsersService {
     return savedUser;
   }
 
-  async findAll(): Promise<User[]> {
-    return this.userRepository.find({
-      relations: ['worker', 'company', 'belongsToCompany'],
-    });
+  /**
+   * P-69: búsqueda, filtros y paginación en el servidor, como el resto de los
+   * listados del panel. Antes devolvía la nómina completa sin ningún límite.
+   *
+   * P-37: la búsqueda ignora acentos y la ñ. Sin `unaccent`, buscar "Munoz" no
+   * encontraba a "Muñoz" ni "Jose" a "José", que es justo como la gente
+   * escribe cuando busca rápido.
+   */
+  async findAll(filters?: UserFilterDto): Promise<PaginatedResult<User>> {
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.worker', 'worker')
+      .leftJoinAndSelect('user.company', 'company')
+      .leftJoinAndSelect('user.belongsToCompany', 'belongsToCompany');
+
+    if (filters?.search) {
+      queryBuilder.andWhere(
+        `(unaccent(user.firstName) ILIKE unaccent(:search)
+          OR unaccent(user.lastName) ILIKE unaccent(:search)
+          OR unaccent(user.email) ILIKE unaccent(:search))`,
+        { search: `%${filters.search}%` },
+      );
+    }
+
+    if (filters?.role) {
+      queryBuilder.andWhere('user.role = :role', { role: filters.role });
+    }
+
+    if (filters?.isActive !== undefined) {
+      queryBuilder.andWhere('user.isActive = :isActive', {
+        isActive: filters.isActive === 'true',
+      });
+    }
+
+    queryBuilder.orderBy('user.createdAt', 'DESC');
+
+    return paginate(this.userRepository, filters || {}, queryBuilder);
   }
 
   async findOne(id: string): Promise<User> {
@@ -156,8 +192,31 @@ export class UsersService {
     return allUsers.filter(user => user.isActive);
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    await this.findOne(id);
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+    requesterId?: string,
+  ): Promise<User> {
+    const target = await this.findOne(id);
+
+    // Nadie se deja fuera de servicio a si mismo por accidente.
+    if (
+      updateUserDto.isActive === false &&
+      requesterId &&
+      requesterId === id
+    ) {
+      throw new BadRequestException(
+        'No puedes desactivar tu propia cuenta. Pidele a otro administrador que lo haga.',
+      );
+    }
+
+    // Y el sistema no puede quedarse sin ningun administrador activo.
+    if (
+      updateUserDto.isActive === false &&
+      target.role === UserRole.ADMIN_TALENTREE
+    ) {
+      await this.assertNotLastActiveAdmin(id);
+    }
 
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
@@ -168,8 +227,28 @@ export class UsersService {
     return this.findOneWithRelations(id);
   }
 
+  /**
+   * Evita que la plataforma quede sin ningun administrador con acceso.
+   * Se usa tanto al desactivar como al eliminar.
+   */
+  private async assertNotLastActiveAdmin(id: string): Promise<void> {
+    const activeAdmins = await this.userRepository.count({
+      where: { role: UserRole.ADMIN_TALENTREE, isActive: true },
+    });
+
+    if (activeAdmins <= 1) {
+      throw new BadRequestException(
+        'Es el ultimo administrador activo de Talentree. Crea o activa otro antes de dejarlo fuera de servicio.',
+      );
+    }
+  }
+
   async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
+
+    if (user.role === UserRole.ADMIN_TALENTREE && user.isActive) {
+      await this.assertNotLastActiveAdmin(id);
+    }
 
     this.logger.log(`[UsersService.remove] Iniciando eliminación de usuario ${id}`);
 

@@ -148,7 +148,7 @@ export class NotificationsSchedulerService {
                 title: 'Proceso próximo a cerrar',
                 message: `El proceso "${workerProcess.process.name}" cierra en ${daysUntilClosure} día${daysUntilClosure > 1 ? 's' : ''}. Completa tus tests pendientes.`,
                 type: NotificationType.WARNING,
-                link: `/trabajador/procesos/${workerProcess.process.id}`,
+                link: `/trabajador/postulaciones/${workerProcess.id}`,
               },
             );
 
@@ -224,6 +224,9 @@ export class NotificationsSchedulerService {
           notificationsByWorker.set(workerUserId, {
             tests: [],
             processId: testResponse.workerProcess.process.id,
+            // P-68: hace falta el id de la POSTULACION, no el del proceso,
+            // porque es lo que espera la ruta del detalle.
+            workerProcessId: testResponse.workerProcess.id,
             processName,
             daysUntilExpiration,
           });
@@ -242,7 +245,7 @@ export class NotificationsSchedulerService {
               title: 'Tests pendientes próximos a vencer',
               message: `Tienes ${testCount} test${testCount > 1 ? 's' : ''} pendiente${testCount > 1 ? 's' : ''} en "${data.processName}". El proceso cierra en ${data.daysUntilExpiration} día${data.daysUntilExpiration > 1 ? 's' : ''}.`,
               type: NotificationType.WARNING,
-              link: `/trabajador/procesos/${data.processId}/tests`,
+              link: `/trabajador/postulaciones/${data.workerProcessId}`,
             },
           );
 
@@ -344,7 +347,7 @@ export class NotificationsSchedulerService {
             title: 'Tests pendientes de evaluación',
             message: `Tienes ${testCount} test${testCount > 1 ? 's' : ''} pendiente${testCount > 1 ? 's' : ''} de evaluación. El más antiguo lleva ${oldestTest.daysWaiting} días esperando.`,
             type: NotificationType.WARNING,
-            link: `/evaluador/evaluaciones`,
+            link: `/evaluador/procesos`,
           });
 
           this.logger.log(
@@ -445,7 +448,7 @@ export class NotificationsSchedulerService {
             title: '⚠️ Evaluaciones urgentes pendientes',
             message: `Tienes ${testCount} evaluación${testCount > 1 ? 'es' : ''} URGENTE${testCount > 1 ? 'S' : ''} pendiente${testCount > 1 ? 's' : ''}. La más antigua lleva ${oldestTest.daysWaiting} días sin evaluar.`,
             type: NotificationType.ERROR,
-            link: `/evaluador/evaluaciones/${oldestTest.responseId}`,
+            link: `/evaluador/revisar/${oldestTest.responseId}`,
           });
 
           this.logger.log(
@@ -556,7 +559,7 @@ export class NotificationsSchedulerService {
                     title: 'Proceso cerrado - Reporte generado',
                     message: `El proceso "${process.name}" ha finalizado. Tu reporte ha sido generado con ${submittedTestsCount} de ${totalTests} tests completados.`,
                     type: NotificationType.INFO,
-                    link: `/trabajador/reportes`,
+                    link: `/trabajador/resultados`,
                   },
                 );
               }

@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  ServiceUnavailableException,
+  Logger,
+} from '@nestjs/common';
 import {
   S3Client,
   PutObjectCommand,
@@ -13,8 +18,14 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class S3Service {
-  private s3Client: S3Client;
+  private readonly logger = new Logger(S3Service.name);
+
+  private s3Client: S3Client | null = null;
   private bucketName: string;
+  private endpoint?: string;
+
+  /** Qué faltó configurar, para poder decirlo cuando alguien intente usarlo. */
+  private readonly faltantes: string[] = [];
 
   constructor(private configService: ConfigService) {
     const region = this.configService.get<string>('AWS_REGION');
@@ -23,11 +34,35 @@ export class S3Service {
       'AWS_SECRET_ACCESS_KEY',
     );
 
-    if (!region || !accessKeyId || !secretAccessKey) {
-      throw new InternalServerErrorException(
-        'AWS S3 credentials are not configured properly',
+    if (!region) this.faltantes.push('AWS_REGION');
+    if (!accessKeyId) this.faltantes.push('AWS_ACCESS_KEY_ID');
+    if (!secretAccessKey) this.faltantes.push('AWS_SECRET_ACCESS_KEY');
+
+    this.bucketName =
+      this.configService.get<string>('AWS_S3_BUCKET') || 'talentree-bucket';
+
+    // P-20. Antes esto era un `throw` en el constructor. Como S3Service es un
+    // proveedor que media plataforma inyecta, la excepción se disparaba al
+    // construir el contenedor de dependencias y el backend COMPLETO no
+    // arrancaba: sin credenciales de AWS no había login, ni procesos, ni
+    // candidatos, ni nada. Una funcionalidad opcional tumbaba el producto
+    // entero.
+    //
+    // Ahora el arranque no depende de esto. El servicio queda marcado como no
+    // configurado y solo falla quien de verdad necesite un archivo, con un
+    // mensaje que dice exactamente qué variable falta.
+    if (this.faltantes.length > 0) {
+      this.logger.warn(
+        `Almacenamiento de archivos DESACTIVADO: faltan ${this.faltantes.join(', ')}. ` +
+          'El resto de la plataforma funciona con normalidad; las subidas y ' +
+          'descargas de archivos responderán con un error explícito.',
       );
+      return;
     }
+
+    // Endpoint alternativo compatible con S3 (MinIO en desarrollo, por ejemplo).
+    // Si no se define, se usa el S3 real de AWS.
+    this.endpoint = this.configService.get<string>('AWS_S3_ENDPOINT');
 
     this.s3Client = new S3Client({
       region,
@@ -35,10 +70,40 @@ export class S3Service {
         accessKeyId,
         secretAccessKey,
       },
+      ...(this.endpoint
+        ? { endpoint: this.endpoint, forcePathStyle: true }
+        : {}),
     });
+  }
 
-    this.bucketName =
-      this.configService.get<string>('AWS_S3_BUCKET') || 'talentree-bucket';
+  /** Permite a otros módulos preguntar antes de ofrecer una acción. */
+  get estaConfigurado(): boolean {
+    return this.s3Client !== null;
+  }
+
+  /**
+   * Devuelve el cliente o corta con un error que se entiende.
+   * Todas las operaciones pasan por aquí.
+   */
+  private get cliente(): S3Client {
+    if (!this.s3Client) {
+      throw new ServiceUnavailableException(
+        `El almacenamiento de archivos no está configurado en este servidor (falta ${this.faltantes.join(', ')}). ` +
+          'Los documentos, logos y videos no están disponibles hasta que se configure.',
+      );
+    }
+    return this.s3Client;
+  }
+
+  /**
+   * URL publica de un objeto. Con endpoint propio se usa path-style
+   * (http://host/bucket/key); con AWS, el virtual-hosted habitual.
+   */
+  private buildPublicUrl(key: string): string {
+    if (this.endpoint) {
+      return `${this.endpoint.replace(/\/+$/, '')}/${this.bucketName}/${key}`;
+    }
+    return `https://${this.bucketName}.s3.${this.configService.get('AWS_REGION')}.amazonaws.com/${key}`;
   }
 
   /**
@@ -78,6 +143,7 @@ export class S3Service {
     contentType: string,
     metadata?: Record<string, string>,
   ): Promise<string> {
+    const cliente = this.cliente; // fuera del try: su 503 no debe volverse 500
     try {
       const params: PutObjectCommandInput = {
         Bucket: this.bucketName,
@@ -88,10 +154,10 @@ export class S3Service {
       };
 
       const command = new PutObjectCommand(params);
-      await this.s3Client.send(command);
+      await cliente.send(command);
 
       // Return the public URL
-      return `https://${this.bucketName}.s3.${this.configService.get('AWS_REGION')}.amazonaws.com/${key}`;
+      return this.buildPublicUrl(key);
     } catch (error) {
       throw new InternalServerErrorException(
         `Failed to upload file to S3: ${error instanceof Error ? error.message : String(error)}`,
@@ -106,13 +172,14 @@ export class S3Service {
    * @returns Pre-signed URL
    */
   async getSignedUrl(key: string, expiresInSeconds = 3600): Promise<string> {
+    const cliente = this.cliente;
     try {
       const command = new GetObjectCommand({
         Bucket: this.bucketName,
         Key: key,
       });
 
-      return await getSignedUrl(this.s3Client, command, {
+      return await getSignedUrl(cliente, command, {
         expiresIn: expiresInSeconds,
       });
     } catch (error) {
@@ -127,13 +194,14 @@ export class S3Service {
    * @param key - S3 object key
    */
   async deleteFile(key: string): Promise<void> {
+    const cliente = this.cliente;
     try {
       const command = new DeleteObjectCommand({
         Bucket: this.bucketName,
         Key: key,
       });
 
-      await this.s3Client.send(command);
+      await cliente.send(command);
     } catch (error) {
       throw new InternalServerErrorException(
         `Failed to delete file from S3: ${error instanceof Error ? error.message : String(error)}`,
@@ -147,13 +215,14 @@ export class S3Service {
    * @returns true if file exists, false otherwise
    */
   async fileExists(key: string): Promise<boolean> {
+    const cliente = this.cliente;
     try {
       const command = new HeadObjectCommand({
         Bucket: this.bucketName,
         Key: key,
       });
 
-      await this.s3Client.send(command);
+      await cliente.send(command);
       return true;
     } catch (error: any) {
       if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
@@ -176,13 +245,14 @@ export class S3Service {
     contentType: string;
     metadata?: Record<string, string>;
   }> {
+    const cliente = this.cliente;
     try {
       const command = new HeadObjectCommand({
         Bucket: this.bucketName,
         Key: key,
       });
 
-      const response = await this.s3Client.send(command);
+      const response = await cliente.send(command);
 
       return {
         size: response.ContentLength || 0,
@@ -203,13 +273,14 @@ export class S3Service {
    * @returns File buffer
    */
   async downloadFile(key: string): Promise<Buffer> {
+    const cliente = this.cliente;
     try {
       const command = new GetObjectCommand({
         Bucket: this.bucketName,
         Key: key,
       });
 
-      const response = await this.s3Client.send(command);
+      const response = await cliente.send(command);
 
       if (!response.Body) {
         throw new InternalServerErrorException('File body is empty');
@@ -235,13 +306,14 @@ export class S3Service {
    * @returns Readable stream
    */
   async getFileStream(key: string): Promise<any> {
+    const cliente = this.cliente;
     try {
       const command = new GetObjectCommand({
         Bucket: this.bucketName,
         Key: key,
       });
 
-      const response = await this.s3Client.send(command);
+      const response = await cliente.send(command);
 
       if (!response.Body) {
         throw new InternalServerErrorException('File body is empty');

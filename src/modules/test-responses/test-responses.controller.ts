@@ -12,6 +12,7 @@ import { TestResponsesService } from './test-responses.service';
 import { StartTestDto } from './dto/start-test.dto';
 import { SubmitTestDto } from './dto/submit-test.dto';
 import { EvaluateAnswerDto } from './dto/evaluate-answer.dto';
+import { SaveEvaluatorNotesDto } from './dto/save-evaluator-notes.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -41,13 +42,13 @@ export class TestResponsesController {
   }
 
   @Post(':id/auto-evaluate')
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.EVALUATOR, UserRole.GUEST)
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.EVALUATOR)
   autoEvaluate(@Param('id') id: string) {
     return this.testResponsesService.autoEvaluate(id);
   }
 
   @Patch('answer/:id/evaluate')
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.EVALUATOR, UserRole.GUEST)
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.EVALUATOR)
   evaluateAnswer(
     @Param('id') id: string,
     @Body() evaluateDto: EvaluateAnswerDto,
@@ -55,8 +56,21 @@ export class TestResponsesController {
     return this.testResponsesService.evaluateAnswer(id, evaluateDto);
   }
 
+  /**
+   * P-66: guarda las notas generales de la evaluación. No existía ningún
+   * endpoint para ellas, así que lo que el evaluador escribía se perdía.
+   */
+  @Patch(':id/evaluator-notes')
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.EVALUATOR)
+  saveEvaluatorNotes(
+    @Param('id') id: string,
+    @Body() dto: SaveEvaluatorNotesDto,
+  ) {
+    return this.testResponsesService.saveEvaluatorNotes(id, dto);
+  }
+
   @Post(':id/recalculate')
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.EVALUATOR, UserRole.GUEST)
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.EVALUATOR)
   recalculateScore(@Param('id') id: string) {
     return this.testResponsesService.recalculateScore(id);
   }

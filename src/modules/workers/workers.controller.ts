@@ -9,6 +9,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  Request,
   Res,
   BadRequestException,
   Query,
@@ -37,7 +38,7 @@ export class WorkersController {
   constructor(private readonly workersService: WorkersService) {}
 
   @Post()
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.GUEST)
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
   create(@Body() createWorkerDto: CreateWorkerDto) {
     return this.workersService.create(createWorkerDto);
   }
@@ -51,24 +52,24 @@ export class WorkersController {
   @Get()
   @Roles(
     UserRole.ADMIN_TALENTREE,
-    UserRole.COMPANY, UserRole.GUEST,
-    UserRole.EVALUATOR,
+    UserRole.COMPANY,
     UserRole.GUEST,
+    UserRole.EVALUATOR,
   )
-  findAll(@Query() filters: WorkerFilterDto) {
-    return this.workersService.findAll(filters);
+  findAll(@Query() filters: WorkerFilterDto, @Request() req) {
+    return this.workersService.findAll(filters, req.user);
   }
 
   @Get(':id')
   @Roles(
     UserRole.ADMIN_TALENTREE,
-    UserRole.COMPANY, UserRole.GUEST,
+    UserRole.COMPANY,
+    UserRole.GUEST,
     UserRole.EVALUATOR,
     UserRole.WORKER,
-    UserRole.GUEST,
   )
-  findOne(@Param('id') id: string) {
-    return this.workersService.findOne(id);
+  findOne(@Param('id') id: string, @Request() req) {
+    return this.workersService.findOne(id, req.user);
   }
 
   @Get('email/:email')
@@ -78,8 +79,14 @@ export class WorkersController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.WORKER, UserRole.GUEST)
-  update(@Param('id') id: string, @Body() updateWorkerDto: UpdateWorkerDto) {
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.WORKER)
+  async update(
+    @Param('id') id: string,
+    @Body() updateWorkerDto: UpdateWorkerDto,
+    @Request() req,
+  ) {
+    // findOne aplica la regla de pertenencia y lanza 403 si no corresponde.
+    await this.workersService.findOne(id, req.user);
     return this.workersService.update(id, updateWorkerDto);
   }
 
@@ -90,7 +97,7 @@ export class WorkersController {
   }
 
   @Post('apply-to-process')
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.WORKER, UserRole.GUEST)
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.WORKER)
   applyToProcess(@Body() applyDto: ApplyToProcessDto) {
     return this.workersService.applyToProcess(applyDto);
   }
@@ -98,7 +105,8 @@ export class WorkersController {
   @Get(':workerId/dashboard-stats')
   @Roles(
     UserRole.ADMIN_TALENTREE,
-    UserRole.COMPANY, UserRole.GUEST,
+    UserRole.COMPANY,
+    UserRole.GUEST,
     UserRole.EVALUATOR,
     UserRole.WORKER,
   )
@@ -109,7 +117,8 @@ export class WorkersController {
   @Get(':workerId/processes')
   @Roles(
     UserRole.ADMIN_TALENTREE,
-    UserRole.COMPANY, UserRole.GUEST,
+    UserRole.COMPANY,
+    UserRole.GUEST,
     UserRole.EVALUATOR,
     UserRole.WORKER,
   )
@@ -120,9 +129,9 @@ export class WorkersController {
   @Get('process/:processId/workers')
   @Roles(
     UserRole.ADMIN_TALENTREE,
-    UserRole.COMPANY, UserRole.GUEST,
-    UserRole.EVALUATOR,
+    UserRole.COMPANY,
     UserRole.GUEST,
+    UserRole.EVALUATOR,
   )
   getProcessWorkers(@Param('processId') processId: string) {
     return this.workersService.getProcessWorkers(processId);
@@ -142,8 +151,12 @@ export class WorkersController {
     return this.workersService.getProcessCapacity(processId);
   }
 
+  // P-33: el Invitado es de solo consulta; aprobar, rechazar o marcar como
+  // contratado a un candidato es una decision de negocio, no una lectura.
+  // PENDIENTE DE DEFINICION: confirmar si COMPANY decide por si misma o si esa
+  // potestad es exclusiva de Talentree y del evaluador.
   @Patch('worker-process/:id/status')
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.EVALUATOR, UserRole.GUEST)
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.EVALUATOR)
   updateWorkerProcessStatus(
     @Param('id') id: string,
     @Body() updateDto: UpdateWorkerProcessStatusDto,
@@ -154,7 +167,8 @@ export class WorkersController {
   @Get('worker-process/:id')
   @Roles(
     UserRole.ADMIN_TALENTREE,
-    UserRole.COMPANY, UserRole.GUEST,
+    UserRole.COMPANY,
+    UserRole.GUEST,
     UserRole.EVALUATOR,
     UserRole.WORKER,
   )
@@ -163,10 +177,10 @@ export class WorkersController {
   }
 
   @Post(':id/upload-cv')
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.WORKER, UserRole.GUEST)
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.WORKER)
   @UseInterceptors(FileInterceptor('file'))
   @HttpCode(HttpStatus.OK)
-  uploadCV(
+  async uploadCV(
     @Param('id') id: string,
     @UploadedFile(
       new ParseFilePipe({
@@ -177,25 +191,34 @@ export class WorkersController {
       }),
     )
     file: Express.Multer.File,
+    @Request() req,
   ) {
+    await this.workersService.findOne(id, req.user);
     return this.workersService.uploadCV(id, file);
   }
 
   @Delete(':id/cv')
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.WORKER, UserRole.GUEST)
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.WORKER)
   @HttpCode(HttpStatus.OK)
-  async deleteCV(@Param('id') id: string) {
+  async deleteCV(@Param('id') id: string, @Request() req) {
+    await this.workersService.findOne(id, req.user);
     return this.workersService.deleteCV(id);
   }
 
   @Get(':id/cv')
   @Roles(
     UserRole.ADMIN_TALENTREE,
-    UserRole.COMPANY, UserRole.GUEST,
+    UserRole.COMPANY,
+    UserRole.GUEST,
     UserRole.EVALUATOR,
     UserRole.WORKER,
   )
-  async downloadCV(@Param('id') id: string, @Res() res: Response) {
+  async downloadCV(
+    @Param('id') id: string,
+    @Res() res: Response,
+    @Request() req,
+  ) {
+    await this.workersService.findOne(id, req.user);
     const { stream, filename } = await this.workersService.downloadCV(id);
 
     res.set({

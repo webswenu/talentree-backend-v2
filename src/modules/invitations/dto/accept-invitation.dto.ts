@@ -1,12 +1,13 @@
 import { IsString, IsNotEmpty, MinLength } from 'class-validator';
+import { IsStrongPassword } from '../../../common/validators/password.validator';
 
 export class AcceptInvitationDto {
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'El enlace de invitacion no es valido' })
   token: string;
 
   @IsString()
-  @MinLength(6)
-  @IsNotEmpty()
+  @IsStrongPassword()
+  @IsNotEmpty({ message: 'La contrasena es obligatoria' })
   password: string;
 }

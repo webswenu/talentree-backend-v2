@@ -8,6 +8,7 @@ import {
   IsEnum,
 } from 'class-validator';
 import { ProcessStatus } from '../../../common/enums/process-status.enum';
+import { EsPosteriorA } from '../../../common/validators/date-range.validator';
 
 export class CreateProcessDto {
   @IsString()
@@ -38,8 +39,10 @@ export class CreateProcessDto {
   @IsOptional()
   startDate?: string;
 
+  // P-25: sin esto se creaba un proceso que terminaba antes de empezar.
   @IsDateString()
   @IsOptional()
+  @EsPosteriorA('startDate')
   endDate?: string;
 
   @IsInt()

@@ -6,13 +6,17 @@ import {
   IsDateString,
   Matches,
 } from 'class-validator';
+import { IsRut, NormalizeRut } from '../../../common/validators/rut.validator';
+import { IsStrongPassword } from '../../../common/validators/password.validator';
 
 export class RegisterWorkerDto {
   @IsEmail({}, { message: 'Email inválido' })
   email: string;
 
+  // P-52. Antes la unica regla era el largo minimo de 6, asi que '12345678'
+  // pasaba sin problema.
   @IsString()
-  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
+  @IsStrongPassword()
   password: string;
 
   @IsString({ message: 'El nombre es requerido' })
@@ -21,10 +25,11 @@ export class RegisterWorkerDto {
   @IsString({ message: 'El apellido es requerido' })
   lastName: string;
 
+  // P-51. Antes: @Matches sin dígito verificador y exigiendo el RUT sin puntos.
+  // Aceptaba 12345678-0 (DV incorrecto) y rechazaba 12.345.678-5 (DV correcto).
   @IsString({ message: 'El RUT es requerido' })
-  @Matches(/^[0-9]{7,8}-[0-9Kk]{1}$/, {
-    message: 'Formato de RUT inválido (ej: 12345678-9)',
-  })
+  @IsRut()
+  @NormalizeRut()
   rut: string;
 
   @IsOptional()

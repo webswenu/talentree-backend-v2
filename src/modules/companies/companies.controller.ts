@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Request,
   HttpCode,
   HttpStatus,
   Query,
@@ -23,6 +24,7 @@ import { UpdateCompanyDto } from './dto/update-company.dto';
 import { CompanyFilterDto } from './dto/company-filter.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { assertBelongsToUserCompany } from '../../common/helpers/ownership.helper';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../../common/enums/user-role.enum';
 
@@ -46,7 +48,8 @@ export class CompaniesController {
 
   @Get(':id/dashboard-stats')
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.EVALUATOR, UserRole.GUEST)
-  getDashboardStats(@Param('id') id: string) {
+  getDashboardStats(@Param('id') id: string, @Request() req) {
+    this.assertOwnCompany(req, id);
     return this.companiesService.getDashboardStats(id);
   }
 
@@ -63,18 +66,25 @@ export class CompaniesController {
     UserRole.EVALUATOR,
     UserRole.GUEST,
   )
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string, @Request() req) {
+    this.assertOwnCompany(req, id);
     return this.companiesService.findOne(id);
   }
 
+  // El Invitado es de solo consulta: no edita la ficha de la empresa.
   @Patch(':id')
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.GUEST)
-  update(@Param('id') id: string, @Body() updateCompanyDto: UpdateCompanyDto) {
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
+  update(
+    @Param('id') id: string,
+    @Body() updateCompanyDto: UpdateCompanyDto,
+    @Request() req,
+  ) {
+    this.assertOwnCompany(req, id);
     return this.companiesService.update(id, updateCompanyDto);
   }
 
   @Post(':id/logo')
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.GUEST)
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
   @UseInterceptors(FileInterceptor('logo'))
   @HttpCode(HttpStatus.OK)
   async uploadLogo(
@@ -90,14 +100,17 @@ export class CompaniesController {
       }),
     )
     file: Express.Multer.File,
+    @Request() req,
   ) {
+    this.assertOwnCompany(req, id);
     return this.companiesService.uploadLogo(id, file);
   }
 
   @Delete(':id/logo')
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.GUEST)
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
   @HttpCode(HttpStatus.OK)
-  async deleteLogo(@Param('id') id: string) {
+  async deleteLogo(@Param('id') id: string, @Request() req) {
+    this.assertOwnCompany(req, id);
     return this.companiesService.deleteLogo(id);
   }
 
@@ -106,5 +119,14 @@ export class CompaniesController {
   async remove(@Param('id') id: string) {
     await this.companiesService.remove(id);
     return;
+  }
+
+  /**
+   * P-22 / P-35. Los roles COMPANY y GUEST solo pueden apuntar a SU empresa.
+   * Sin esto, cualquiera de los dos editaba la ficha, el logo y las estadisticas
+   * de cualquier otra empresa con solo cambiar el id de la URL.
+   */
+  private assertOwnCompany(req: any, companyId: string): void {
+    assertBelongsToUserCompany(req.user, companyId, 'esta empresa');
   }
 }

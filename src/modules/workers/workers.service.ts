@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -23,6 +24,11 @@ import { WorkerStatus } from '../../common/enums/worker-status.enum';
 import { ProcessStatus } from '../../common/enums/process-status.enum';
 import { UserRole } from '../../common/enums/user-role.enum';
 import { paginate } from '../../common/helpers/pagination.helper';
+import {
+  isCompanyScopedRole,
+  resolveUserCompanyId,
+  NO_COMPANY,
+} from '../../common/helpers/ownership.helper';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
 import { S3Service } from '../../common/services/s3.service';
 import { uploadFileAndGetPublicUrl, extractS3KeyFromUrl } from '../../common/helpers/s3.helper';
@@ -123,29 +129,60 @@ export class WorkersService {
     }
   }
 
-  async findAll(filters?: WorkerFilterDto): Promise<PaginatedResult<Worker>> {
+  async findAll(
+    filters?: WorkerFilterDto,
+    requester?: any,
+  ): Promise<PaginatedResult<Worker>> {
     const queryBuilder = this.workerRepository
       .createQueryBuilder('worker')
       .leftJoinAndSelect('worker.user', 'user')
       .leftJoinAndSelect('worker.workerProcesses', 'workerProcesses')
       .leftJoinAndSelect('workerProcesses.process', 'process');
 
-    // Filtrar por empresa si se proporciona companyId
-    if (filters?.companyId) {
+    // P-22. Una empresa solo ve a quienes postularon a ALGUNO DE SUS procesos.
+    // El companyId del querystring no sirve como control: lo elige el cliente.
+    const scopedCompanyId = isCompanyScopedRole(requester?.role)
+      ? (resolveUserCompanyId(requester) ?? NO_COMPANY)
+      : null;
+
+    if (scopedCompanyId) {
+      queryBuilder.andWhere('process.company_id = :scopedCompanyId', {
+        scopedCompanyId,
+      });
+    } else if (filters?.companyId) {
       queryBuilder.andWhere('process.company_id = :companyId', {
         companyId: filters.companyId,
       });
     }
 
+    // P-67. Este filtro apuntaba a `worker.status`, un campo que NO EXISTE:
+    // la tabla workers no tiene ninguna columna `status` (verificado contra
+    // information_schema). No es que devolviera resultados raros: la consulta
+    // fallaba con un error de base de datos, que el filtro global convertía en
+    // un 400 sin explicación.
+    //
+    // El estado de un candidato vive en worker_processes.status, es decir, es
+    // su situación EN UN PROCESO, no un atributo suyo. Una misma persona puede
+    // estar aprobada en un proceso y rechazada en otro, así que "el estado del
+    // trabajador" no está definido fuera de un proceso.
+    //
+    // PENDIENTE DE DEFINICIÓN CON LA CLIENTA: si lo que quiere filtrar es el
+    // `isActive` de su usuario, o su situación en un proceso concreto. Mientras
+    // tanto se acepta el filtro por estado de la POSTULACIÓN, que es lo único
+    // que existe, y el desplegable se ocultó en el panel.
     if (filters?.status) {
-      queryBuilder.andWhere('worker.status = :status', {
+      queryBuilder.andWhere('workerProcesses.status = :status', {
         status: filters.status,
       });
     }
 
     if (filters?.search) {
       queryBuilder.andWhere(
-        '(worker.firstName ILIKE :search OR worker.lastName ILIKE :search OR worker.rut ILIKE :search OR worker.email ILIKE :search)',
+        // P-37: unaccent para que 'Munoz' encuentre 'Muñoz' y 'Jose' a 'José'.
+        `(unaccent(worker.firstName) ILIKE unaccent(:search)
+          OR unaccent(worker.lastName) ILIKE unaccent(:search)
+          OR worker.rut ILIKE :search
+          OR unaccent(worker.email) ILIKE unaccent(:search))`,
         { search: `%${filters.search}%` },
       );
     }
@@ -155,7 +192,7 @@ export class WorkersService {
     return paginate(this.workerRepository, filters || {}, queryBuilder);
   }
 
-  async findOne(id: string): Promise<Worker> {
+  async findOne(id: string, requester?: any): Promise<Worker> {
     const worker = await this.workerRepository.findOne({
       where: { id },
       relations: [
@@ -163,6 +200,10 @@ export class WorkersService {
         'workerProcesses',
         'workerProcesses.process',
         'workerProcesses.process.company',
+        // P-48: la ficha informaba cero tests rendidos porque no traia las
+        // respuestas. Cuelgan de workerProcess, no del trabajador.
+        'workerProcesses.testResponses',
+        'workerProcesses.testResponses.test',
       ],
     });
 
@@ -170,7 +211,43 @@ export class WorkersService {
       throw new NotFoundException(`Trabajador con ID ${id} no encontrado`);
     }
 
+    if (requester) {
+      this.assertCanReadWorker(worker, requester);
+    }
+
     return worker;
+  }
+
+  /**
+   * P-22. Una empresa puede ver la ficha de un candidato solo si ese candidato
+   * postulo a alguno de SUS procesos. Y aunque pueda verla, no debe leer en
+   * ella las postulaciones a procesos de terceros: la ficha se devuelve
+   * recortada, porque el detalle exponia el historial completo del candidato.
+   */
+  private assertCanReadWorker(worker: Worker, requester: any): void {
+    if (requester.role === UserRole.ADMIN_TALENTREE) return;
+
+    // El propio candidato siempre ve su ficha.
+    if (worker.user?.id && worker.user.id === requester.id) return;
+
+    if (!isCompanyScopedRole(requester.role)) return;
+
+    const companyId = resolveUserCompanyId(requester);
+    const procesos = worker.workerProcesses ?? [];
+    const postuloAqui = procesos.some(
+      (wp: any) => wp?.process?.company?.id === companyId,
+    );
+
+    if (!companyId || !postuloAqui) {
+      throw new ForbiddenException(
+        'Este candidato no postulo a ninguno de tus procesos.',
+      );
+    }
+
+    // Recorte: solo las postulaciones a procesos de esta empresa.
+    worker.workerProcesses = procesos.filter(
+      (wp: any) => wp?.process?.company?.id === companyId,
+    ) as any;
   }
 
   async findByEmail(email: string): Promise<Worker> {
@@ -339,7 +416,7 @@ export class WorkersService {
             title: 'Postulación exitosa',
             message: `Te has postulado exitosamente al proceso "${workerProcessWithRelations.process.name}". Los tests han sido asignados.`,
             type: NotificationType.INFO,
-            link: `/trabajador/procesos/${workerProcessWithRelations.process.id}/tests`,
+            link: `/trabajador/postulaciones/${workerProcessWithRelations.id}`,
           });
         }
 
@@ -471,7 +548,7 @@ export class WorkersService {
               : updateDto.status === WorkerStatus.REJECTED
                 ? NotificationType.ERROR
                 : NotificationType.INFO,
-            link: `/trabajador/procesos/${workerProcess.process.id}`,
+            link: `/trabajador/postulaciones/${workerProcess.id}`,
           });
         }
 
