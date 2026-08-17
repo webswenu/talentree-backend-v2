@@ -114,6 +114,17 @@ export class CompaniesController {
     return this.companiesService.deleteLogo(id);
   }
 
+  /**
+   * Qué se destruiría al eliminar esta empresa. La pantalla lo pide antes de
+   * mostrar la confirmación: se lleva por delante procesos, postulaciones,
+   * tests rendidos e informes, y nada de eso se recupera.
+   */
+  @Get(':id/impacto-borrado')
+  @Roles(UserRole.ADMIN_TALENTREE)
+  impactoDeBorrado(@Param('id') id: string) {
+    return this.companiesService.impactoDeBorrado(id);
+  }
+
   @Delete(':id')
   @Roles(UserRole.ADMIN_TALENTREE)
   async remove(@Param('id') id: string) {

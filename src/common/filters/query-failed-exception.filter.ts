@@ -39,30 +39,42 @@ export class QueryFailedExceptionFilter implements ExceptionFilter {
     const esBorradoBloqueado = detalle.includes('is still referenced from');
 
     if (esBorradoBloqueado) {
-      // Mensajes por tabla que referencia, del caso concreto al genérico.
-      if (texto.includes('selection_processes')) {
-        return 'No se puede eliminar porque tiene procesos de selección asociados. Elimina o transfiere esos procesos primero.';
-      }
+      /**
+       * OJO: hay que mirar la tabla QUE REFERENCIA, no cualquier aparición en
+       * el texto. El mensaje de PostgreSQL nombra las DOS tablas:
+       *
+       *   update or delete on table "selection_processes"      <- de la que se borra
+       *   violates ... on table "process_invitations"          <- la que referencia
+       *   DETAIL: Key (id)=(…) is still referenced from table "process_invitations".
+       *
+       * Buscar 'selection_processes' en el texto completo hacía que al borrar
+       * un PROCESO se respondiera "tiene procesos de selección asociados", que
+       * es el mensaje del caso de las empresas. El dato fiable está en el
+       * detalle, que nombra solo la tabla que referencia.
+       */
+      const m = detalle.match(/is still referenced from table "([^"]+)"/);
+      const referencia = m ? m[1] : '';
 
-      // P-49
-      if (texto.includes('test_responses')) {
-        return 'No se puede eliminar este test porque algunos candidatos ya lo rindieron. Puedes desactivarlo para que no se asigne a nuevos procesos.';
-      }
+      const POR_TABLA: Record<string, string> = {
+        selection_processes:
+          'No se puede eliminar porque tiene procesos de selección asociados. Elimina o transfiere esos procesos primero.',
+        // P-49
+        test_responses:
+          'No se puede eliminar este test porque algunos candidatos ya lo rindieron. Puedes desactivarlo para que no se asigne a nuevos procesos.',
+        // P-29
+        companies:
+          'No se puede eliminar este usuario porque es el representante de una empresa. Asigna otro representante antes de eliminarlo.',
+        worker_processes:
+          'No se puede eliminar porque tiene candidatos postulados. Revisa las postulaciones antes de continuar.',
+        process_invitations:
+          'No se puede eliminar porque tiene invitaciones enviadas.',
+        reports: 'No se puede eliminar porque tiene informes asociados.',
+      };
 
-      // P-29
-      if (texto.includes('companies')) {
-        return 'No se puede eliminar este usuario porque es el representante de una empresa. Asigna otro representante antes de eliminarlo.';
-      }
-
-      if (texto.includes('worker_processes')) {
-        return 'No se puede eliminar porque tiene postulaciones asociadas. Revisa los candidatos vinculados antes de continuar.';
-      }
-
-      if (texto.includes('reports')) {
-        return 'No se puede eliminar porque tiene informes asociados.';
-      }
-
-      return 'No se puede eliminar porque otros registros dependen de este. Elimina primero los datos relacionados.';
+      return (
+        POR_TABLA[referencia] ||
+        'No se puede eliminar porque otros registros dependen de este. Elimina primero los datos relacionados.'
+      );
     }
 
     // Referencia que no existe (INSERT o UPDATE).

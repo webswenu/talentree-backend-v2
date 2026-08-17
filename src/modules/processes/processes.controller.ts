@@ -88,6 +88,16 @@ export class ProcessesController {
     return this.processesService.update(id, updateProcessDto);
   }
 
+  /**
+   * Qué se destruiría al eliminar este proceso. La pantalla lo pide antes de
+   * mostrar la confirmación, porque el borrado no tiene vuelta atrás.
+   */
+  @Get(':id/impacto-borrado')
+  @Roles(UserRole.ADMIN_TALENTREE)
+  impactoDeBorrado(@Param('id') id: string) {
+    return this.processesService.impactoDeBorrado(id);
+  }
+
   @Delete(':id')
   @Roles(UserRole.ADMIN_TALENTREE)
   @HttpCode(HttpStatus.NO_CONTENT)

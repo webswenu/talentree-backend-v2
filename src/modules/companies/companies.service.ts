@@ -18,6 +18,11 @@ import { WorkerStatus } from '../../common/enums/worker-status.enum';
 import { UsersService } from '../users/users.service';
 import { paginate } from '../../common/helpers/pagination.helper';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
+import {
+  borrarProcesosEnCascada,
+  contarImpacto,
+  ImpactoBorrado,
+} from '../../common/helpers/borrado-en-cascada.helper';
 import { S3Service } from '../../common/services/s3.service';
 import { uploadFileAndGetPublicUrl } from '../../common/helpers/s3.helper';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
@@ -204,89 +209,64 @@ export class CompaniesService {
     return saved;
   }
 
+  /** Qué se destruiría al eliminar esta empresa. Solo cuenta, no modifica nada. */
+  async impactoDeBorrado(id: string): Promise<ImpactoBorrado> {
+    await this.findOne(id);
+    const procesos = await this.processRepository.find({
+      where: { company: { id } },
+      select: ['id'],
+    });
+    return contarImpacto(
+      this.companyRepository.manager,
+      procesos.map((p) => p.id),
+    );
+  }
+
+  /**
+   * Elimina la empresa con TODOS sus procesos y lo que cuelga de ellos.
+   *
+   * Antes esto se bloqueaba con un mensaje que pedía "eliminar o transferir los
+   * procesos antes de eliminar la empresa". El problema: eliminar esos procesos
+   * TAMPOCO se podía —fallaban por clave foránea en cuanto tenían un postulante,
+   * una invitación o un informe—, así que la empresa quedaba imposible de borrar
+   * y el mensaje mandaba a hacer algo que no se podía hacer.
+   *
+   * Es DESTRUCTIVO e irreversible: se van las postulaciones, las respuestas de
+   * los tests y los informes psicotécnicos de personas reales. La pantalla debe
+   * mostrar `impactoDeBorrado()` antes de pedir la confirmación.
+   *
+   * Las cuentas de usuario NO se eliminan: el representante y los invitados solo
+   * dejan de apuntar a la empresa. Son personas, no datos de la empresa.
+   */
   async remove(id: string): Promise<void> {
     const company = await this.findOne(id);
 
-    // Verificar si hay procesos de selección asociados
-    const processesCount = await this.processRepository.count({
+    const procesos = await this.processRepository.find({
       where: { company: { id } },
+      select: ['id'],
     });
 
-    console.log(
-      `[CompaniesService.remove] Empresa ${id}, procesos encontrados: ${processesCount}`,
+    await this.companyRepository.manager.transaction(async (em) => {
+      await borrarProcesosEnCascada(
+        em,
+        procesos.map((p) => p.id),
+      );
+
+      // Las invitaciones a la empresa no cuelgan de ningún proceso.
+      await em.query('DELETE FROM invitations WHERE company_id = $1', [id]);
+
+      // Desvincular a las personas, sin borrarlas.
+      await em.query(
+        'UPDATE users SET company_id = NULL WHERE company_id = $1',
+        [id],
+      );
+
+      await em.query('DELETE FROM companies WHERE id = $1', [id]);
+    });
+
+    this.logger.log(
+      `Empresa "${company.name}" eliminada con ${procesos.length} proceso(s) y sus datos asociados`,
     );
-
-    if (processesCount > 0) {
-      console.log(
-        `[CompaniesService.remove] Lanzando BadRequestException por procesos asociados`,
-      );
-      throw new BadRequestException(
-        `No se puede eliminar la empresa porque tiene ${processesCount} proceso(s) de selección asociado(s). Por favor, elimine o transfiera los procesos antes de eliminar la empresa.`,
-      );
-    }
-
-    // Intentar eliminar la empresa
-    console.log(`[CompaniesService.remove] Intentando eliminar empresa ${id}`);
-    try {
-      await this.companyRepository.remove(company);
-      console.log(`[CompaniesService.remove] Empresa eliminada exitosamente`);
-    } catch (error: unknown) {
-      console.log(`[CompaniesService.remove] Error capturado:`, error);
-      console.log(
-        `[CompaniesService.remove] Tipo de error:`,
-        error?.constructor?.name,
-      );
-
-      // Capturar cualquier error de base de datos y convertirlo en BadRequestException
-      if (error instanceof QueryFailedError) {
-        const pgError = error as any;
-        const errorMessage = pgError.message || '';
-        const errorCode = pgError.code;
-
-        console.log(
-          `[CompaniesService.remove] QueryFailedError detectado, código: ${errorCode}, mensaje: ${errorMessage}`,
-        );
-
-        // Código 23503 es foreign key constraint violation en PostgreSQL
-        if (
-          errorCode === '23503' ||
-          errorMessage.includes('foreign key constraint')
-        ) {
-          // Detectar qué tabla está causando el problema
-          if (errorMessage.includes('selection_processes')) {
-            console.log(
-              `[CompaniesService.remove] Lanzando BadRequestException por selection_processes`,
-            );
-            throw new BadRequestException(
-              'No se puede eliminar la empresa porque tiene procesos de selección asociados. Por favor, elimine o transfiera los procesos antes de eliminar la empresa.',
-            );
-          } else {
-            console.log(
-              `[CompaniesService.remove] Lanzando BadRequestException genérico por foreign key`,
-            );
-            throw new BadRequestException(
-              'No se puede eliminar la empresa porque tiene datos asociados. Por favor, elimine primero los datos relacionados.',
-            );
-          }
-        }
-      }
-
-      // Si es un BadRequestException, relanzarlo tal cual
-      if (error instanceof BadRequestException) {
-        console.log(
-          `[CompaniesService.remove] Relanzando BadRequestException existente`,
-        );
-        throw error;
-      }
-
-      // Para cualquier otro error, lanzar BadRequestException genérico
-      console.log(
-        `[CompaniesService.remove] Lanzando BadRequestException genérico para error desconocido`,
-      );
-      throw new BadRequestException(
-        'No se puede eliminar la empresa porque tiene datos asociados. Por favor, verifique las relaciones antes de eliminar.',
-      );
-    }
   }
 
   async findByUserId(userId: string): Promise<Company | null> {

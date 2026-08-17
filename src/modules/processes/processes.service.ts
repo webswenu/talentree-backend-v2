@@ -26,6 +26,11 @@ import {
   NO_COMPANY,
 } from '../../common/helpers/ownership.helper';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
+import {
+  borrarProcesosEnCascada,
+  contarImpacto,
+  ImpactoBorrado,
+} from '../../common/helpers/borrado-en-cascada.helper';
 import { Test } from '../tests/entities/test.entity';
 import { FixedTest } from '../tests/entities/fixed-test.entity';
 import { WorkerProcess } from '../workers/entities/worker-process.entity';
@@ -297,9 +302,31 @@ export class ProcessesService {
     return savedProcess;
   }
 
+  /** Qué se destruiría al eliminar este proceso. Solo cuenta, no modifica nada. */
+  async impactoDeBorrado(id: string): Promise<ImpactoBorrado> {
+    await this.findOne(id);
+    return contarImpacto(this.processRepository.manager, [id]);
+  }
+
+  /**
+   * Elimina el proceso y todo lo que cuelga de él.
+   *
+   * Antes era un `repository.remove()` pelado, que fallaba con violación de
+   * clave foránea en cuanto el proceso tenía un solo postulante, una invitación
+   * o un informe: en la práctica, cualquier proceso con actividad real era
+   * imposible de borrar. Ahora se borra la cadena completa en una transacción.
+   *
+   * Es IRREVERSIBLE: se lleva las postulaciones, las respuestas de los tests y
+   * los informes. Usar `impactoDeBorrado()` para advertirlo antes de confirmar.
+   */
   async remove(id: string): Promise<void> {
-    const process = await this.findOne(id);
-    await this.processRepository.remove(process);
+    await this.findOne(id);
+
+    await this.processRepository.manager.transaction(async (em) => {
+      await borrarProcesosEnCascada(em, [id]);
+    });
+
+    this.logger.log(`Proceso ${id} eliminado junto con sus datos asociados`);
   }
 
   async assignEvaluators(
