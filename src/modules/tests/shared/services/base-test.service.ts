@@ -36,7 +36,7 @@ export abstract class BaseTestService implements ITestService {
 
     if (!test) {
       throw new NotFoundException(
-        `Test ${this.testCode} not found or not active`,
+        'Este test no esta disponible en este momento. Si crees que es un error, contacta al equipo de Talentree.',
       );
     }
 

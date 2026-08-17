@@ -119,7 +119,7 @@ export class UsersService {
   async findOne(id: string): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException('No encontramos ese usuario.');
     }
     return user;
   }
@@ -137,7 +137,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException('No encontramos ese usuario.');
     }
 
     return user;
@@ -432,7 +432,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
+      throw new NotFoundException('No encontramos ese usuario.');
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -463,7 +463,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
+      throw new NotFoundException('No encontramos ese usuario.');
     }
 
     const hashedNewPassword = await bcrypt.hash(

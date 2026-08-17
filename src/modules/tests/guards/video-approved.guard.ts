@@ -38,7 +38,7 @@ export class VideoApprovedGuard implements CanActivate {
     const workerId = request.body?.workerId || request.params?.workerId;
 
     if (!workerId) {
-      throw new BadRequestException('Worker ID is required');
+      throw new BadRequestException('No pudimos identificar tu perfil de candidato. Vuelve a iniciar sesion.');
     }
 
     const worker = await this.workerRepository.findOne({
@@ -47,7 +47,7 @@ export class VideoApprovedGuard implements CanActivate {
     });
 
     if (!worker) {
-      throw new ForbiddenException('Worker not found');
+      throw new ForbiddenException('No encontramos tu perfil de candidato. Contacta al equipo de Talentree.');
     }
 
     if (worker.user.id !== user.userId) {

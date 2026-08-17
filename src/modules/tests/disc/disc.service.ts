@@ -43,7 +43,7 @@ export class DiscService extends BaseTestService {
 
     if (submission.answers.length !== questions.length) {
       throw new BadRequestException(
-        `Expected ${questions.length} answers, got ${submission.answers.length}`,
+        `Faltan respuestas: enviaste ${submission.answers.length} de ${questions.length} preguntas. Revisa las que quedaron en blanco antes de enviar.`,
       );
     }
 
@@ -53,7 +53,7 @@ export class DiscService extends BaseTestService {
       const question = questions.find((q) => q.id === answer.questionId);
       if (!question) {
         throw new BadRequestException(
-          `Question ${answer.questionId} not found`,
+          'Hubo un problema con una de las preguntas de este test. Avisale al equipo de Talentree; tus respuestas no se perdieron.',
         );
       }
 
@@ -61,7 +61,7 @@ export class DiscService extends BaseTestService {
 
       if (!discAnswer.mas || !discAnswer.menos) {
         throw new BadRequestException(
-          `Invalid answer for question ${question.questionNumber}: must have 'mas' and 'menos'`,
+          `En la pregunta ${question.questionNumber} tienes que marcar una opcion como la que MAS te representa y otra como la que MENOS.`,
         );
       }
 
@@ -70,13 +70,13 @@ export class DiscService extends BaseTestService {
         !validDimensions.includes(discAnswer.menos)
       ) {
         throw new BadRequestException(
-          `Invalid answer for question ${question.questionNumber}: must be D, I, S, or C`,
+          `La respuesta de la pregunta ${question.questionNumber} no es valida. Vuelve a seleccionarla.`,
         );
       }
 
       if (discAnswer.mas === discAnswer.menos) {
         throw new BadRequestException(
-          `Invalid answer for question ${question.questionNumber}: 'mas' and 'menos' must be different`,
+          `En la pregunta ${question.questionNumber} marcaste la misma opcion como la que mas y la que menos te representa. Tienen que ser distintas.`,
         );
       }
     }

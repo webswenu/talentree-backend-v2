@@ -42,7 +42,7 @@ export class CfrService extends BaseTestService {
 
     if (submission.answers.length !== questions.length) {
       throw new BadRequestException(
-        `Expected ${questions.length} answers, got ${submission.answers.length}`,
+        `Faltan respuestas: enviaste ${submission.answers.length} de ${questions.length} preguntas. Revisa las que quedaron en blanco antes de enviar.`,
       );
     }
 
@@ -50,14 +50,14 @@ export class CfrService extends BaseTestService {
       const question = questions.find((q) => q.id === answer.questionId);
       if (!question) {
         throw new BadRequestException(
-          `Question ${answer.questionId} not found`,
+          'Hubo un problema con una de las preguntas de este test. Avisale al equipo de Talentree; tus respuestas no se perdieron.',
         );
       }
 
       const likertValue = parseInt(answer.answer, 10);
       if (isNaN(likertValue) || likertValue < 1 || likertValue > 5) {
         throw new BadRequestException(
-          `Invalid answer for question ${question.questionNumber}: must be between 1 and 5`,
+          `La respuesta de la pregunta ${question.questionNumber} debe ser un valor entre 1 y 5.`,
         );
       }
     }

@@ -159,8 +159,13 @@ export class S3Service {
       // Return the public URL
       return this.buildPublicUrl(key);
     } catch (error) {
+      // El detalle del proveedor queda en el log; al usuario le llega un texto
+      // que puede entender y accionar.
+      this.logger.error(
+        `S3: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw new InternalServerErrorException(
-        `Failed to upload file to S3: ${error instanceof Error ? error.message : String(error)}`,
+        'No pudimos guardar el archivo. Intenta nuevamente en unos minutos.',
       );
     }
   }
@@ -183,8 +188,13 @@ export class S3Service {
         expiresIn: expiresInSeconds,
       });
     } catch (error) {
+      // El detalle del proveedor queda en el log; al usuario le llega un texto
+      // que puede entender y accionar.
+      this.logger.error(
+        `S3: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw new InternalServerErrorException(
-        `Failed to generate signed URL: ${error instanceof Error ? error.message : String(error)}`,
+        'No pudimos preparar el enlace de descarga. Intenta nuevamente.',
       );
     }
   }
@@ -203,8 +213,13 @@ export class S3Service {
 
       await cliente.send(command);
     } catch (error) {
+      // El detalle del proveedor queda en el log; al usuario le llega un texto
+      // que puede entender y accionar.
+      this.logger.error(
+        `S3: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw new InternalServerErrorException(
-        `Failed to delete file from S3: ${error instanceof Error ? error.message : String(error)}`,
+        'No pudimos eliminar el archivo. Intenta nuevamente.',
       );
     }
   }
@@ -229,7 +244,7 @@ export class S3Service {
         return false;
       }
       throw new InternalServerErrorException(
-        `Failed to check file existence: ${error instanceof Error ? error.message : String(error)}`,
+        'No pudimos verificar el archivo. Intenta nuevamente.',
       );
     }
   }
@@ -261,8 +276,13 @@ export class S3Service {
         metadata: response.Metadata,
       };
     } catch (error) {
+      // El detalle del proveedor queda en el log; al usuario le llega un texto
+      // que puede entender y accionar.
+      this.logger.error(
+        `S3: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw new InternalServerErrorException(
-        `Failed to get file info: ${error instanceof Error ? error.message : String(error)}`,
+        'No pudimos leer los datos del archivo. Intenta nuevamente.',
       );
     }
   }
@@ -294,8 +314,13 @@ export class S3Service {
 
       return Buffer.concat(chunks);
     } catch (error) {
+      // El detalle del proveedor queda en el log; al usuario le llega un texto
+      // que puede entender y accionar.
+      this.logger.error(
+        `S3: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw new InternalServerErrorException(
-        `Failed to download file from S3: ${error instanceof Error ? error.message : String(error)}`,
+        'No pudimos descargar el archivo. Intenta nuevamente en unos minutos.',
       );
     }
   }
@@ -321,8 +346,13 @@ export class S3Service {
 
       return response.Body;
     } catch (error) {
+      // El detalle del proveedor queda en el log; al usuario le llega un texto
+      // que puede entender y accionar.
+      this.logger.error(
+        `S3: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw new InternalServerErrorException(
-        `Failed to get file stream from S3: ${error instanceof Error ? error.message : String(error)}`,
+        'No pudimos abrir el archivo. Intenta nuevamente en unos minutos.',
       );
     }
   }

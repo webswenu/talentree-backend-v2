@@ -44,7 +44,7 @@ export class VideoRequirementsService {
     });
 
     if (!worker) {
-      throw new NotFoundException('Worker not found');
+      throw new NotFoundException('No encontramos el perfil del candidato.');
     }
 
     if (worker.user.id !== userId) {
@@ -126,7 +126,7 @@ export class VideoRequirementsService {
     });
 
     if (!video) {
-      throw new NotFoundException('Video requirement not found');
+      throw new NotFoundException('Este proceso no tiene configurado el requisito de video.');
     }
 
     video.status = reviewDto.status as VideoRequirementStatus;
@@ -209,7 +209,7 @@ export class VideoRequirementsService {
     });
 
     if (!video) {
-      throw new NotFoundException('Video requirement not found');
+      throw new NotFoundException('Este proceso no tiene configurado el requisito de video.');
     }
 
     await this.videoRequirementRepository.remove(video);
@@ -229,7 +229,7 @@ export class VideoRequirementsService {
     });
 
     if (!worker) {
-      throw new NotFoundException('Worker not found');
+      throw new NotFoundException('No encontramos el perfil del candidato.');
     }
 
     if (worker.user.id !== userId) {
@@ -297,11 +297,11 @@ export class VideoRequirementsService {
     });
 
     if (!video) {
-      throw new NotFoundException('Video requirement not found');
+      throw new NotFoundException('Este proceso no tiene configurado el requisito de video.');
     }
 
     if (!video.videoUrl) {
-      throw new NotFoundException('Video URL not found');
+      throw new NotFoundException('Este candidato todavia no ha subido su video.');
     }
 
     this.logger.log(`Attempting to download video ${videoId}, videoUrl: ${video.videoUrl}`);

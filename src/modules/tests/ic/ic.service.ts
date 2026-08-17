@@ -43,7 +43,7 @@ export class IcService extends BaseTestService {
 
     if (submission.answers.length !== questions.length) {
       throw new BadRequestException(
-        `Expected ${questions.length} answers, got ${submission.answers.length}`,
+        `Faltan respuestas: enviaste ${submission.answers.length} de ${questions.length} preguntas. Revisa las que quedaron en blanco antes de enviar.`,
       );
     }
 
@@ -51,7 +51,7 @@ export class IcService extends BaseTestService {
       const question = questions.find((q) => q.id === answer.questionId);
       if (!question) {
         throw new BadRequestException(
-          `Question ${answer.questionId} not found`,
+          'Hubo un problema con una de las preguntas de este test. Avisale al equipo de Talentree; tus respuestas no se perdieron.',
         );
       }
 
@@ -63,7 +63,7 @@ export class IcService extends BaseTestService {
 
       if (Array.isArray(answer.answer) && answer.answer.length === 0) {
         throw new BadRequestException(
-          `Answer for question ${question.questionNumber} cannot be empty`,
+          `La pregunta ${question.questionNumber} quedo sin responder.`,
         );
       }
     }

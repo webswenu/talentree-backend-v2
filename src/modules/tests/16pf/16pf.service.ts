@@ -41,7 +41,7 @@ export class SixteenPfService extends BaseTestService {
     const normativeTable = test.configuration?.normativeTable;
     if (!normativeTable || !Array.isArray(normativeTable)) {
       throw new BadRequestException(
-        'Normative table not found in test configuration',
+        'Este test no tiene su tabla de puntuacion configurada, asi que no se puede corregir. Contacta al equipo de Talentree.',
       );
     }
 
@@ -53,7 +53,7 @@ export class SixteenPfService extends BaseTestService {
 
     if (submission.answers.length !== questions.length) {
       throw new BadRequestException(
-        `Expected ${questions.length} answers, got ${submission.answers.length}`,
+        `Faltan respuestas: enviaste ${submission.answers.length} de ${questions.length} preguntas. Revisa las que quedaron en blanco antes de enviar.`,
       );
     }
 
@@ -61,13 +61,13 @@ export class SixteenPfService extends BaseTestService {
       const question = questions.find((q) => q.id === answer.questionId);
       if (!question) {
         throw new BadRequestException(
-          `Question ${answer.questionId} not found`,
+          'Hubo un problema con una de las preguntas de este test. Avisale al equipo de Talentree; tus respuestas no se perdieron.',
         );
       }
 
       if (!['A', 'B', 'C'].includes(answer.answer)) {
         throw new BadRequestException(
-          `Invalid answer for question ${question.questionNumber}: must be A, B, or C`,
+          `La respuesta de la pregunta ${question.questionNumber} no es valida. Vuelve a seleccionar una de las opciones (A, B o C).`,
         );
       }
     }

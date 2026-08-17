@@ -453,7 +453,7 @@ export class ProcessInvitationsService {
     });
 
     if (!invitation) {
-      throw new NotFoundException(`Invitación con ID ${id} no encontrada`);
+      throw new NotFoundException('No encontramos esa invitacion. Puede que el enlace este mal copiado o que la invitacion ya no exista.');
     }
 
     return this.mapToResponseDto(invitation);
@@ -646,7 +646,7 @@ export class ProcessInvitationsService {
     });
 
     if (!invitation) {
-      throw new NotFoundException(`Invitación con ID ${id} no encontrada`);
+      throw new NotFoundException('No encontramos esa invitacion. Puede que el enlace este mal copiado o que la invitacion ya no exista.');
     }
 
     if (invitation.status === ProcessInvitationStatus.ACCEPTED) {
@@ -671,7 +671,7 @@ export class ProcessInvitationsService {
     });
 
     if (!invitation) {
-      throw new NotFoundException(`Invitación con ID ${id} no encontrada`);
+      throw new NotFoundException('No encontramos esa invitacion. Puede que el enlace este mal copiado o que la invitacion ya no exista.');
     }
 
     if (invitation.status === ProcessInvitationStatus.ACCEPTED) {

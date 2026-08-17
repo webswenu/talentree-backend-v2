@@ -1,4 +1,8 @@
-import { Injectable, ExecutionContext } from '@nestjs/common';
+import {
+  Injectable,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
@@ -27,5 +31,25 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
     return super.canActivate(context) as boolean | Promise<boolean>;
+  }
+
+  /**
+   * Sin esto, Passport responde el texto por defecto "Unauthorized": en
+   * ingles y sin decir que hacer. Es justo el mensaje que ve una persona
+   * cuando se le vence la sesion, que es el caso mas frecuente de todos.
+   */
+  handleRequest(err: any, user: any, info: any) {
+    if (err || !user) {
+      const expirado = info?.name === 'TokenExpiredError';
+      throw (
+        err ||
+        new UnauthorizedException(
+          expirado
+            ? 'Tu sesion expiro por inactividad. Vuelve a iniciar sesion para continuar.'
+            : 'Necesitas iniciar sesion para ver esta informacion.',
+        )
+      );
+    }
+    return user;
   }
 }

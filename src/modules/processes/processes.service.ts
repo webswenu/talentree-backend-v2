@@ -313,7 +313,7 @@ export class ProcessesService {
       const user = await this.usersService.findOne(evaluatorId);
       if (user.role !== UserRole.EVALUATOR) {
         throw new ConflictException(
-          `Usuario ${user.email} no es un evaluador válido`,
+          `El usuario ${user.email} no tiene rol de evaluador, asi que no se puede asignar al proceso.`,
         );
       }
       validEvaluators.push(user);

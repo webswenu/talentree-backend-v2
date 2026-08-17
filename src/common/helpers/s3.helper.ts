@@ -148,7 +148,7 @@ export async function generateSignedUrl(
     return await s3Service.getSignedUrl(fileKey, expiresInSeconds);
   } catch (error) {
     throw new InternalServerErrorException(
-      `Failed to generate signed URL: ${error instanceof Error ? error.message : String(error)}`,
+      'No pudimos preparar el enlace de descarga. Intenta nuevamente.',
     );
   }
 }
@@ -166,7 +166,7 @@ export async function deleteFileFromS3(
     await s3Service.deleteFile(fileKey);
   } catch (error) {
     throw new InternalServerErrorException(
-      `Failed to delete file: ${error instanceof Error ? error.message : String(error)}`,
+      'No pudimos eliminar el archivo. Intenta nuevamente.',
     );
   }
 }
@@ -207,7 +207,7 @@ export async function getFileInfoFromS3(
     return await s3Service.getFileInfo(fileKey);
   } catch (error) {
     throw new InternalServerErrorException(
-      `Failed to get file info: ${error instanceof Error ? error.message : String(error)}`,
+      'No pudimos leer los datos del archivo. Intenta nuevamente.',
     );
   }
 }

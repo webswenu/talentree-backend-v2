@@ -139,7 +139,7 @@ export class AuthService {
 
       return { accessToken };
     } catch (error) {
-      throw new UnauthorizedException(`Invalid token: ${error.message}`);
+      throw new UnauthorizedException('Tu sesion no es valida o expiro. Vuelve a iniciar sesion.');
     }
   }
 

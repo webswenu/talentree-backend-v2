@@ -74,7 +74,7 @@ export class ProcessVideoRequirementsService {
 
     if (!videoRequirement) {
       throw new NotFoundException(
-        `No se encontró configuración de video para el proceso ${processId}`,
+        'Este proceso no tiene configurado el requisito de video.',
       );
     }
 
@@ -90,7 +90,7 @@ export class ProcessVideoRequirementsService {
 
     if (!videoRequirement) {
       throw new NotFoundException(
-        `No se encontró configuración de video para el proceso ${processId}`,
+        'Este proceso no tiene configurado el requisito de video.',
       );
     }
 
