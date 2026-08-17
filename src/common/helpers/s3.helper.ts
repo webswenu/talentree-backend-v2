@@ -289,7 +289,18 @@ export function extractS3KeyFromUrl(urlOrKey: string): string {
   try {
     const url = new URL(urlOrKey);
     // Remove leading slash from pathname
-    return url.pathname.substring(1);
+    let key = url.pathname.substring(1);
+
+    // Con un endpoint path-style (MinIO en local) el bucket viaja dentro de la
+    // ruta: http://host/bucket/reports/x.docx. Hay que quitarlo para quedarse
+    // con la clave real. En AWS virtual-hosted la ruta ya no lo incluye, asi
+    // que esta comprobacion no cambia nada.
+    const bucket = process.env.AWS_S3_BUCKET;
+    if (bucket && key.startsWith(`${bucket}/`)) {
+      key = key.slice(bucket.length + 1);
+    }
+
+    return key;
   } catch (error) {
     // If URL parsing fails, return as-is
     return urlOrKey;

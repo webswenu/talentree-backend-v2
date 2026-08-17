@@ -69,6 +69,9 @@ services:
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET:-talentree-bucket}
+      # Vacío = S3 real de AWS (comportamiento de producción, sin cambios).
+      # Con valor = endpoint compatible con S3, por ejemplo http://minio:9000
+      AWS_S3_ENDPOINT: ${AWS_S3_ENDPOINT:-}
     ports:
       - '3002:3000'
     volumes:
@@ -78,6 +81,28 @@ services:
       - redis
     restart: unless-stopped
 
+  # Almacenamiento compatible con S3 para desarrollo y QA.
+  # Va detrás del perfil "local", así que NO arranca con un `docker compose up`
+  # normal: hay que pedirlo explícitamente. Producción queda intacta.
+  #   docker compose --profile local up -d minio
+  # Consola web en http://localhost:9001 (talentree / talentree123).
+  # El bucket hay que crearlo una vez, desde esa consola o con la API.
+  minio:
+    image: minio/minio:latest
+    container_name: talentree-minio
+    profiles: ['local']
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-talentree}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-talentree123}
+    command: server /data --console-address ":9001"
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
+  minio_data:

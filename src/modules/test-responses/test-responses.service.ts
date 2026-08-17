@@ -231,7 +231,7 @@ export class TestResponsesService {
               title: 'Nuevo test para evaluar',
               message: `${testResponse.workerProcess.worker.firstName} ${testResponse.workerProcess.worker.lastName} ha completado el test "${testResponse.test.name}" y requiere evaluación manual`,
               type: NotificationType.TEST_ASSIGNED,
-              link: `/evaluador/evaluaciones/${responseId}`,
+              link: `/evaluador/revisar/${responseId}`,
             });
           }
         } catch (error) {
@@ -316,7 +316,7 @@ export class TestResponsesService {
               title: passed ? 'Test aprobado' : 'Resultado de test',
               message: `Has ${passed ? 'aprobado' : 'completado'} el test "${testName}"${passed ? ' exitosamente' : ''}`,
               type: passed ? NotificationType.SUCCESS : NotificationType.INFO,
-              link: `/trabajador/procesos/${testResponseWithRelations.workerProcess.process.id}`,
+              link: `/trabajador/postulaciones/${testResponseWithRelations.workerProcess.id}`,
             });
           }
         }
@@ -623,6 +623,12 @@ export class TestResponsesService {
 
     const savedTestResponse = await this.testResponseRepository.save(testResponse);
 
+    // P-41: el puntaje de la postulación también tiene que moverse cuando el
+    // evaluador corrige a mano, no solo cuando el candidato termina el test.
+    await this.refrescarPuntajeDeLaPostulacion(
+      testResponse.workerProcess?.id,
+    );
+
     // Verificar si todas las respuestas han sido evaluadas
     const allEvaluated = testResponse.answers.every((answer) => answer.score !== null && answer.score !== undefined);
 
@@ -666,7 +672,7 @@ export class TestResponsesService {
             title: passed ? 'Evaluación aprobada' : 'Evaluación completada',
             message: `Tu evaluación del test "${testResponse.test.name}" ha sido completada${passed ? ' y aprobada' : ''}`,
             type: passed ? NotificationType.SUCCESS : NotificationType.INFO,
-            link: `/trabajador/procesos/${testResponse.workerProcess.process.id}`,
+            link: `/trabajador/postulaciones/${testResponse.workerProcess.id}`,
           });
         }
       } catch (error) {
@@ -794,6 +800,88 @@ export class TestResponsesService {
   }
 
   /**
+   * P-66. Guarda las notas generales del evaluador sobre una respuesta de test.
+   */
+  async saveEvaluatorNotes(
+    id: string,
+    dto: { evaluatorNotes?: string },
+  ): Promise<TestResponse> {
+    const testResponse = await this.testResponseRepository.findOne({
+      where: { id },
+    });
+
+    if (!testResponse) {
+      throw new NotFoundException(`Respuesta de test ${id} no encontrada`);
+    }
+
+    testResponse.evaluatorNotes = dto.evaluatorNotes ?? null;
+    return this.testResponseRepository.save(testResponse);
+  }
+
+  /**
+   * P-41. Puntaje de la postulación, a partir de los tests que rindió.
+   *
+   * PENDIENTE DE DEFINICIÓN CON LA CLIENTA: qué número quiere ver en la tabla
+   * de candidatos. Se implementa el PORCENTAJE PROMEDIO porque es lo único
+   * defendible sin esa respuesta: sumar los puntajes brutos de tests con
+   * escalas distintas (uno sobre 40, otro sobre 100) da un número que no
+   * significa nada y que no permite comparar a dos candidatos entre sí.
+   *
+   * Si la clienta prefiere el bruto o un promedio ponderado por test, se
+   * cambia aquí y solo aquí.
+   */
+  private async calcularPuntajeDeLaPostulacion(
+    workerProcessId: string,
+  ): Promise<number | null> {
+    const respuestas = await this.testResponseRepository.find({
+      where: { workerProcess: { id: workerProcessId } },
+    });
+
+    // Solo cuentan las que tienen escala: sin maxScore no hay porcentaje que
+    // calcular (es el caso de los tests psicométricos, que no se puntúan
+    // sobre un total sino por factores).
+    const conEscala = respuestas.filter(
+      (r) => r.maxScore != null && r.maxScore > 0 && r.score != null,
+    );
+
+    if (conEscala.length === 0) return null;
+
+    const suma = conEscala.reduce(
+      (acc, r) => acc + (r.score / r.maxScore) * 100,
+      0,
+    );
+
+    return Math.round(suma / conEscala.length);
+  }
+
+  /**
+   * Recalcula y guarda el puntaje de la postulación.
+   * Que falle no puede tumbar la evaluación que se acaba de guardar.
+   */
+  private async refrescarPuntajeDeLaPostulacion(
+    workerProcessId?: string,
+  ): Promise<void> {
+    if (!workerProcessId) return;
+
+    try {
+      const puntaje =
+        await this.calcularPuntajeDeLaPostulacion(workerProcessId);
+
+      if (puntaje !== null) {
+        await this.workerProcessRepository.update(workerProcessId, {
+          totalScore: puntaje,
+        });
+      }
+    } catch (error) {
+      this.logger.error(
+        `No se pudo actualizar el puntaje de la postulacion ${workerProcessId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  }
+
+  /**
    * Updates WorkerProcess status to 'completed' when all required tests are completed
    * This method verifies that the worker has completed ALL tests assigned to the process
    */
@@ -822,7 +910,11 @@ export class TestResponsesService {
       // Verify that the completed count matches the required count
       if (completedTestCount === totalRequiredTests && totalRequiredTests > 0) {
         workerProcess.status = WorkerStatus.COMPLETED; // Use COMPLETED when all tests are done
-        workerProcess.totalScore = 0; // Will be calculated from test scores
+        // P-41: aquí decía `= 0; // Will be calculated from test scores`. Ese
+        // cálculo nunca se escribió, así que la columna Puntaje de la tabla de
+        // candidatos salía siempre vacía por más tests que rindiera la persona.
+        workerProcess.totalScore =
+          await this.calcularPuntajeDeLaPostulacion(workerProcessId);
         await this.workerProcessRepository.save(workerProcess);
         this.logger.log(
           `WorkerProcess ${workerProcessId} status updated to 'completed' after completing ${completedTestCount}/${totalRequiredTests} tests`,

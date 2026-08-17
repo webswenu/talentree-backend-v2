@@ -66,8 +66,8 @@ export class ProcessesController {
     UserRole.WORKER,
     UserRole.GUEST,
   )
-  findAll(@Query() filters: ProcessFilterDto) {
-    return this.processesService.findAll(filters);
+  findAll(@Query() filters: ProcessFilterDto, @Request() req) {
+    return this.processesService.findAll(filters, req.user);
   }
 
   @Get(':id')
@@ -78,8 +78,8 @@ export class ProcessesController {
     UserRole.WORKER,
     UserRole.GUEST,
   )
-  findOne(@Param('id') id: string) {
-    return this.processesService.findOne(id);
+  findOne(@Param('id') id: string, @Request() req) {
+    return this.processesService.findOne(id, req.user);
   }
 
   @Patch(':id')
@@ -111,7 +111,10 @@ export class ProcessesController {
     UserRole.EVALUATOR,
     UserRole.GUEST,
   )
-  getEvaluators(@Param('id') id: string) {
+  async getEvaluators(@Param('id') id: string, @Request() req) {
+    // findOne aplica la regla de pertenencia y corta con 403 si el proceso es
+    // de otra empresa.
+    await this.processesService.findOne(id, req.user);
     return this.processesService.getEvaluators(id);
   }
 
@@ -123,7 +126,8 @@ export class ProcessesController {
     UserRole.WORKER,
     UserRole.GUEST,
   )
-  getTests(@Param('id') id: string, @Request() req) {
+  async getTests(@Param('id') id: string, @Request() req) {
+    await this.processesService.findOne(id, req.user);
     return this.processesService.getTests(id, req.user);
   }
 

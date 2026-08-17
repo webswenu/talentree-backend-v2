@@ -7,20 +7,22 @@ import {
   IsBoolean,
   IsUUID,
 } from 'class-validator';
+import { IsStrongPassword } from '../../../common/validators/password.validator';
 import { UserRole } from '../../../common/enums/user-role.enum';
 
 export class CreateUserDto {
-  @IsEmail()
+  @IsEmail({}, { message: 'El email ingresado no es valido' })
   email: string;
 
+  // P-52: la politica de contrasena vale para todas las vias de alta.
   @IsString()
-  @MinLength(6)
+  @IsStrongPassword()
   password: string;
 
-  @IsString()
+  @IsString({ message: 'El nombre es obligatorio' })
   firstName: string;
 
-  @IsString()
+  @IsString({ message: 'El apellido es obligatorio' })
   lastName: string;
 
   @IsOptional()

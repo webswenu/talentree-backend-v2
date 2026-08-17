@@ -10,11 +10,14 @@ import { UsersModule } from '../users/users.module';
 import { Worker } from '../workers/entities/worker.entity';
 import { User } from '../users/entities/user.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
     UsersModule,
     NotificationsModule,
+    // P-44: para poder registrar los inicios y cierres de sesion.
+    AuditModule,
     TypeOrmModule.forFeature([Worker, User]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({

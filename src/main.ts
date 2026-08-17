@@ -5,6 +5,7 @@ import { AppModule } from './app.module';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { QueryFailedExceptionFilter } from './common/filters/query-failed-exception.filter';
+import { excepcionDeValidacionEnEspanol } from './common/validators/validation-messages';
 import { AuditService } from './modules/audit/audit.service';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
@@ -69,6 +70,10 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
+      // P-18: la API respondia en ingles ('email must be an email'). Se traduce
+      // aqui y no DTO por DTO, para que ningun DTO nuevo vuelva a nacer en
+      // ingles. Los `message` propios de cada DTO siguen mandando.
+      exceptionFactory: excepcionDeValidacionEnEspanol,
     }),
   );
 
@@ -77,7 +82,9 @@ async function bootstrap() {
   app.useGlobalInterceptors(
     new ClassSerializerInterceptor(app.get(Reflector)),
     new TransformResponseInterceptor(),
-    new AuditInterceptor(auditService),
+    // P-42: recibe el ConfigService para saber cuál es el prefijo de la API y
+    // poder quitarlo al deducir la entidad, en vez de asumir una posición fija.
+    new AuditInterceptor(auditService, configService),
   );
 
   // Global Exception Filters

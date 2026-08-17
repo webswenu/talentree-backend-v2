@@ -22,8 +22,12 @@ import { UserRole } from '../../common/enums/user-role.enum';
 export class TestsController {
   constructor(private readonly testsService: TestsService) {}
 
+  // P-16: crear, editar y activar un test es escritura, y el rol Invitado es de
+  // solo consulta. Se dejan como DELETE, restringidas a Talentree.
+  // PENDIENTE DE DEFINICION: si la clienta confirma que la empresa debe crear
+  // sus propios tests, agregar UserRole.COMPANY acotado a los que ella creo.
   @Post()
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.GUEST)
+  @Roles(UserRole.ADMIN_TALENTREE)
   create(@Body() createTestDto: CreateTestDto, @Request() req) {
     return this.testsService.create(createTestDto, req.user.id);
   }
@@ -70,13 +74,13 @@ export class TestsController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.GUEST)
+  @Roles(UserRole.ADMIN_TALENTREE)
   update(@Param('id') id: string, @Body() updateTestDto: UpdateTestDto) {
     return this.testsService.update(id, updateTestDto);
   }
 
   @Patch(':id/toggle-active')
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.GUEST)
+  @Roles(UserRole.ADMIN_TALENTREE)
   toggleActive(@Param('id') id: string) {
     return this.testsService.toggleActive(id);
   }

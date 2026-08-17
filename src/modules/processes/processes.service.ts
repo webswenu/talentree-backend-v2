@@ -19,6 +19,12 @@ import { User } from '../users/entities/user.entity';
 import { UserRole } from '../../common/enums/user-role.enum';
 import { ProcessStatus } from '../../common/enums/process-status.enum';
 import { paginate } from '../../common/helpers/pagination.helper';
+import {
+  assertBelongsToUserCompany,
+  isCompanyScopedRole,
+  resolveUserCompanyId,
+  NO_COMPANY,
+} from '../../common/helpers/ownership.helper';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
 import { Test } from '../tests/entities/test.entity';
 import { FixedTest } from '../tests/entities/fixed-test.entity';
@@ -96,6 +102,7 @@ export class ProcessesService {
 
   async findAll(
     filters?: ProcessFilterDto,
+    requester?: any,
   ): Promise<PaginatedResult<SelectionProcess>> {
     const queryBuilder = this.processRepository
       .createQueryBuilder('process')
@@ -109,7 +116,17 @@ export class ProcessesService {
       });
     }
 
-    if (filters?.companyId) {
+    // P-22. El recorte por empresa se decide en el SERVIDOR a partir de la
+    // sesion, no del filtro que manda el navegador. Antes companyId venia solo
+    // del querystring: bastaba con no enviarlo, o enviar el de otra empresa,
+    // para listar los procesos de la competencia.
+    const scopedCompanyId = this.companyScopeFor(requester);
+
+    if (scopedCompanyId) {
+      queryBuilder.andWhere('company.id = :scopedCompanyId', {
+        scopedCompanyId,
+      });
+    } else if (filters?.companyId) {
       queryBuilder.andWhere('company.id = :companyId', {
         companyId: filters.companyId,
       });
@@ -123,7 +140,11 @@ export class ProcessesService {
 
     if (filters?.search) {
       queryBuilder.andWhere(
-        '(process.name ILIKE :search OR process.position ILIKE :search OR process.description ILIKE :search OR process.code ILIKE :search)',
+        // P-37: la búsqueda ignora acentos y ñ.
+        `(unaccent(process.name) ILIKE unaccent(:search)
+          OR unaccent(process.position) ILIKE unaccent(:search)
+          OR unaccent(process.description) ILIKE unaccent(:search)
+          OR process.code ILIKE :search)`,
         { search: `%${filters.search}%` },
       );
     }
@@ -143,7 +164,9 @@ export class ProcessesService {
 
     if (filters?.search) {
       queryBuilder.andWhere(
-        '(process.name ILIKE :search OR process.position ILIKE :search OR process.description ILIKE :search)',
+        `(unaccent(process.name) ILIKE unaccent(:search)
+          OR unaccent(process.position) ILIKE unaccent(:search)
+          OR unaccent(process.description) ILIKE unaccent(:search))`,
         { search: `%${filters.search}%` },
       );
     }
@@ -161,7 +184,7 @@ export class ProcessesService {
     });
   }
 
-  async findOne(id: string): Promise<SelectionProcess> {
+  async findOne(id: string, requester?: any): Promise<SelectionProcess> {
     const process = await this.processRepository.findOne({
       where: { id },
       relations: ['company', 'createdBy', 'evaluators'],
@@ -171,7 +194,32 @@ export class ProcessesService {
       throw new NotFoundException(`Proceso con ID ${id} no encontrado`);
     }
 
+    // Ocultarlo del listado no basta: con el id a mano se entraba igual.
+    if (requester) {
+      assertBelongsToUserCompany(
+        requester,
+        process.company?.id,
+        'este proceso',
+      );
+    }
+
     return process;
+  }
+
+  /**
+   * Devuelve la empresa a la que hay que acotar la consulta, o null si quien
+   * pregunta no esta acotado a ninguna (Talentree, evaluador, candidato).
+   *
+   * NOTA PENDIENTE DE DEFINICION (caso EVA-01): hoy el evaluador ve todos los
+   * procesos. Si la clienta confirma que debe ver solo los asignados, el
+   * recorte va aqui, filtrando por process.evaluators.
+   */
+  private companyScopeFor(requester?: any): string | null {
+    if (!requester) return null;
+    if (!isCompanyScopedRole(requester.role)) return null;
+
+    // Sin empresa asignada no se lista nada, en vez de listarse todo.
+    return resolveUserCompanyId(requester) ?? NO_COMPANY;
   }
 
   async update(
@@ -180,6 +228,20 @@ export class ProcessesService {
   ): Promise<SelectionProcess> {
     const process = await this.findOne(id);
     const oldStatus = process.status;
+
+    // P-25. El DTO de edicion no incluye startDate, asi que la regla cruzada
+    // del decorador no tiene con que comparar: aqui se contrasta la fecha de
+    // termino nueva contra la de inicio YA GUARDADA.
+    if (updateProcessDto.endDate && process.startDate) {
+      const inicio = new Date(process.startDate as any).getTime();
+      const termino = new Date(updateProcessDto.endDate).getTime();
+
+      if (!Number.isNaN(inicio) && !Number.isNaN(termino) && termino < inicio) {
+        throw new BadRequestException(
+          'La fecha de termino no puede ser anterior a la fecha de inicio del proceso.',
+        );
+      }
+    }
 
     Object.assign(process, updateProcessDto);
     const savedProcess = await this.processRepository.save(process);
@@ -219,7 +281,9 @@ export class ProcessesService {
               title: 'Nueva oferta disponible',
               message: `El proceso "${savedProcess.name}" está ahora disponible para postulaciones`,
               type: NotificationType.INFO,
-              link: `/trabajador/procesos/${savedProcess.id}`,
+              // P-68: aqui el candidato todavia no postulo, asi que no hay postulacion
+              // a la que enlazar: se lleva al listado de ofertas, que si existe.
+              link: `/trabajador/procesos`,
             });
           }
         }
@@ -381,10 +445,22 @@ export class ProcessesService {
       );
     }
 
-    const test = await this.testRepository.findOne({ where: { id: testId } });
+    const test = await this.testRepository.findOne({
+      where: { id: testId },
+      relations: ['questions'],
+    });
 
     if (!test) {
       throw new NotFoundException(`Test con ID ${testId} no encontrado`);
+    }
+
+    // P-50. Un test sin preguntas asignado a un proceso deja al candidato
+    // frente a una evaluacion vacia, sin nada que responder y sin poder
+    // avanzar. Se corta aqui, que es donde el dano se vuelve visible.
+    if (!test.questions || test.questions.length === 0) {
+      throw new BadRequestException(
+        `El test "${test.name}" no tiene preguntas, asi que no se puede asignar a un proceso. Agregale preguntas primero.`,
+      );
     }
 
     // Check if test is already assigned

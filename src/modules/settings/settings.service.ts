@@ -1,15 +1,40 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Setting } from './entities/setting.entity';
 import { UpdateSettingDto } from './dto/update-setting.dto';
 
 @Injectable()
-export class SettingsService {
+export class SettingsService implements OnModuleInit {
+  private readonly logger = new Logger(SettingsService.name);
+
   constructor(
     @InjectRepository(Setting)
     private readonly settingRepository: Repository<Setting>,
   ) {}
+
+  /**
+   * P-46. La configuracion del sistema nacia vacia y solo se poblaba llamando
+   * a mano a POST /settings/initialize, un paso que no estaba documentado en
+   * ningun sitio y que en la practica nadie ejecutaba: la pantalla de
+   * configuracion aparecia en blanco en toda instalacion nueva.
+   *
+   * Se siembra al arrancar el modulo. Es seguro hacerlo siempre porque
+   * initializeDefaults solo crea los ajustes que faltan y nunca pisa los que
+   * ya existen, asi que no deshace lo que la clienta haya cambiado.
+   */
+  async onModuleInit(): Promise<void> {
+    try {
+      await this.initializeDefaults();
+    } catch (error) {
+      // Que falle la siembra no debe impedir que el backend arranque.
+      this.logger.error(
+        `No se pudieron sembrar los ajustes por defecto: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  }
 
   async findAll(): Promise<Setting[]> {
     return this.settingRepository.find({

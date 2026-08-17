@@ -13,6 +13,62 @@ import { QueryFailedError } from 'typeorm';
 export class QueryFailedExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(QueryFailedExceptionFilter.name);
 
+  /**
+   * Mensajes de error por clave foránea (hallazgos P-49 y P-29).
+   *
+   * EL DEFECTO DE FONDO: la versión anterior decidía si la operación era una
+   * inserción o un borrado buscando la palabra "update" en el mensaje de
+   * PostgreSQL. Pero al BORRAR una fila referenciada, PostgreSQL responde
+   * literalmente «update or delete on table "tests" violates foreign key
+   * constraint ... on table "test_responses"». Contiene "update", así que
+   * todos los borrados caían en la rama de inserción.
+   *
+   * Por eso, al intentar eliminar un test que ya rindieron candidatos, el
+   * sistema respondía «No se puede CREAR la respuesta del test porque el test
+   * referenciado no existe», que no tiene nada que ver con lo que se pidió.
+   *
+   * El discriminador correcto está en el detalle, no en el mensaje:
+   *   - borrado bloqueado  -> "is still referenced from table"
+   *   - referencia inválida -> "is not present in table"
+   */
+  private mensajeParaClaveForanea(pgError: any): string {
+    const mensaje: string = pgError.message || '';
+    const detalle: string = pgError.detail || '';
+    const texto = `${mensaje} ${detalle}`;
+
+    const esBorradoBloqueado = detalle.includes('is still referenced from');
+
+    if (esBorradoBloqueado) {
+      // Mensajes por tabla que referencia, del caso concreto al genérico.
+      if (texto.includes('selection_processes')) {
+        return 'No se puede eliminar porque tiene procesos de selección asociados. Elimina o transfiere esos procesos primero.';
+      }
+
+      // P-49
+      if (texto.includes('test_responses')) {
+        return 'No se puede eliminar este test porque algunos candidatos ya lo rindieron. Puedes desactivarlo para que no se asigne a nuevos procesos.';
+      }
+
+      // P-29
+      if (texto.includes('companies')) {
+        return 'No se puede eliminar este usuario porque es el representante de una empresa. Asigna otro representante antes de eliminarlo.';
+      }
+
+      if (texto.includes('worker_processes')) {
+        return 'No se puede eliminar porque tiene postulaciones asociadas. Revisa los candidatos vinculados antes de continuar.';
+      }
+
+      if (texto.includes('reports')) {
+        return 'No se puede eliminar porque tiene informes asociados.';
+      }
+
+      return 'No se puede eliminar porque otros registros dependen de este. Elimina primero los datos relacionados.';
+    }
+
+    // Referencia que no existe (INSERT o UPDATE).
+    return 'La operación hace referencia a un registro que no existe. Verifica los datos e intenta nuevamente.';
+  }
+
   catch(exception: QueryFailedError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -28,29 +84,7 @@ export class QueryFailedExceptionFilter implements ExceptionFilter {
 
     // Código 23503 es foreign key constraint violation en PostgreSQL
     if (errorCode === '23503') {
-      let userMessage = 'No se puede realizar esta operación porque viola una restricción de integridad.';
-
-      // Detectar si es INSERT/UPDATE vs DELETE
-      const isInsertOrUpdate = errorMessage.toLowerCase().includes('insert') ||
-                                errorMessage.toLowerCase().includes('update');
-
-      if (errorMessage.includes('selection_processes')) {
-        userMessage =
-          'No se puede eliminar la empresa porque tiene procesos de selección asociados. Por favor, elimine o transfiera los procesos antes de eliminar la empresa.';
-      } else if (isInsertOrUpdate) {
-        // Error en INSERT/UPDATE - referencia no existe
-        if (errorMessage.includes('test_responses')) {
-          userMessage =
-            'No se puede crear la respuesta del test porque el test referenciado no existe. Verifique que el test esté correctamente configurado.';
-        } else {
-          userMessage =
-            'No se puede realizar esta operación porque hace referencia a datos que no existen. Verifique los datos e intente nuevamente.';
-        }
-      } else {
-        // Error en DELETE - tiene datos asociados
-        userMessage =
-          'No se puede eliminar este recurso porque tiene datos asociados. Por favor, elimine primero los datos relacionados.';
-      }
+      const userMessage = this.mensajeParaClaveForanea(pgError);
 
       response.status(HttpStatus.BAD_REQUEST).json({
         statusCode: HttpStatus.BAD_REQUEST,

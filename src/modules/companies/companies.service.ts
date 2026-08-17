@@ -132,7 +132,13 @@ export class CompaniesService {
 
     if (filters?.search) {
       queryBuilder.andWhere(
-        '(company.name ILIKE :search OR company.rut ILIKE :search OR company.industry ILIKE :search OR company.city ILIKE :search OR user.email ILIKE :search)',
+        // P-37: unaccent en los campos de texto. El RUT queda fuera a
+        // propósito: no lleva acentos y ya se normaliza al guardarse.
+        `(unaccent(company.name) ILIKE unaccent(:search)
+          OR company.rut ILIKE :search
+          OR unaccent(company.industry) ILIKE unaccent(:search)
+          OR unaccent(company.city) ILIKE unaccent(:search)
+          OR unaccent(user.email) ILIKE unaccent(:search))`,
         { search: `%${filters.search}%` },
       );
     }
@@ -379,7 +385,75 @@ export class CompaniesService {
       },
     });
 
+    // P-39. El panel de Empresa mostraba SIEMPRE 0 postulantes en cada proceso
+    // y la actividad reciente siempre vacía, porque el frontend leía
+    // `proceso.workers` y el listado de procesos no trae esa relación.
+    //
+    // Se resuelve devolviendo los contadores ya calculados, en vez de mandar la
+    // nómina completa de candidatos solo para contarla: es más rápido y, sobre
+    // todo, no expone datos personales donde no hacen falta (ver P-22).
+    const detallePorProceso = await this.processRepository
+      .createQueryBuilder('process')
+      // La entidad SelectionProcess no declara la relación inversa hacia
+      // WorkerProcess, así que el join va con la condición explícita. Es LEFT
+      // a propósito: un proceso sin ningún postulante tiene que salir igual,
+      // con el contador en 0.
+      .leftJoin(WorkerProcess, 'wp', 'wp.process_id = process.id')
+      .where('process.company_id = :companyId', { companyId })
+      .andWhere('process.status = :status', { status: ProcessStatus.ACTIVE })
+      .select('process.id', 'id')
+      .addSelect('process.name', 'titulo')
+      .addSelect('process.endDate', 'fechaVencimiento')
+      .addSelect('COUNT(wp.id)', 'postulantes')
+      .addSelect(
+        `COUNT(wp.id) FILTER (WHERE wp.status = '${WorkerStatus.IN_PROCESS}')`,
+        'enEvaluacion',
+      )
+      .addSelect(
+        `COUNT(wp.id) FILTER (WHERE wp.status = '${WorkerStatus.APPROVED}')`,
+        'aprobados',
+      )
+      .groupBy('process.id')
+      .orderBy('process.createdAt', 'DESC')
+      .getRawMany()
+      .then((filas) =>
+        filas.map((f) => ({
+          id: f.id,
+          titulo: f.titulo,
+          fechaVencimiento: f.fechaVencimiento,
+          postulantes: parseInt(f.postulantes, 10) || 0,
+          enEvaluacion: parseInt(f.enEvaluacion, 10) || 0,
+          aprobados: parseInt(f.aprobados, 10) || 0,
+        })),
+      );
+
+    // Solo las 5 últimas: es lo que el panel muestra.
+    const actividadReciente = await this.workerProcessRepository
+      .createQueryBuilder('wp')
+      .innerJoin('wp.process', 'process')
+      .innerJoin('wp.worker', 'worker')
+      .where('process.company_id = :companyId', { companyId })
+      .select('wp.id', 'id')
+      .addSelect('worker.firstName', 'firstName')
+      .addSelect('worker.lastName', 'lastName')
+      .addSelect('process.name', 'proceso')
+      .addSelect('wp.appliedAt', 'appliedAt')
+      .orderBy('wp.created_at', 'DESC')
+      .limit(5)
+      .getRawMany()
+      .then((filas) =>
+        filas.map((f) => ({
+          id: f.id,
+          tipo: 'nuevo_postulante',
+          nombre: `${f.firstName ?? ''} ${f.lastName ?? ''}`.trim() || 'Candidato',
+          proceso: f.proceso,
+          appliedAt: f.appliedAt,
+        })),
+      );
+
     return {
+      procesosActivosDetalle: detallePorProceso,
+      actividadReciente,
       procesosActivos: {
         total: procesosActivos,
         nuevos: procesosActivosNuevos,

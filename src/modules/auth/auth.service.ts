@@ -18,6 +18,8 @@ import { User } from '../users/entities/user.entity';
 import { UserRole } from '../../common/enums/user-role.enum';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { NotificationType } from '../../common/enums/notification-type.enum';
+import { AuditService } from '../audit/audit.service';
+import { AuditAction } from '../../common/enums/audit-action.enum';
 
 @Injectable()
 export class AuthService {
@@ -33,9 +35,16 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly notificationsGateway: NotificationsGateway,
+    private readonly auditService: AuditService,
   ) {}
 
-  async login(loginDto: LoginDto) {
+  /**
+   * P-44. El inicio de sesion no quedaba en la bitacora. El interceptor de
+   * auditoria no puede registrarlo: en el momento en que pasa, la peticion
+   * todavia no tiene usuario (la ruta es publica). Hay que hacerlo aqui, que
+   * es donde se sabe quien entro y si lo logro.
+   */
+  async login(loginDto: LoginDto, contexto?: { ip?: string; userAgent?: string }) {
     const { email, password } = loginDto;
 
     const user = await this.usersService.findByEmail(email);
@@ -53,6 +62,17 @@ export class AuthService {
     }
 
     await this.usersService.updateLastLogin(user.id);
+
+    this.auditService
+      .log(AuditAction.LOGIN, 'auth', user.id, user.id, {
+        ipAddress: contexto?.ip,
+        userAgent: contexto?.userAgent,
+        description: `Inicio de sesion de ${user.email}`,
+      })
+      // Que falle la bitacora no puede impedir que alguien entre.
+      .catch((error) =>
+        this.logger.error(`No se pudo auditar el inicio de sesion: ${error.message}`),
+      );
 
     const accessToken = this.generateAccessToken(
       user.id,
@@ -79,6 +99,25 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  /**
+   * P-44. El cierre de sesion tampoco quedaba registrado. Se deja explicito,
+   * igual que el inicio, para que la bitacora permita reconstruir una sesion
+   * de punta a punta y no solo lo que se hizo en medio.
+   */
+  async logout(userId: string, contexto?: { ip?: string; userAgent?: string }) {
+    await this.auditService
+      .log(AuditAction.LOGOUT, 'auth', userId, userId, {
+        ipAddress: contexto?.ip,
+        userAgent: contexto?.userAgent,
+        description: 'Cierre de sesion',
+      })
+      .catch((error) =>
+        this.logger.error(`No se pudo auditar el cierre de sesion: ${error.message}`),
+      );
+
+    return { message: 'Logout exitoso' };
   }
 
   async refreshToken(refreshToken: string) {

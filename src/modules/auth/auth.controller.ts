@@ -19,8 +19,11 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  async login(@Body() loginDto: LoginDto, @Request() req) {
+    return this.authService.login(loginDto, {
+      ip: req.ip,
+      userAgent: req.headers?.['user-agent'],
+    });
   }
 
   @Post('register/worker')
@@ -44,7 +47,10 @@ export class AuthController {
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async logout() {
-    return { message: 'Logout exitoso' };
+  async logout(@Request() req) {
+    return this.authService.logout(req.user.id, {
+      ip: req.ip,
+      userAgent: req.headers?.['user-agent'],
+    });
   }
 }

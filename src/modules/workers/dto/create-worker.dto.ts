@@ -6,6 +6,8 @@ import {
   IsArray,
   MinLength,
 } from 'class-validator';
+import { IsRut, NormalizeRut } from '../../../common/validators/rut.validator';
+import { IsStrongPassword } from '../../../common/validators/password.validator';
 
 export class CreateWorkerDto {
   @IsString()
@@ -14,7 +16,10 @@ export class CreateWorkerDto {
   @IsString()
   lastName: string;
 
-  @IsString()
+  // P-51 / ADM-TRA-04: el alta desde el panel no validaba el RUT en absoluto.
+  @IsString({ message: 'El RUT es obligatorio' })
+  @IsRut()
+  @NormalizeRut()
   rut: string;
 
   @IsEmail()
@@ -22,7 +27,7 @@ export class CreateWorkerDto {
 
   @IsOptional()
   @IsString()
-  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
+  @IsStrongPassword()
   password?: string;
 
   @IsOptional()

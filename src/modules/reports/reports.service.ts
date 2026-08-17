@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -21,6 +22,13 @@ import { S3Service } from '../../common/services/s3.service';
 import { uploadBufferToS3, extractS3KeyFromUrl } from '../../common/helpers/s3.helper';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { NotificationType } from '../../common/enums/notification-type.enum';
+import { UserRole } from '../../common/enums/user-role.enum';
+import {
+  assertBelongsToUserCompany,
+  isCompanyScopedRole,
+  resolveUserCompanyId,
+} from '../../common/helpers/ownership.helper';
+import { esPdf } from '../../common/helpers/upload.helper';
 
 @Injectable()
 export class ReportsService {
@@ -58,47 +66,121 @@ export class ReportsService {
     return this.reportRepository.save(report);
   }
 
-  async findAll(onlyApproved = false): Promise<Report[]> {
-    const whereCondition = onlyApproved
-      ? { status: ReportStatus.APPROVED }
-      : {};
-
+  async findAll(requester?: any): Promise<Report[]> {
     return this.reportRepository.find({
-      where: whereCondition,
+      where: this.scopeFor(requester),
       relations: ['createdBy', 'process', 'process.company', 'worker', 'approvedBy'],
       order: { createdAt: 'DESC' },
     });
   }
 
-  async findOne(id: string): Promise<Report> {
+  /**
+   * El recorte que corresponde a quien pregunta, aplicado en la CONSULTA.
+   *
+   * Antes el unico recorte era `onlyApproved` para el rol COMPANY, con dos
+   * agujeros: el rol GUEST quedaba fuera del filtro, y ninguno de los dos
+   * filtraba por empresa. El resultado era que una empresa listaba los
+   * informes de todas las demas.
+   */
+  private scopeFor(requester?: any): any {
+    if (!requester || requester.role === UserRole.ADMIN_TALENTREE) return {};
+
+    if (isCompanyScopedRole(requester.role)) {
+      const companyId = resolveUserCompanyId(requester);
+      return {
+        status: ReportStatus.APPROVED,
+        // Sin empresa asignada no se ve nada, en vez de verse todo.
+        process: { company: { id: companyId ?? '00000000-0000-0000-0000-000000000000' } },
+      };
+    }
+
+    return {};
+  }
+
+  async findOne(id: string, requester?: any): Promise<Report> {
     const report = await this.reportRepository.findOne({
       where: { id },
-      relations: ['createdBy', 'process', 'process.company', 'worker'],
+      relations: [
+        'createdBy',
+        'process',
+        'process.company',
+        'process.evaluators',
+        'worker',
+      ],
     });
 
     if (!report) {
       throw new NotFoundException(`Report con ID ${id} no encontrado`);
     }
 
+    if (requester) {
+      this.assertCanReadReport(report, requester);
+    }
+
     return report;
   }
 
-  async findByType(type: string): Promise<Report[]> {
+  /**
+   * P-81. El informe psicotecnico es el dato mas sensible del producto y hasta
+   * ahora se entregaba a cualquiera con rol COMPANY o GUEST, de cualquier
+   * empresa y en cualquier estado. Dos comprobaciones, ambas necesarias:
+   *
+   *  1. Pertenencia: el informe tiene que ser de un proceso de SU empresa.
+   *  2. Aprobacion : la empresa no lee borradores; solo lo que Talentree aprobo.
+   */
+  private assertCanReadReport(report: Report, requester: any): void {
+    if (requester.role === UserRole.ADMIN_TALENTREE) return;
+
+    if (isCompanyScopedRole(requester.role)) {
+      assertBelongsToUserCompany(
+        requester,
+        report.process?.company?.id,
+        'este informe',
+      );
+
+      if (report.status !== ReportStatus.APPROVED) {
+        throw new ForbiddenException(
+          'Este informe todavia no esta aprobado por Talentree.',
+        );
+      }
+      return;
+    }
+
+    if (requester.role === UserRole.EVALUATOR) {
+      const evaluators: any[] = report.process?.evaluators ?? [];
+      const asignado = evaluators.some((e) => e?.id === requester.id);
+      const esAutor = report.createdBy?.id === requester.id;
+
+      if (!asignado && !esAutor) {
+        throw new ForbiddenException(
+          'Solo puedes ver los informes de los procesos que tienes asignados.',
+        );
+      }
+    }
+  }
+
+  async findByType(type: string, requester?: any): Promise<Report[]> {
     return this.reportRepository.find({
-      where: { type: type as any },
-      relations: ['createdBy', 'process', 'worker'],
+      where: { ...this.scopeFor(requester), type: type as any },
+      relations: ['createdBy', 'process', 'process.company', 'worker'],
       order: { createdAt: 'DESC' },
     });
   }
 
-  async findByProcess(
-    processId: string,
-    onlyApproved = false,
-  ): Promise<Report[]> {
-    const whereCondition: any = { process: { id: processId } };
+  async findByProcess(processId: string, requester?: any): Promise<Report[]> {
+    const whereCondition: any = {
+      ...this.scopeFor(requester),
+      process: { id: processId },
+    };
 
-    if (onlyApproved) {
-      whereCondition.status = ReportStatus.APPROVED;
+    // El recorte por empresa se conserva junto con el filtro por proceso: si se
+    // pisara la clave `process`, pedir un processId ajeno volveria a colar.
+    const scoped = this.scopeFor(requester);
+    if (scoped.process?.company) {
+      whereCondition.process = {
+        id: processId,
+        company: scoped.process.company,
+      };
     }
 
     return this.reportRepository.find({
@@ -108,15 +190,11 @@ export class ReportsService {
     });
   }
 
-  async findByWorker(
-    workerId: string,
-    onlyApproved = false,
-  ): Promise<Report[]> {
-    const whereCondition: any = { worker: { id: workerId } };
-
-    if (onlyApproved) {
-      whereCondition.status = ReportStatus.APPROVED;
-    }
+  async findByWorker(workerId: string, requester?: any): Promise<Report[]> {
+    const whereCondition: any = {
+      ...this.scopeFor(requester),
+      worker: { id: workerId },
+    };
 
     return this.reportRepository.find({
       where: whereCondition,
@@ -179,9 +257,10 @@ export class ReportsService {
       }
     }
 
-    // Determine file type
-    const fileExtension = path.extname(file.originalname).toLowerCase();
-    const isPdf = fileExtension === '.pdf';
+    // P-82: el tipo se decide por el CONTENIDO, no por la extension. El nombre
+    // del archivo lo elige quien sube, asi que renombrar un .docx a .pdf
+    // bastaba para que el informe quedara guardado en la columna equivocada.
+    const isPdf = esPdf(file);
 
     // Get company ID for namespacing in S3
     const companyId = report.process?.company?.id;
@@ -310,8 +389,12 @@ export class ReportsService {
   async downloadFile(
     id: string,
     format?: 'pdf' | 'docx',
+    requester?: any,
   ): Promise<{ stream: any; filename: string; mimetype: string }> {
-    const report = await this.findOne(id);
+    // El requester se pasa a findOne a proposito: la descarga entrega el
+    // documento completo, asi que es el punto que MAS necesita la comprobacion,
+    // no el que menos. Antes bajaba el archivo sin mirar empresa ni estado.
+    const report = await this.findOne(id, requester);
 
     let fileUrl: string;
     let fileName: string;
@@ -528,7 +611,7 @@ export class ReportsService {
             title: 'Tu reporte está listo',
             message: `Tu informe de evaluación para el proceso "${workerProcess.process?.name}" ha sido generado y está en revisión`,
             type: NotificationType.REPORT_READY,
-            link: `/trabajador/reportes`,
+            link: `/trabajador/resultados`,
           });
         }
       } catch (error) {

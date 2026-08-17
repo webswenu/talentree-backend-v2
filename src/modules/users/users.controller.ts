@@ -9,6 +9,8 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  ForbiddenException,
+  Query,
   Request,
   UseInterceptors,
   UploadedFile,
@@ -22,6 +24,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserFilterDto } from './dto/user-filter.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
@@ -42,16 +45,19 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  // El listado completo de usuarios es solo para Talentree.
+  // El evaluador se sacó a proposito: no necesita la nomina del sistema para
+  // trabajar, y con ella veia tambien a los administradores y a las empresas.
   @Get()
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.EVALUATOR)
-  findAll() {
-    return this.usersService.findAll();
+  @Roles(UserRole.ADMIN_TALENTREE)
+  findAll(@Query() filters: UserFilterDto) {
+    return this.usersService.findAll(filters);
   }
 
   @Patch('change-password')
   @Roles(
     UserRole.ADMIN_TALENTREE,
-    UserRole.COMPANY, UserRole.GUEST,
+    UserRole.COMPANY,
     UserRole.EVALUATOR,
     UserRole.WORKER,
     UserRole.GUEST,
@@ -65,7 +71,7 @@ export class UsersController {
   @Patch('notification-preferences')
   @Roles(
     UserRole.ADMIN_TALENTREE,
-    UserRole.COMPANY, UserRole.GUEST,
+    UserRole.COMPANY,
     UserRole.EVALUATOR,
     UserRole.WORKER,
     UserRole.GUEST,
@@ -124,15 +130,34 @@ export class UsersController {
     return this.usersService.resetPassword(userId, resetPasswordDto);
   }
 
-  @Get(':id')
+  // Perfil propio: no recibe :id, asi que no hay forma de apuntar a otro usuario.
+  // Va declarado ANTES de @Patch(':id') porque en Nest manda el orden: si
+  // estuviera despues, 'me' entraria como si fuera un identificador.
+  @Patch('me')
   @Roles(
     UserRole.ADMIN_TALENTREE,
-    UserRole.COMPANY, UserRole.GUEST,
+    UserRole.COMPANY,
     UserRole.EVALUATOR,
     UserRole.WORKER,
     UserRole.GUEST,
   )
-  findOne(@Param('id') id: string) {
+  updateOwnProfile(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(
+      req.user.id,
+      this.stripPrivilegedFields(updateUserDto),
+    );
+  }
+
+  @Get(':id')
+  @Roles(
+    UserRole.ADMIN_TALENTREE,
+    UserRole.COMPANY,
+    UserRole.EVALUATOR,
+    UserRole.WORKER,
+    UserRole.GUEST,
+  )
+  findOne(@Request() req, @Param('id') id: string) {
+    this.assertCanActOnUser(req, id);
     // Retornar usuario con relaciones cargadas para mantener consistencia
     return this.usersService.findOneWithRelations(id);
   }
@@ -140,13 +165,46 @@ export class UsersController {
   @Patch(':id')
   @Roles(
     UserRole.ADMIN_TALENTREE,
-    UserRole.COMPANY, UserRole.GUEST,
+    UserRole.COMPANY,
     UserRole.EVALUATOR,
     UserRole.WORKER,
     UserRole.GUEST,
   )
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+  update(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    const isAdmin = req.user?.role === UserRole.ADMIN_TALENTREE;
+    this.assertCanActOnUser(req, id);
+
+    // Un usuario puede editar su propia ficha, pero no ascenderse de rol ni
+    // reactivarse solo. Esos dos campos quedan reservados al administrador.
+    const payload = isAdmin
+      ? updateUserDto
+      : this.stripPrivilegedFields(updateUserDto);
+
+    return this.usersService.update(id, payload, req.user?.id);
+  }
+
+  /**
+   * El rol por si solo no alcanza: hay que comprobar la pertenencia.
+   * Cualquier rol puede operar sobre SU ficha; solo Talentree sobre las ajenas.
+   */
+  private assertCanActOnUser(req: any, targetId: string): void {
+    if (req.user?.role === UserRole.ADMIN_TALENTREE) return;
+    if (req.user?.id === targetId) return;
+    throw new ForbiddenException(
+      'No tienes permiso para acceder a la ficha de otro usuario.',
+    );
+  }
+
+  private stripPrivilegedFields(dto: UpdateUserDto): UpdateUserDto {
+    const { role, isActive, ...rest } = dto as UpdateUserDto & {
+      role?: unknown;
+      isActive?: unknown;
+    };
+    return rest as UpdateUserDto;
   }
 
   @Delete(':id')
@@ -167,6 +225,7 @@ export class UsersController {
   @UseInterceptors(FileInterceptor('avatar'))
   @HttpCode(HttpStatus.OK)
   async uploadAvatar(
+    @Request() req,
     @Param('id') id: string,
     @UploadedFile(
       new ParseFilePipe({
@@ -180,6 +239,7 @@ export class UsersController {
     )
     file: Express.Multer.File,
   ) {
+    this.assertCanActOnUser(req, id);
     return this.usersService.uploadAvatar(id, file);
   }
 
@@ -192,7 +252,8 @@ export class UsersController {
     UserRole.GUEST,
   )
   @HttpCode(HttpStatus.OK)
-  async deleteAvatar(@Param('id') id: string) {
+  async deleteAvatar(@Request() req, @Param('id') id: string) {
+    this.assertCanActOnUser(req, id);
     return this.usersService.deleteAvatar(id);
   }
 }
