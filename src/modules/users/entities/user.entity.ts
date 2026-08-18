@@ -109,6 +109,21 @@ export class User {
   activeCompanyId: string;
 
   /**
+   * La misma columna, declarada tambien como relacion.
+   *
+   * No es un duplicado por descuido: sin esto TypeORM no sabe que
+   * `active_company_id` tiene una clave foranea, y cada `migration:generate`
+   * propone borrarla. El mismo patron ya se usa mas abajo con `companyId` y
+   * `belongsToCompany`.
+   *
+   * Nadie la carga: la empresa activa se resuelve desde `companies` en
+   * UsersService. Existe para que el esquema y las entidades digan lo mismo.
+   */
+  @ManyToOne('Company', { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'active_company_id' })
+  activeCompany?: any;
+
+  /**
    * La empresa activa ya resuelta. NO se persiste: la llena el servicio al
    * cargar al usuario (findOneWithRelations). Existe para que
    * `resolveUserCompanyId(user)` y las pantallas sigan leyendo `user.company`

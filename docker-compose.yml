@@ -39,7 +39,10 @@ services:
       DB_USERNAME: ${DB_USERNAME:-talentree_user}
       DB_PASSWORD: ${DB_PASSWORD:-talentree_password}
       DB_DATABASE: ${DB_DATABASE:-talentree_db}
-      DB_SYNCHRONIZE: ${DB_SYNCHRONIZE:-true}
+      # El default era `true`: bastaba con que el .env no lo mencionara para que
+      # TypeORM reescribiera el esquema en cada arranque. El esquema se cambia
+      # con migraciones (npm run migration:run), no solo.
+      DB_SYNCHRONIZE: ${DB_SYNCHRONIZE:-false}
       DB_LOGGING: ${DB_LOGGING:-true}
       DB_DROP_SCHEMA: ${DB_DROP_SCHEMA:-false}
 

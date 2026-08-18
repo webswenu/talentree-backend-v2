@@ -22,7 +22,9 @@
     "seed:fixed-tests": "ts-node -r tsconfig-paths/register src/database/seed-fixed-tests.ts",
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "npm run typeorm -- migration:generate -d src/config/typeorm.config.ts",
+    "migration:baseline": "ts-node -r tsconfig-paths/register src/database/baseline-migraciones.ts",
     "migration:run": "npm run typeorm -- migration:run -d src/config/typeorm.config.ts",
+    "migration:show": "npm run typeorm -- migration:show -d src/config/typeorm.config.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d src/config/typeorm.config.ts"
   },
   "dependencies": {

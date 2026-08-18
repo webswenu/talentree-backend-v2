@@ -55,7 +55,20 @@ export class Worker {
   @Column({ nullable: true })
   cvUrl: string;
 
-  @OneToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
+  /**
+   * Borrar la cuenta NO borra al candidato: la ficha queda, sin usuario.
+   *
+   * Estaba en CASCADE y contradecia a la migracion
+   * AddOnDeleteSetNullToWorkerUser, que pide SET NULL. Con `synchronize`
+   * encendido ganaba la entidad y la migracion se deshacia sola en el
+   * siguiente arranque, que es la razon por la que esa migracion nunca cuajo.
+   *
+   * Se resuelve a favor de SET NULL, que es la mas conservadora: eliminar un
+   * usuario no puede llevarse su historial de postulaciones, evaluaciones e
+   * informes por un efecto de la base que nadie ve. El borrado deliberado
+   * sigue existiendo, explicito, en UsersService.remove.
+   */
+  @OneToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'user_id' })
   user: User;
 

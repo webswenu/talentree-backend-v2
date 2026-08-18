@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
@@ -59,6 +60,9 @@ export class Company {
    * representante puede tener varias empresas— y la columna admite null,
    * porque una empresa puede existir antes de que se sepa quien la representa.
    */
+  // El nombre del indice va explicito para que coincida con el que crea la
+  // migracion: si no, TypeORM lo ve como ajeno y propone recrearlo cada vez.
+  @Index('IDX_companies_user_id')
   @ManyToOne(() => User, (user) => user.companies, { nullable: true })
   @JoinColumn({ name: 'user_id' })
   user: User;
