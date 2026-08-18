@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -89,7 +90,7 @@ export class UsersService {
     const queryBuilder = this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.worker', 'worker')
-      .leftJoinAndSelect('user.company', 'company')
+      .leftJoinAndSelect('user.companies', 'companies')
       .leftJoinAndSelect('user.belongsToCompany', 'belongsToCompany');
 
     if (filters?.search) {
@@ -125,28 +126,78 @@ export class UsersService {
   }
 
   /**
+   * Deja resuelta la empresa ACTIVA en `user.company`.
+   *
+   * Un representante puede tener varias empresas (`user.companies`), pero todo
+   * lo que decide permisos y recortes —resolveUserCompanyId, las consultas de
+   * procesos y candidatos, las pantallas— trabaja con UNA. Este metodo es el
+   * unico lugar donde se decide cual, para que el resto del sistema no tenga
+   * que saber que ahora puede haber mas de una.
+   *
+   * Si el puntero apunta a una empresa que ya no le pertenece (se la
+   * reasignaron a otro representante), se ignora y se cae en la primera: no se
+   * puede dejar una sesion apuntando a una empresa ajena.
+   */
+  private resolveActiveCompany(user: User): User {
+    const companies = user.companies || [];
+
+    if (companies.length === 0) {
+      user.company = null;
+      return user;
+    }
+
+    const active = companies.find((c) => c.id === user.activeCompanyId);
+    user.company = active || companies[0];
+
+    return user;
+  }
+
+  /**
    * Busca un usuario por ID y carga las relaciones según su rol
    * - WORKER: carga relación worker
-   * - COMPANY: carga relación company (cuando es dueño)
+   * - COMPANY: carga las empresas que representa y resuelve la activa
    * - GUEST/otros: carga relación belongsToCompany (cuando pertenece a una empresa)
    */
   async findOneWithRelations(id: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['worker', 'company', 'belongsToCompany'],
+      relations: ['worker', 'companies', 'belongsToCompany'],
     });
 
     if (!user) {
       throw new NotFoundException('No encontramos ese usuario.');
     }
 
-    return user;
+    return this.resolveActiveCompany(user);
+  }
+
+  /**
+   * Cambia la empresa sobre la que opera el representante.
+   *
+   * Valida la pertenencia aqui y no en el controlador porque este es el unico
+   * punto por donde se puede mover el puntero: si se pudiera apuntar a
+   * cualquier empresa, el selector se convertiria en una forma de leer los
+   * datos de otra empresa con una sesion legitima.
+   */
+  async setActiveCompany(userId: string, companyId: string): Promise<User> {
+    const user = await this.findOneWithRelations(userId);
+    const esSuya = (user.companies || []).some((c) => c.id === companyId);
+
+    if (!esSuya) {
+      throw new ForbiddenException(
+        'No representas a esa empresa, así que no puedes operar con ella.',
+      );
+    }
+
+    await this.userRepository.update(userId, { activeCompanyId: companyId });
+
+    return this.findOneWithRelations(userId);
   }
 
   async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { email },
-      relations: ['worker', 'company', 'belongsToCompany'],
+      relations: ['worker', 'companies', 'belongsToCompany'],
       select: [
         'id',
         'email',
@@ -179,17 +230,19 @@ export class UsersService {
   async findCompanyUsers(companyId: string): Promise<User[]> {
     // Obtener el usuario dueño de la empresa + usuarios que pertenecen a la empresa
     const companyOwner = await this.userRepository.findOne({
-      where: { company: { id: companyId } },
+      where: { companies: { id: companyId } },
     });
 
     const companyMembers = await this.userRepository.find({
       where: { belongsToCompany: { id: companyId } },
     });
 
-    const allUsers = companyOwner ? [companyOwner, ...companyMembers] : companyMembers;
+    const allUsers = companyOwner
+      ? [companyOwner, ...companyMembers]
+      : companyMembers;
 
     // Filtrar solo usuarios activos
-    return allUsers.filter(user => user.isActive);
+    return allUsers.filter((user) => user.isActive);
   }
 
   async update(
@@ -200,11 +253,7 @@ export class UsersService {
     const target = await this.findOne(id);
 
     // Nadie se deja fuera de servicio a si mismo por accidente.
-    if (
-      updateUserDto.isActive === false &&
-      requesterId &&
-      requesterId === id
-    ) {
+    if (updateUserDto.isActive === false && requesterId && requesterId === id) {
       throw new BadRequestException(
         'No puedes desactivar tu propia cuenta. Pidele a otro administrador que lo haga.',
       );
@@ -250,7 +299,9 @@ export class UsersService {
       await this.assertNotLastActiveAdmin(id);
     }
 
-    this.logger.log(`[UsersService.remove] Iniciando eliminación de usuario ${id}`);
+    this.logger.log(
+      `[UsersService.remove] Iniciando eliminación de usuario ${id}`,
+    );
 
     // 1. Remover usuario de la tabla de evaluadores (ManyToMany con procesos)
     const processesAsEvaluator = await this.processRepository
@@ -260,7 +311,9 @@ export class UsersService {
       .getMany();
 
     if (processesAsEvaluator.length > 0) {
-      this.logger.log(`[UsersService.remove] Removiendo usuario de ${processesAsEvaluator.length} proceso(s) como evaluador`);
+      this.logger.log(
+        `[UsersService.remove] Removiendo usuario de ${processesAsEvaluator.length} proceso(s) como evaluador`,
+      );
       for (const process of processesAsEvaluator) {
         await this.processRepository
           .createQueryBuilder()
@@ -277,7 +330,9 @@ export class UsersService {
       .getCount();
 
     if (processesCreated > 0) {
-      this.logger.log(`[UsersService.remove] Eliminando ${processesCreated} proceso(s) creado(s) por el usuario`);
+      this.logger.log(
+        `[UsersService.remove] Eliminando ${processesCreated} proceso(s) creado(s) por el usuario`,
+      );
       await this.processRepository
         .createQueryBuilder()
         .delete()
@@ -293,7 +348,9 @@ export class UsersService {
       .getCount();
 
     if (reportsCreated > 0) {
-      this.logger.log(`[UsersService.remove] Eliminando ${reportsCreated} reporte(s) creado(s) por el usuario`);
+      this.logger.log(
+        `[UsersService.remove] Eliminando ${reportsCreated} reporte(s) creado(s) por el usuario`,
+      );
       await this.reportRepository
         .createQueryBuilder()
         .delete()
@@ -309,7 +366,9 @@ export class UsersService {
       .getCount();
 
     if (invitationsAsUser > 0) {
-      this.logger.log(`[UsersService.remove] Eliminando ${invitationsAsUser} invitación(es) donde el usuario es el invitado`);
+      this.logger.log(
+        `[UsersService.remove] Eliminando ${invitationsAsUser} invitación(es) donde el usuario es el invitado`,
+      );
       await this.invitationRepository
         .createQueryBuilder()
         .delete()
@@ -325,7 +384,9 @@ export class UsersService {
       .getCount();
 
     if (invitationsCreated > 0) {
-      this.logger.log(`[UsersService.remove] Eliminando ${invitationsCreated} invitación(es) creada(s) por el usuario`);
+      this.logger.log(
+        `[UsersService.remove] Eliminando ${invitationsCreated} invitación(es) creada(s) por el usuario`,
+      );
       await this.invitationRepository
         .createQueryBuilder()
         .delete()
@@ -340,11 +401,15 @@ export class UsersService {
       const invitationsByEmail = await this.invitationRepository
         .createQueryBuilder('invitation')
         .where('invitation.email = :email', { email: user.email })
-        .andWhere('invitation.company_id = :companyId', { companyId: user.companyId })
+        .andWhere('invitation.company_id = :companyId', {
+          companyId: user.companyId,
+        })
         .getCount();
 
       if (invitationsByEmail > 0) {
-        this.logger.log(`[UsersService.remove] Eliminando ${invitationsByEmail} invitación(es) con el mismo email del usuario (${user.email}) de la empresa ${user.companyId}`);
+        this.logger.log(
+          `[UsersService.remove] Eliminando ${invitationsByEmail} invitación(es) con el mismo email del usuario (${user.email}) de la empresa ${user.companyId}`,
+        );
         await this.invitationRepository
           .createQueryBuilder()
           .delete()
@@ -361,7 +426,9 @@ export class UsersService {
         .getCount();
 
       if (invitationsByEmail > 0) {
-        this.logger.log(`[UsersService.remove] Eliminando ${invitationsByEmail} invitación(es) con el mismo email del usuario (${user.email})`);
+        this.logger.log(
+          `[UsersService.remove] Eliminando ${invitationsByEmail} invitación(es) con el mismo email del usuario (${user.email})`,
+        );
         await this.invitationRepository
           .createQueryBuilder()
           .delete()
@@ -371,15 +438,39 @@ export class UsersService {
       }
     }
 
-    // 7. Eliminar empresa si el usuario es dueño de una empresa
-    const companyOwned = await this.companyRepository.findOne({
+    /**
+     * 7. Desvincular las empresas que representaba, sin borrarlas.
+     *
+     * Antes esto buscaba UNA empresa y la eliminaba. Dos problemas:
+     *
+     *  - Con varias empresas por representante, `findOne` devuelve una
+     *    cualquiera: borrar al usuario se llevaba una de sus empresas y dejaba
+     *    las otras. Un resultado que depende del orden que devuelva el motor no
+     *    es un comportamiento, es una moneda al aire.
+     *
+     *  - Borrar la empresa de rebote nunca fue lo que se queria. El propio
+     *    mensaje de error del sistema decia "Asigna otro representante antes de
+     *    eliminarlo", y ademas era un `delete` crudo que se saltaba la cascada
+     *    controlada de CompaniesService.remove: si la empresa tenia procesos,
+     *    fallaba con un error de clave foranea a mitad del borrado.
+     *
+     * Ahora la empresa queda "Sin representante", que es un estado valido y
+     * visible en el panel, y un administrador le asigna otro cuando quiera.
+     * Para eliminar la empresa esta la accion de eliminar empresa.
+     */
+    const companiesOwned = await this.companyRepository.find({
       where: { user: { id } },
     });
 
-    if (companyOwned) {
-      this.logger.log(`[UsersService.remove] Eliminando empresa ${companyOwned.id} asociada al usuario`);
-      await this.companyRepository.delete({ id: companyOwned.id });
+    if (companiesOwned.length > 0) {
+      this.logger.log(
+        `[UsersService.remove] Desvinculando ${companiesOwned.length} empresa(s) que representaba: ${companiesOwned.map((c) => c.name).join(', ')}`,
+      );
+      await this.companyRepository.update({ user: { id } }, { user: null });
     }
+
+    // El puntero de empresa activa de OTROS usuarios no se toca: la FK lo
+    // pone en null sola si alguna vez se borra la empresa apuntada.
 
     // 8. Eliminar logs de auditoría del usuario
     const auditLogsCount = await this.auditLogRepository.count({
@@ -387,7 +478,9 @@ export class UsersService {
     });
 
     if (auditLogsCount > 0) {
-      this.logger.log(`[UsersService.remove] Eliminando ${auditLogsCount} log(s) de auditoría`);
+      this.logger.log(
+        `[UsersService.remove] Eliminando ${auditLogsCount} log(s) de auditoría`,
+      );
       await this.auditLogRepository.delete({ user: { id } });
     }
 
@@ -397,7 +490,9 @@ export class UsersService {
     });
 
     if (notificationsCount > 0) {
-      this.logger.log(`[UsersService.remove] Eliminando ${notificationsCount} notificación(es)`);
+      this.logger.log(
+        `[UsersService.remove] Eliminando ${notificationsCount} notificación(es)`,
+      );
       await this.notificationRepository.delete({ user: { id } });
     }
 
@@ -415,7 +510,9 @@ export class UsersService {
     this.logger.log(`[UsersService.remove] Eliminando usuario ${id}`);
     await this.userRepository.delete(id);
 
-    this.logger.log(`[UsersService.remove] Usuario ${id} eliminado exitosamente`);
+    this.logger.log(
+      `[UsersService.remove] Usuario ${id} eliminado exitosamente`,
+    );
   }
 
   async updateLastLogin(id: string): Promise<void> {
@@ -497,7 +594,7 @@ export class UsersService {
     // Construir objeto limpio solo con los campos que vienen en el DTO
     // Usar 'in' operator para verificar si la propiedad existe (incluso si es false)
     const preferences: Record<string, boolean> = {};
-    
+
     if ('emailNotifications' in dto && dto.emailNotifications !== undefined) {
       preferences.emailNotifications = Boolean(dto.emailNotifications);
     }
@@ -549,7 +646,7 @@ export class UsersService {
 
     // Retornar usuario con relaciones cargadas para mantener consistencia con el login
     const updatedUser = await this.findOneWithRelations(userId);
-    
+
     this.logger.log(
       `[updateNotificationPreferences] Usuario actualizado: ${JSON.stringify(updatedUser.notificationPreferences)}`,
     );
@@ -600,7 +697,9 @@ export class UsersService {
     const user = await this.findOne(userId);
 
     if (!user.avatar) {
-      throw new BadRequestException('El usuario no tiene un avatar para eliminar');
+      throw new BadRequestException(
+        'El usuario no tiene un avatar para eliminar',
+      );
     }
 
     try {

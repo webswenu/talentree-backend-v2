@@ -142,11 +142,14 @@ export class RelationsSeeder {
 
     const usuariosEmpresa = await this.userRepository.find({
       where: { role: UserRole.COMPANY },
-      relations: ['company'],
+      relations: ['companies'],
       order: { createdAt: 'ASC' },
     });
 
-    const libres = usuariosEmpresa.filter((u) => !u.company);
+    // Un usuario YA PUEDE representar a varias empresas, pero el seed sigue
+    // buscando representantes distintos a proposito: con una sola persona
+    // detras de todas las empresas no se puede probar el aislamiento (P-22).
+    const libres = usuariosEmpresa.filter((u) => !u.companies?.length);
 
     for (const [i, empresa] of empresasSinRepresentante.entries()) {
       // Si no quedan usuarios COMPANY libres, se crea uno.
@@ -241,7 +244,9 @@ export class RelationsSeeder {
     const procesos = await this.processRepository.find({ take: 4 });
 
     if (trabajadores.length === 0 || procesos.length === 0) {
-      console.log('⚠️  Faltan trabajadores o procesos: no se siembran postulaciones');
+      console.log(
+        '⚠️  Faltan trabajadores o procesos: no se siembran postulaciones',
+      );
       return;
     }
 

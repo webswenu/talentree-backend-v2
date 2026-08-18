@@ -16,6 +16,7 @@ import {
   ParseFilePipe,
   MaxFileSizeValidator,
   FileTypeValidator,
+  ForbiddenException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CompaniesService } from './companies.service';
@@ -80,6 +81,25 @@ export class CompaniesController {
     @Request() req,
   ) {
     this.assertOwnCompany(req, id);
+
+    /**
+     * Quien representa a la empresa lo decide Talentree, no la empresa.
+     *
+     * El rol COMPANY puede editar su propia ficha (nombre, direccion, logo) y
+     * `userId` viaja en ese mismo DTO: sin este corte, una empresa podia
+     * entregarle su cuenta a otro usuario o —mandando null— dejarse sin
+     * representante y perder el acceso a su propio panel, sin que ningun
+     * administrador se enterara.
+     */
+    if (
+      'userId' in updateCompanyDto &&
+      req.user?.role !== UserRole.ADMIN_TALENTREE
+    ) {
+      throw new ForbiddenException(
+        'Solo un administrador de Talentree puede cambiar el representante de la empresa.',
+      );
+    }
+
     return this.companiesService.update(id, updateCompanyDto);
   }
 

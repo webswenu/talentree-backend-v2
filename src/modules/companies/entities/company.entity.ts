@@ -4,7 +4,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToOne,
+  ManyToOne,
   JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
@@ -50,7 +50,16 @@ export class Company {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @OneToOne(() => User)
+  /**
+   * Representante de la empresa.
+   *
+   * Era @OneToOne, que ademas del tipo imponia un indice UNIQUE sobre
+   * `user_id`: una persona no podia representar a dos empresas. Ahora es
+   * ManyToOne —la empresa sigue teniendo un solo representante, pero el
+   * representante puede tener varias empresas— y la columna admite null,
+   * porque una empresa puede existir antes de que se sepa quien la representa.
+   */
+  @ManyToOne(() => User, (user) => user.companies, { nullable: true })
   @JoinColumn({ name: 'user_id' })
   user: User;
 }

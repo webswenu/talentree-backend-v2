@@ -85,7 +85,35 @@ export class User {
   @Column({ name: 'company_id', type: 'uuid', nullable: true })
   companyId: string;
 
-  @OneToOne('Company', 'user', { nullable: true })
+  /**
+   * Empresas que este usuario REPRESENTA.
+   *
+   * Era uno a uno (`companies.user_id` con indice unico). Paso a varias porque
+   * una misma persona puede ser la contraparte de mas de una empresa —el caso
+   * tipico es un holding con dos RUT—, y antes eso obligaba a inventarle una
+   * cuenta y un correo por empresa.
+   */
+  @OneToMany('Company', 'user')
+  companies?: any[];
+
+  /**
+   * Empresa sobre la que el usuario esta operando en esta sesion.
+   *
+   * Es un puntero, no una relacion: el aislamiento entre empresas sigue
+   * trabajando con UNA empresa a la vez (ver ownership.helper), y lo unico que
+   * cambia respecto del modelo anterior es QUIEN la elige. Mantenerlo asi es
+   * lo que permite que ni las consultas ni las pantallas se enteren de que
+   * ahora puede haber varias.
+   */
+  @Column({ name: 'active_company_id', type: 'uuid', nullable: true })
+  activeCompanyId: string;
+
+  /**
+   * La empresa activa ya resuelta. NO se persiste: la llena el servicio al
+   * cargar al usuario (findOneWithRelations). Existe para que
+   * `resolveUserCompanyId(user)` y las pantallas sigan leyendo `user.company`
+   * como un objeto unico, igual que antes.
+   */
   company?: any;
 
   @ManyToOne('Company', { nullable: true })

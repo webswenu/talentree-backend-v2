@@ -32,6 +32,15 @@ export const NO_COMPANY = '00000000-0000-0000-0000-000000000000';
  *
  * Devuelve null para Talentree, evaluadores y candidatos, que no cuelgan de
  * ninguna empresa.
+ *
+ * OJO CON `company` DESDE QUE EXISTE EL MULTI-EMPRESA: un representante puede
+ * tener VARIAS empresas (`user.companies`), y `user.company` es la ACTIVA, la
+ * que resuelve UsersService.findOneWithRelations al cargar la sesion. Sigue
+ * siendo una sola a proposito: el recorte de datos nunca mezcla dos empresas,
+ * y lo unico que cambio es que ahora la elige el usuario en un selector en vez
+ * de imponerla el modelo. Si alguna vez esto pasara a devolver una lista, hay
+ * que revisar TODAS las consultas que lo consumen, porque estan escritas
+ * asumiendo un unico id.
  */
 export function resolveUserCompanyId(user: any): string | null {
   return user?.company?.id ?? user?.companyId ?? null;

@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsBoolean, IsDateString, IsEmail, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsDateString,
+  IsEmail,
+  IsUUID,
+  ValidateIf,
+} from 'class-validator';
 
 export class UpdateCompanyDto {
   @IsString()
@@ -53,7 +61,21 @@ export class UpdateCompanyDto {
   @IsOptional()
   contractEndDate?: Date;
 
-  @IsUUID()
+  /**
+   * Representante de la empresa.
+   *
+   *  - ausente  -> no se toca
+   *  - null     -> se desvincula al representante actual
+   *  - uuid     -> se asigna ese usuario
+   *
+   * El null explicito es lo que permite LIBERAR a un usuario para que pueda
+   * representar a otra empresa. Sin el no habia forma de deshacer una
+   * asignacion, porque `if (userId)` trata null y ausente igual.
+   */
+  @IsUUID('4', {
+    message: 'El usuario representante seleccionado no es valido',
+  })
   @IsOptional()
-  userId?: string;
+  @ValidateIf((_, value) => value !== null)
+  userId?: string | null;
 }

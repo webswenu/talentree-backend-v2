@@ -47,13 +47,29 @@ export class NotificationsSchedulerService {
       const sevenDaysFromNow = new Date();
       sevenDaysFromNow.setDate(now.getDate() + 7);
 
-      // Buscar procesos activos que vencen en los próximos 7 días
+      /**
+       * Buscar procesos activos que vencen en los próximos 7 días.
+       *
+       * Aquí se pedía además la relación 'company.users', que NO EXISTE: la
+       * entidad Company tiene un `user` (el representante), no una colección
+       * `users`. TypeORM no ignora una relación desconocida, la rechaza con
+       * «Property "users" was not found in "Company"», así que esta consulta
+       * lanzaba excepción y el cron entero moría en su primera línea útil: los
+       * avisos de "proceso próximo a vencer" no salían nunca.
+       *
+       * Pasaba desapercibido porque el error se comía el catch de más abajo,
+       * que solo deja una línea en el log de un proceso que corre a las 9 AM.
+       *
+       * No hace falta reemplazarla por nada: los usuarios de la empresa se
+       * obtienen unas líneas más abajo con usersService.findCompanyUsers(),
+       * que además incluye a los invitados y filtra los inactivos.
+       */
       const expiringProcesses = await this.processRepository.find({
         where: {
           status: ProcessStatus.ACTIVE,
           endDate: LessThanOrEqual(sevenDaysFromNow),
         },
-        relations: ['company', 'company.users'],
+        relations: ['company'],
       });
 
       for (const process of expiringProcesses) {
@@ -213,10 +229,12 @@ export class NotificationsSchedulerService {
         const workerUserId = testResponse.workerProcess.worker.user?.id;
         if (!workerUserId) continue;
 
-        const testName = testResponse.test?.name || testResponse.fixedTest?.name;
+        const testName =
+          testResponse.test?.name || testResponse.fixedTest?.name;
         const processName = testResponse.workerProcess.process.name;
         const daysUntilExpiration = Math.ceil(
-          (testResponse.workerProcess.process.endDate.getTime() - now.getTime()) /
+          (testResponse.workerProcess.process.endDate.getTime() -
+            now.getTime()) /
             (1000 * 60 * 60 * 24),
         );
 
@@ -406,11 +424,13 @@ export class NotificationsSchedulerService {
       });
 
       // Filtrar solo los que tienen respuestas sin evaluar
-      const testsNeedingUrgentEvaluation = urgentTests.filter((testResponse) => {
-        return testResponse.answers.some(
-          (answer) => answer.score === null || answer.score === undefined,
-        );
-      });
+      const testsNeedingUrgentEvaluation = urgentTests.filter(
+        (testResponse) => {
+          return testResponse.answers.some(
+            (answer) => answer.score === null || answer.score === undefined,
+          );
+        },
+      );
 
       // Agrupar por evaluador
       const notificationsByEvaluator = new Map<string, any[]>();
@@ -508,7 +528,10 @@ export class NotificationsSchedulerService {
             try {
               // Verificar si ya existe un reporte para este WorkerProcess
               const existingReport = await this.reportRepository.findOne({
-                where: { worker: { id: workerProcess.worker.id }, process: { id: process.id } },
+                where: {
+                  worker: { id: workerProcess.worker.id },
+                  process: { id: process.id },
+                },
               });
 
               if (existingReport) {
@@ -520,7 +543,8 @@ export class NotificationsSchedulerService {
 
               // Contar tests totales asignados al proceso
               const totalTests =
-                (process.tests?.length || 0) + (process.fixedTests?.length || 0);
+                (process.tests?.length || 0) +
+                (process.fixedTests?.length || 0);
 
               if (totalTests === 0) {
                 this.logger.log(

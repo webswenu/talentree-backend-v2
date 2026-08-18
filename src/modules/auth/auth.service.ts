@@ -44,7 +44,10 @@ export class AuthService {
    * todavia no tiene usuario (la ruta es publica). Hay que hacerlo aqui, que
    * es donde se sabe quien entro y si lo logro.
    */
-  async login(loginDto: LoginDto, contexto?: { ip?: string; userAgent?: string }) {
+  async login(
+    loginDto: LoginDto,
+    contexto?: { ip?: string; userAgent?: string },
+  ) {
     const { email, password } = loginDto;
 
     const user = await this.usersService.findByEmail(email);
@@ -71,7 +74,9 @@ export class AuthService {
       })
       // Que falle la bitacora no puede impedir que alguien entre.
       .catch((error) =>
-        this.logger.error(`No se pudo auditar el inicio de sesion: ${error.message}`),
+        this.logger.error(
+          `No se pudo auditar el inicio de sesion: ${error.message}`,
+        ),
       );
 
     const accessToken = this.generateAccessToken(
@@ -90,6 +95,30 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  /**
+   * Cambia la empresa activa del representante.
+   *
+   * Queda auditado: es un cambio de contexto de la sesion, y si mañana hay que
+   * reconstruir quien miro los datos de que empresa y cuando, sin este registro
+   * la bitacora muestra al mismo usuario operando sobre dos empresas sin
+   * ninguna marca de cuando salto de una a otra.
+   */
+  async setActiveCompany(userId: string, companyId: string) {
+    const user = await this.usersService.setActiveCompany(userId, companyId);
+
+    this.auditService
+      .log(AuditAction.UPDATE, 'auth', userId, userId, {
+        description: `Cambio de empresa activa a "${user.company?.name ?? companyId}"`,
+      })
+      .catch((error) =>
+        this.logger.error(
+          `No se pudo auditar el cambio de empresa activa: ${error.message}`,
+        ),
+      );
+
+    return user;
   }
 
   async validateUser(userId: string) {
@@ -114,7 +143,9 @@ export class AuthService {
         description: 'Cierre de sesion',
       })
       .catch((error) =>
-        this.logger.error(`No se pudo auditar el cierre de sesion: ${error.message}`),
+        this.logger.error(
+          `No se pudo auditar el cierre de sesion: ${error.message}`,
+        ),
       );
 
     return { message: 'Logout exitoso' };
@@ -139,7 +170,9 @@ export class AuthService {
 
       return { accessToken };
     } catch (error) {
-      throw new UnauthorizedException('Tu sesion no es valida o expiro. Vuelve a iniciar sesion.');
+      throw new UnauthorizedException(
+        'Tu sesion no es valida o expiro. Vuelve a iniciar sesion.',
+      );
     }
   }
 

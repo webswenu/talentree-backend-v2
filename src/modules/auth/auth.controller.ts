@@ -5,6 +5,9 @@ import {
   HttpCode,
   HttpStatus,
   Get,
+  Patch,
+  Param,
+  ParseUUIDPipe,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -42,6 +45,26 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async getMe(@Request() req) {
     return req.user;
+  }
+
+  /**
+   * Cambia la empresa sobre la que opera un representante que tiene varias.
+   *
+   * Vive en /auth y no en /companies porque no modifica la empresa: modifica la
+   * SESION de quien pregunta. Devuelve el usuario completo para que el frontend
+   * refresque `user.company` de una vez, sin una segunda vuelta a /auth/me.
+   *
+   * La validacion de pertenencia esta en el servicio, que es el unico punto por
+   * donde se puede mover el puntero.
+   */
+  @Patch('empresa-activa/:companyId')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async setActiveCompany(
+    @Param('companyId', new ParseUUIDPipe({ version: '4' })) companyId: string,
+    @Request() req,
+  ) {
+    return this.authService.setActiveCompany(req.user.id, companyId);
   }
 
   @Post('logout')

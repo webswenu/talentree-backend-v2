@@ -27,7 +27,11 @@ import { S3Service } from '../../common/services/s3.service';
 import { uploadFileAndGetPublicUrl } from '../../common/helpers/s3.helper';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { NotificationType } from '../../common/enums/notification-type.enum';
-import { isValidRut, normalizeRut, stripRut } from '../../common/helpers/rut.helper';
+import {
+  isValidRut,
+  normalizeRut,
+  stripRut,
+} from '../../common/helpers/rut.helper';
 
 @Injectable()
 export class CompaniesService {
@@ -73,23 +77,11 @@ export class CompaniesService {
     }
 
     // Solo buscar usuario si se proporciona userId
+    // Un usuario puede representar a varias empresas, asi que no hay nada que
+    // verificar mas alla de que exista.
     let user = null;
     if (userId) {
       user = await this.usersService.findOne(userId);
-
-      // La relación empresa-usuario es uno a uno y user_id es único: sin esta
-      // verificación el INSERT falla con una violación de unicidad que llega al
-      // usuario como un 400 genérico sin explicación.
-      const companyWithUser = await this.companyRepository.findOne({
-        where: { user: { id: userId } },
-        relations: ['user'],
-      });
-
-      if (companyWithUser) {
-        throw new ConflictException(
-          `El usuario seleccionado ya es representante de la empresa "${companyWithUser.name}"`,
-        );
-      }
     }
 
     // Crear empresa con o sin usuario
@@ -188,10 +180,19 @@ export class CompaniesService {
     // Asignar el resto de los datos
     Object.assign(company, restData);
 
-    // Si viene userId, buscar el usuario y asignar la relación
-    if (userId) {
+    /**
+     * Representante. Los tres casos son distintos y antes se confundian dos:
+     * `if (userId)` trataba igual "no lo mandes" que "dejalo sin nadie", asi
+     * que no habia forma de desvincular y el usuario quedaba pegado a la
+     * empresa para siempre.
+     */
+    if (userId === null) {
+      this.logger.log(`[UPDATE] Desvinculando representante de la empresa`);
+      company.user = null;
+    } else if (userId) {
       this.logger.log(`[UPDATE] Buscando usuario con ID: ${userId}`);
       const user = await this.usersService.findOne(userId);
+
       this.logger.log(`[UPDATE] Usuario encontrado:`, {
         id: user.id,
         email: user.email,
@@ -425,7 +426,8 @@ export class CompaniesService {
         filas.map((f) => ({
           id: f.id,
           tipo: 'nuevo_postulante',
-          nombre: `${f.firstName ?? ''} ${f.lastName ?? ''}`.trim() || 'Candidato',
+          nombre:
+            `${f.firstName ?? ''} ${f.lastName ?? ''}`.trim() || 'Candidato',
           proceso: f.proceso,
           appliedAt: f.appliedAt,
         })),
