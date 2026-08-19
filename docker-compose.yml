@@ -39,6 +39,16 @@ services:
       DB_USERNAME: ${DB_USERNAME:-talentree_user}
       DB_PASSWORD: ${DB_PASSWORD:-talentree_password}
       DB_DATABASE: ${DB_DATABASE:-talentree_db}
+      # Este compose SOLO corre en el servidor, asi que el default es
+      # produccion. Sin esta linea NODE_ENV llegaba indefinido al contenedor, y
+      # entonces la proteccion de database.config.ts —«NUNCA en produccion,
+      # diga lo que diga la variable de entorno»— no se activaba nunca: la
+      # comparacion `NODE_ENV === 'production'` daba falso y mandaba
+      # DB_SYNCHRONIZE, que en el .env de la instancia estaba en `true`.
+      # Resultado: synchronize llevaba meses encendido en produccion,
+      # justamente lo que ese codigo venia a impedir. Detectado el 19-08-2026.
+      NODE_ENV: ${NODE_ENV:-production}
+
       # El default era `true`: bastaba con que el .env no lo mencionara para que
       # TypeORM reescribiera el esquema en cada arranque. El esquema se cambia
       # con migraciones (npm run migration:run), no solo.
