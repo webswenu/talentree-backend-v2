@@ -12,6 +12,7 @@ import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { AcceptInvitationDto } from './dto/accept-invitation.dto';
 import { EmailHelper } from '../../common/helpers/email.helper';
 import { UserRole } from '../../common/enums/user-role.enum';
+import { assertBelongsToUserCompany } from '../../common/helpers/ownership.helper';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 
@@ -115,11 +116,30 @@ export class InvitationsService {
     return savedInvitation;
   }
 
-  async findAll(companyId: string): Promise<{
+  /**
+   * EL DEFECTO QUE CIERRA ESTE BLOQUE (y los cuatro metodos de mas abajo): la
+   * empresa se tomaba del :companyId de la URL y el metodo ni siquiera recibia
+   * quien preguntaba. Con rol COMPANY bastaba cambiar el id en la barra de
+   * direcciones para leer las invitaciones de otra empresa: nombre y correo de
+   * los invitados de la competencia.
+   *
+   * `create` no tenia el problema porque ya resolvia la empresa desde la
+   * sesion; el resto del controlador, si.
+   */
+  async findAll(
+    companyId: string,
+    requester?: any,
+  ): Promise<{
     sent: Invitation[];
     registered: Invitation[];
     pending: Invitation[];
   }> {
+    assertBelongsToUserCompany(
+      requester,
+      companyId,
+      'las invitaciones de esa empresa',
+    );
+
     const invitations = await this.invitationRepository.find({
       where: { companyId },
       relations: ['user', 'invitedBy'],
@@ -211,7 +231,7 @@ export class InvitationsService {
     };
   }
 
-  async resendInvitation(id: string): Promise<Invitation> {
+  async resendInvitation(id: string, requester?: any): Promise<Invitation> {
     const invitation = await this.invitationRepository.findOne({
       where: { id },
     });
@@ -219,6 +239,10 @@ export class InvitationsService {
     if (!invitation) {
       throw new NotFoundException('Invitación no encontrada');
     }
+
+    // Reenviar una invitacion ajena es escribirle a un invitado de otra
+    // empresa en nombre de ella.
+    assertBelongsToUserCompany(requester, invitation.companyId, 'esta invitación');
 
     if (invitation.status === InvitationStatus.ACCEPTED) {
       throw new BadRequestException('Esta invitación ya fue aceptada');
@@ -271,7 +295,7 @@ export class InvitationsService {
     return updatedInvitation;
   }
 
-  async cancelInvitation(id: string): Promise<void> {
+  async cancelInvitation(id: string, requester?: any): Promise<void> {
     const invitation = await this.invitationRepository.findOne({
       where: { id },
     });
@@ -279,6 +303,8 @@ export class InvitationsService {
     if (!invitation) {
       throw new NotFoundException('Invitación no encontrada');
     }
+
+    assertBelongsToUserCompany(requester, invitation.companyId, 'esta invitación');
 
     if (invitation.status === InvitationStatus.ACCEPTED) {
       throw new BadRequestException(
@@ -290,7 +316,7 @@ export class InvitationsService {
     await this.invitationRepository.save(invitation);
   }
 
-  async deactivateUser(userId: string): Promise<void> {
+  async deactivateUser(userId: string, requester?: any): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
@@ -303,11 +329,18 @@ export class InvitationsService {
       );
     }
 
+    /**
+     * El invitado cuelga de una empresa: sin esta comprobacion, una empresa
+     * podia dejar sin acceso a los invitados de otra. Que ya se limite a los
+     * GUEST acota el daño, pero no lo evita.
+     */
+    assertBelongsToUserCompany(requester, user.companyId, 'este usuario invitado');
+
     user.isActive = false;
     await this.userRepository.save(user);
   }
 
-  async reactivateUser(userId: string): Promise<void> {
+  async reactivateUser(userId: string, requester?: any): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
@@ -319,6 +352,8 @@ export class InvitationsService {
         'Solo se pueden reactivar usuarios invitados',
       );
     }
+
+    assertBelongsToUserCompany(requester, user.companyId, 'este usuario invitado');
 
     user.isActive = true;
     await this.userRepository.save(user);

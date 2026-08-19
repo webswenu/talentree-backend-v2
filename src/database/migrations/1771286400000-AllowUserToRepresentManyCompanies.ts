@@ -65,7 +65,7 @@ export class AllowUserToRepresentManyCompanies1771286400000
       // Se deja en el log: es el unico rastro de que este ambiente si tenia el
       // indice, y el `down` no lo repone (ver la nota de la cabecera).
       console.log(
-        `[migracion] companies: se elimina el UNIQUE "${conname}" sobre user_id`,
+        `[migración] companies: se elimina el UNIQUE "${conname}" sobre user_id`,
       );
       await queryRunner.query(
         `ALTER TABLE "companies" DROP CONSTRAINT "${conname}"`,
@@ -136,7 +136,7 @@ export class AllowUserToRepresentManyCompanies1771286400000
     if (duplicados.length > 0) {
       const lineas = [
         'No se puede revertir: hay representantes con mas de una empresa, y el',
-        'codigo anterior solo sabe leer una.',
+        'código anterior solo sabe leer una.',
         '',
         ...duplicados.map((d) => `  - ${d.email}: ${d.empresas}`),
         '',

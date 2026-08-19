@@ -9,7 +9,7 @@ import {
 /**
  * Coherencia entre dos fechas (hallazgo P-25).
  *
- * Se podia crear un proceso con fecha de termino ANTERIOR a la de inicio
+ * Se podia crear un proceso con fecha de término ANTERIOR a la de inicio
  * (startDate 2026-09-01 con endDate 2026-08-01 devolvia HTTP 201). No habia
  * validacion cruzada ni en el DTO ni en el servicio: class-validator valida
  * campo por campo, asi que una regla que relaciona dos campos hay que
@@ -34,7 +34,7 @@ class EsPosteriorAConstraint implements ValidatorConstraintInterface {
   }
 
   defaultMessage(): string {
-    return 'La fecha de termino no puede ser anterior a la fecha de inicio.';
+    return 'La fecha de término no puede ser anterior a la fecha de inicio.';
   }
 }
 

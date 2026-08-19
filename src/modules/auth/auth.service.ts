@@ -70,12 +70,12 @@ export class AuthService {
       .log(AuditAction.LOGIN, 'auth', user.id, user.id, {
         ipAddress: contexto?.ip,
         userAgent: contexto?.userAgent,
-        description: `Inicio de sesion de ${user.email}`,
+        description: `Inicio de sesión de ${user.email}`,
       })
       // Que falle la bitacora no puede impedir que alguien entre.
       .catch((error) =>
         this.logger.error(
-          `No se pudo auditar el inicio de sesion: ${error.message}`,
+          `No se pudo auditar el inicio de sesión: ${error.message}`,
         ),
       );
 
@@ -140,11 +140,11 @@ export class AuthService {
       .log(AuditAction.LOGOUT, 'auth', userId, userId, {
         ipAddress: contexto?.ip,
         userAgent: contexto?.userAgent,
-        description: 'Cierre de sesion',
+        description: 'Cierre de sesión',
       })
       .catch((error) =>
         this.logger.error(
-          `No se pudo auditar el cierre de sesion: ${error.message}`,
+          `No se pudo auditar el cierre de sesión: ${error.message}`,
         ),
       );
 
@@ -171,7 +171,7 @@ export class AuthService {
       return { accessToken };
     } catch (error) {
       throw new UnauthorizedException(
-        'Tu sesion no es valida o expiro. Vuelve a iniciar sesion.',
+        'Tu sesión no es válida o expiró. Vuelve a iniciar sesión.',
       );
     }
   }

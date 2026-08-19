@@ -38,7 +38,7 @@ export class VideoApprovedGuard implements CanActivate {
     const workerId = request.body?.workerId || request.params?.workerId;
 
     if (!workerId) {
-      throw new BadRequestException('No pudimos identificar tu perfil de candidato. Vuelve a iniciar sesion.');
+      throw new BadRequestException('No pudimos identificar tu perfil de candidato. Vuelve a iniciar sesión.');
     }
 
     const worker = await this.workerRepository.findOne({

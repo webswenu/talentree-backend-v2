@@ -3,11 +3,11 @@ import { IsStrongPassword } from '../../../common/validators/password.validator'
 
 export class AcceptInvitationDto {
   @IsString()
-  @IsNotEmpty({ message: 'El enlace de invitacion no es valido' })
+  @IsNotEmpty({ message: 'El enlace de invitación no es válido' })
   token: string;
 
   @IsString()
   @IsStrongPassword()
-  @IsNotEmpty({ message: 'La contrasena es obligatoria' })
+  @IsNotEmpty({ message: 'La contraseña es obligatoria' })
   password: string;
 }

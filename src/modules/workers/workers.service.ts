@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  HttpException,
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -86,9 +87,25 @@ export class WorkersService {
     await queryRunner.startTransaction();
 
     try {
-      // Si NO viene contraseña, generar una por defecto
-      const password = createWorkerDto.password || 'Talentree2024!';
-      const hashedPassword = await bcrypt.hash(password, 10);
+      /**
+       * Aqui vivia `createWorkerDto.password || <constante fija>`: una
+       * contrasena fija, escrita en el codigo de un repositorio PUBLICO, que se
+       * le asignaba a todo candidato dado de alta sin clave. Quien conociera el
+       * correo de esa persona entraba a su cuenta y veia su CV, sus
+       * postulaciones y su perfil psicometrico.
+       *
+       * Ahora el DTO la exige, asi que esto no deberia dispararse nunca. Se
+       * deja igual porque una comprobacion de seguridad no se apoya en que otra
+       * capa no falle: si alguna vez alguien vuelve a marcar el campo como
+       * opcional, esto corta en vez de inventar una clave.
+       */
+      if (!createWorkerDto.password) {
+        throw new BadRequestException(
+          'La contraseña es obligatoria para crear un candidato. Elige una y comunícasela a la persona.',
+        );
+      }
+
+      const hashedPassword = await bcrypt.hash(createWorkerDto.password, 10);
 
       // Crear el usuario primero
       const user = queryRunner.manager.create(User, {
@@ -123,7 +140,24 @@ export class WorkersService {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       this.logger.error(`Error al crear trabajador: ${error.message}`);
-      throw new BadRequestException('Error al crear el trabajador');
+
+      /**
+       * Este catch reemplazaba CUALQUIER error por «Error al crear el
+       * trabajador». Un RUT repetido, un correo ya usado o una contrasena que
+       * no cumple los requisitos llegaban con su motivo escrito y salian
+       * convertidos en un texto que no dice nada, y la persona quedaba probando
+       * a ciegas cual de los campos estaba mal.
+       *
+       * Lo que ya viene explicado se deja pasar tal cual; solo se envuelve lo
+       * que de verdad es inesperado.
+       */
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new BadRequestException(
+        'No pudimos crear el candidato. Revisa que el RUT y el correo no estén ya registrados e intenta nuevamente.',
+      );
     } finally {
       await queryRunner.release();
     }

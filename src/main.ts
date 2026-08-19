@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
-import { QueryFailedExceptionFilter } from './common/filters/query-failed-exception.filter';
+import { TodasLasExcepcionesFilter } from './common/filters/todas-las-excepciones.filter';
 import { excepcionDeValidacionEnEspanol } from './common/validators/validation-messages';
 import { AuditService } from './modules/audit/audit.service';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -88,7 +88,14 @@ async function bootstrap() {
   );
 
   // Global Exception Filters
-  app.useGlobalFilters(new QueryFailedExceptionFilter());
+  //
+  // Un solo filtro `@Catch()` para todo: por dentro deriva los errores de base
+  // de datos al QueryFailedExceptionFilter. Se hace asi, y no registrando los
+  // dos, para no depender del orden en que Nest los prueba. Sin este filtro,
+  // el cuerpo JSON malformado, la ruta inexistente, el 413 y cualquier
+  // excepcion que no sea HTTP salian con el texto por defecto del framework,
+  // en ingles, y el front lo mostraba tal cual en un aviso.
+  app.useGlobalFilters(new TodasLasExcepcionesFilter());
 
   // Port
   const port = configService.get<number>('PORT') || 3000;

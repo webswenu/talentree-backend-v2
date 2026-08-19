@@ -48,7 +48,65 @@ export class TestDISCScoringService {
   private readonly logger = new Logger(TestDISCScoringService.name);
 
   // 4 dimensiones del DISC
-  private readonly DIMENSIONS = ['D', 'I', 'S', 'C'];
+  private readonly DIMENSIONS = ['D', 'I', 'S', 'C'] as const;
+
+  /**
+   * Traduce la selección de un bloque a las dos dimensiones que puntúan.
+   *
+   * EL DEFECTO QUE ARREGLA: este servicio leía `response.mas` esperando la
+   * palabra elegida, pero el formulario guardaba la palabra como CLAVE
+   * (`{ "Decidido": "mas", "Paciente": "menos" }`). `response.mas` era
+   * `undefined` en toda respuesta de todo candidato, el bucle hacía `continue`
+   * y los cuatro puntajes quedaban en cero. Con todo empatado, el orden de
+   * `sort` dejaba «D» arriba y la plataforma redactaba «Perfil DOMINANTE»
+   * para cualquiera, sin haber contado una sola respuesta.
+   *
+   * Se aceptan las tres formas para poder recalcular lo ya guardado:
+   *   { mas: 'Decidido', menos: 'Paciente' }   <- canónica, la que envía el front corregido
+   *   { mas: 'D', menos: 'S' }                 <- por código de dimensión
+   *   { 'Decidido': 'mas', 'Paciente': 'menos' } <- la del front antiguo
+   *
+   * La forma antigua solo se acepta si marca EXACTAMENTE una palabra como MÁS
+   * y una como MENOS. El formulario viejo dejaba marcar las cuatro, y en ese
+   * caso no hay forma honesta de saber cuál eligió la persona: se descarta el
+   * bloque en vez de inventar una respuesta.
+   */
+  private resolverSeleccion(
+    respuesta: unknown,
+    palabraADimension: { [word: string]: 'D' | 'I' | 'S' | 'C' },
+  ): { mas?: 'D' | 'I' | 'S' | 'C'; menos?: 'D' | 'I' | 'S' | 'C' } {
+    if (!respuesta || typeof respuesta !== 'object') return {};
+
+    const aDimension = (valor: unknown): 'D' | 'I' | 'S' | 'C' | undefined => {
+      if (typeof valor !== 'string') return undefined;
+      if ((this.DIMENSIONS as readonly string[]).includes(valor)) {
+        return valor as 'D' | 'I' | 'S' | 'C';
+      }
+      return palabraADimension[valor];
+    };
+
+    const objeto = respuesta as Record<string, unknown>;
+
+    if ('mas' in objeto || 'menos' in objeto) {
+      return { mas: aDimension(objeto.mas), menos: aDimension(objeto.menos) };
+    }
+
+    const marcadasComoMas: string[] = [];
+    const marcadasComoMenos: string[] = [];
+    for (const [palabra, marca] of Object.entries(objeto)) {
+      if (marca === 'mas') marcadasComoMas.push(palabra);
+      else if (marca === 'menos') marcadasComoMenos.push(palabra);
+    }
+
+    if (marcadasComoMas.length !== 1 || marcadasComoMenos.length !== 1) {
+      return {};
+    }
+
+    return {
+      mas: aDimension(marcadasComoMas[0]),
+      menos: aDimension(marcadasComoMenos[0]),
+    };
+  }
 
   /**
    * Calcula el puntaje del Test DISC
@@ -62,43 +120,54 @@ export class TestDISCScoringService {
 
     // Inicializar puntajes
     const rawScores = { D: 0, I: 0, S: 0, C: 0 };
+    let bloquesContados = 0;
 
     // Calcular puntajes algebraicos
     for (const answer of answers) {
-      const response = answer.answer;
+      const numero = answer.fixedTestQuestion?.questionNumber;
+      const palabraADimension = this.getWordDimensions(
+        answer.fixedTestQuestion?.options,
+      );
 
-      // Validar que tengamos ambas selecciones (mas y menos)
-      if (!response || typeof response !== 'object') {
-        this.logger.warn(`Respuesta inválida en pregunta ${answer.fixedTestQuestion?.questionNumber}`);
-        continue;
-      }
-
-      const mas = response.mas; // La palabra elegida como MÁS
-      const menos = response.menos; // La palabra elegida como MENOS
+      const { mas, menos } = this.resolverSeleccion(
+        answer.answer,
+        palabraADimension,
+      );
 
       if (!mas || !menos) {
         this.logger.warn(
-          `Respuesta incompleta en pregunta ${answer.fixedTestQuestion?.questionNumber}: mas=${mas}, menos=${menos}`
+          `Bloque ${numero}: no se pudo determinar la selección MÁS/MENOS, se descarta.`,
         );
         continue;
       }
 
-      // Identificar las dimensiones a las que pertenecen las palabras elegidas
-      const wordsDimensions = this.getWordDimensions(answer.fixedTestQuestion?.options);
-
-      const masDimension = wordsDimensions[mas];
-      const menosDimension = wordsDimensions[menos];
-
-      if (masDimension) {
-        rawScores[masDimension] += 1;
-      }
-
-      if (menosDimension) {
-        rawScores[menosDimension] -= 1;
-      }
+      rawScores[mas] += 1;
+      rawScores[menos] -= 1;
+      bloquesContados += 1;
     }
 
-    this.logger.log(`Puntajes DISC (algebraicos): ${JSON.stringify(rawScores)}`);
+    this.logger.log(
+      `Puntajes DISC (algebraicos): ${JSON.stringify(rawScores)} — ${bloquesContados}/${answers.length} bloques contados`,
+    );
+
+    /**
+     * Sin un solo bloque contado no hay perfil que informar. Antes se seguía
+     * de largo y se redactaba una descripción de personalidad a partir de
+     * cuatro ceros, que es peor que no entregar nada: el reclutador la lee
+     * como un resultado real.
+     */
+    if (bloquesContados === 0) {
+      this.logger.error(
+        `Test DISC sin ningún bloque interpretable (${answers.length} respuestas recibidas). No se emite perfil.`,
+      );
+      return this.resultadoNoCalculable();
+    }
+
+    if (bloquesContados < answers.length) {
+      this.logger.warn(
+        `Test DISC parcial: se contaron ${bloquesContados} de ${answers.length} bloques.`,
+      );
+    }
 
     // Normalizar a escala positiva (el mínimo posible es -24, máximo +24)
     // Convertir a rango 0-48 y luego a porcentajes
@@ -147,6 +216,32 @@ export class TestDISCScoringService {
   }
 
   /**
+   * Resultado para cuando no se pudo interpretar ninguna respuesta.
+   *
+   * Los puntajes van en cero y NO en el 25 % de reparto plano: un 25/25/25/25
+   * se lee como un perfil equilibrado medido, y aquí no se midió nada.
+   */
+  private resultadoNoCalculable(): TestDISCScoringResult {
+    const sinDatos =
+      'No se pudo calcular esta dimensión porque las respuestas no se registraron en un formato interpretable.';
+
+    return {
+      rawScores: { D: 0, I: 0, S: 0, C: 0 },
+      scaledScores: { D: 0, I: 0, S: 0, C: 0 },
+      interpretation: {
+        perfilPredominante: 'No determinado',
+        perfilCombinado: 'No determinado',
+        descripcion:
+          'No fue posible calcular el perfil DISC: ninguna de las respuestas quedó en un formato interpretable. Este resultado no debe usarse para evaluar al candidato. Pídele que rinda el test nuevamente o avísale al equipo de Talentree.',
+        fortalezas: [],
+        areasDeDesarrollo: [],
+        recomendacionesLaborales: [],
+        estiloNatural: { D: sinDatos, I: sinDatos, S: sinDatos, C: sinDatos },
+      },
+    };
+  }
+
+  /**
    * Interpreta los puntajes DISC
    */
   private interpretScores(
@@ -162,6 +257,38 @@ export class TestDISCScoringService {
     ];
 
     dimensionScores.sort((a, b) => b.score - a.score);
+
+    /**
+     * Con las cuatro dimensiones empatadas, `sort` conserva el orden original y
+     * dejaba «D» primero: la plataforma anunciaba un perfil Dominante que nadie
+     * había medido. Un empate perfecto es un dato en sí mismo y hay que
+     * nombrarlo, no romperlo con el orden en que están escritas las llaves.
+     */
+    const hayEmpateTotal =
+      dimensionScores[0].score === dimensionScores[3].score;
+
+    if (hayEmpateTotal) {
+      const sinRelieve =
+        'Las cuatro dimensiones quedaron con el mismo puntaje, así que no hay un estilo que predomine sobre los demás.';
+
+      return {
+        perfilPredominante: 'Equilibrado',
+        perfilCombinado: 'Equilibrado',
+        descripcion:
+          'Perfil EQUILIBRADO: las cuatro dimensiones obtuvieron el mismo puntaje, sin un estilo predominante. Conviene contrastarlo con la entrevista antes de sacar conclusiones.',
+        fortalezas: ['Perfil equilibrado en múltiples dimensiones'],
+        areasDeDesarrollo: ['Mantener equilibrio entre dimensiones'],
+        recomendacionesLaborales: [
+          'Roles versátiles que aprovechen múltiples dimensiones',
+        ],
+        estiloNatural: {
+          D: sinRelieve,
+          I: sinRelieve,
+          S: sinRelieve,
+          C: sinRelieve,
+        },
+      };
+    }
 
     const perfilPredominante = dimensionScores[0].dimension;
 

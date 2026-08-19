@@ -6,6 +6,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Request,
 } from '@nestjs/common';
 import { UserRole } from '../../../common/enums/user-role.enum';
 import { SixteenPfService } from './16pf.service';
@@ -33,7 +34,7 @@ export class SixteenPfController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(RolesGuard)
   @Roles(UserRole.WORKER, UserRole.ADMIN_TALENTREE)
-  async submitTest(@Body() submitDto: SubmitTestDto) {
-    return this.sixteenPfService.submitTest(submitDto);
+  async submitTest(@Body() submitDto: SubmitTestDto, @Request() req: any) {
+    return this.sixteenPfService.submitTest(submitDto, req.user);
   }
 }

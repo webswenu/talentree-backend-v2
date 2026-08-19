@@ -243,7 +243,7 @@ export class ProcessesService {
 
       if (!Number.isNaN(inicio) && !Number.isNaN(termino) && termino < inicio) {
         throw new BadRequestException(
-          'La fecha de termino no puede ser anterior a la fecha de inicio del proceso.',
+          'La fecha de término no puede ser anterior a la fecha de inicio del proceso.',
         );
       }
     }
@@ -340,7 +340,7 @@ export class ProcessesService {
       const user = await this.usersService.findOne(evaluatorId);
       if (user.role !== UserRole.EVALUATOR) {
         throw new ConflictException(
-          `El usuario ${user.email} no tiene rol de evaluador, asi que no se puede asignar al proceso.`,
+          `El usuario ${user.email} no tiene rol de evaluador, así que no se puede asignar al proceso.`,
         );
       }
       validEvaluators.push(user);
@@ -486,7 +486,7 @@ export class ProcessesService {
     // avanzar. Se corta aqui, que es donde el dano se vuelve visible.
     if (!test.questions || test.questions.length === 0) {
       throw new BadRequestException(
-        `El test "${test.name}" no tiene preguntas, asi que no se puede asignar a un proceso. Agregale preguntas primero.`,
+        `El test "${test.name}" no tiene preguntas, así que no se puede asignar a un proceso. Agregale preguntas primero.`,
       );
     }
 

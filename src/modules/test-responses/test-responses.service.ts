@@ -29,6 +29,7 @@ import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { NotificationType } from '../../common/enums/notification-type.enum';
 import { UsersService } from '../users/users.service';
 import { EmailHelper } from '../../common/helpers/email.helper';
+import { assertPuedeAccederAPostulacion } from '../../common/helpers/ownership.helper';
 
 @Injectable()
 export class TestResponsesService {
@@ -55,7 +56,59 @@ export class TestResponsesService {
     private readonly usersService: UsersService,
   ) {}
 
-  async startTest(startTestDto: StartTestDto): Promise<TestResponse> {
+  /**
+   * Carga una postulacion con lo justo para decidir quien puede tocarla y
+   * corta el paso si no corresponde.
+   *
+   * Se resuelve aqui, contra la base, y no confiando en lo que venga en el
+   * cuerpo de la peticion: el `workerProcessId` lo elige quien llama.
+   */
+  private async asegurarAccesoAPostulacion(
+    workerProcessId: string,
+    user: any,
+    recurso = 'esta postulación',
+  ): Promise<WorkerProcess> {
+    const postulacion = await this.workerProcessRepository.findOne({
+      where: { id: workerProcessId },
+      relations: {
+        worker: { user: true },
+        process: { company: true, evaluators: true },
+      },
+    });
+
+    if (!postulacion) {
+      throw new NotFoundException(
+        'No encontramos esa postulación. Puede que el enlace esté mal copiado o que ya no exista.',
+      );
+    }
+
+    assertPuedeAccederAPostulacion(
+      user,
+      {
+        usuarioDelCandidato: postulacion.worker?.user?.id,
+        empresaDelProceso: postulacion.process?.company?.id,
+        evaluadoresDelProceso: (postulacion.process?.evaluators || []).map(
+          (evaluador) => evaluador.id,
+        ),
+      },
+      recurso,
+    );
+
+    return postulacion;
+  }
+
+  async startTest(startTestDto: StartTestDto, user?: any): Promise<TestResponse> {
+    /**
+     * Antes se tomaba el `workerProcessId` del cuerpo sin comprobar nada, asi
+     * que cualquier candidato podia arrancar un test sobre la postulacion de
+     * otro, y de paso moverle el estado de «pendiente» a «en proceso».
+     */
+    await this.asegurarAccesoAPostulacion(
+      startTestDto.workerProcessId,
+      user,
+      'esta postulación',
+    );
+
     // Build where condition based on test type
     const whereCondition: any = {
       workerProcess: { id: startTestDto.workerProcessId },
@@ -128,15 +181,22 @@ export class TestResponsesService {
       );
     }
 
-    // Security: Workers can only submit their own tests
-    // TEMPORARILY DISABLED FOR TESTING
-    // if (user?.role === 'worker') {
-    //   if (testResponse.workerProcess.worker.user.id !== user.sub) {
-    //     throw new ForbiddenException(
-    //       'No tienes permiso para enviar este test',
-    //     );
-    //   }
-    // }
+    /**
+     * Aqui vivia el control de dueño, comentado con la nota
+     * `// TEMPORARILY DISABLED FOR TESTING`. Sin el, cualquier candidato con
+     * sesion iniciada podia enviar el test de otro con `{"answers":[]}` y
+     * dejarselo cerrado: la victima entraba a rendirlo y se lo encontraba
+     * completado y puntuado.
+     *
+     * No se reactivo tal cual porque comparaba contra `user.sub`, que es
+     * `undefined` (la estrategia JWT devuelve la entidad User, con `id`).
+     * Descomentarlo habria dado 403 a TODOS sobre su propio test.
+     */
+    await this.asegurarAccesoAPostulacion(
+      testResponse.workerProcess.id,
+      user,
+      'este test',
+    );
 
     if (testResponse.isCompleted) {
       throw new BadRequestException('Este test ya ha sido completado');
@@ -711,18 +771,36 @@ export class TestResponsesService {
       throw new NotFoundException(`TestResponse con ID ${id} no encontrado`);
     }
 
-    // Security: Workers can only access their own test responses
-    // TEMPORARILY DISABLED FOR TESTING
-    // if (user?.role === 'worker') {
-    //   if (testResponse.workerProcess.worker.user.id !== user.sub) {
-    //     throw new ForbiddenException('No tienes permiso para acceder a este test');
-    //   }
-    // }
+    /**
+     * El segundo control comentado con `// TEMPORARILY DISABLED FOR TESTING`.
+     * Sin el, cualquier candidato podia leer las respuestas, el puntaje, el
+     * perfil psicometrico y las notas del evaluador de otro candidato, que son
+     * datos personales sensibles.
+     *
+     * La comprobacion se hace contra la postulacion y no solo contra el
+     * candidato, porque este mismo endpoint lo consumen empresa, invitado y
+     * evaluador, y ninguno de los tres tenia recorte tampoco.
+     */
+    await this.asegurarAccesoAPostulacion(
+      testResponse.workerProcess.id,
+      user,
+      'este test',
+    );
 
     return testResponse;
   }
 
-  async findByWorkerProcess(workerProcessId: string): Promise<TestResponse[]> {
+  async findByWorkerProcess(
+    workerProcessId: string,
+    user?: any,
+  ): Promise<TestResponse[]> {
+    /**
+     * Este endpoint no tenia control de ningun tipo, ni siquiera comentado: el
+     * metodo ni recibia quien preguntaba. Con el UUID de una postulacion
+     * cualquiera se leian todas sus respuestas de test.
+     */
+    await this.asegurarAccesoAPostulacion(workerProcessId, user, 'esta postulación');
+
     return this.testResponseRepository.find({
       where: { workerProcess: { id: workerProcessId } },
       relations: ['test', 'answers'],
@@ -874,7 +952,7 @@ export class TestResponsesService {
       }
     } catch (error) {
       this.logger.error(
-        `No se pudo actualizar el puntaje de la postulacion ${workerProcessId}: ${
+        `No se pudo actualizar el puntaje de la postulación ${workerProcessId}: ${
           error instanceof Error ? error.message : String(error)
         }`,
       );

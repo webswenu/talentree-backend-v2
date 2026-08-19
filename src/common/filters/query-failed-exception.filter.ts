@@ -122,12 +122,56 @@ export class QueryFailedExceptionFilter implements ExceptionFilter {
       return;
     }
 
-    // Otros errores de base de datos - también devolver BadRequest para evitar 500
-    this.logger.warn(`Error de base de datos no manejado: código=${errorCode}`);
-    response.status(HttpStatus.BAD_REQUEST).json({
-      statusCode: HttpStatus.BAD_REQUEST,
-      message: 'Error en la operación de base de datos. Por favor, verifique los datos e intente nuevamente.',
-      error: 'Bad Request',
+    /**
+     * 22P02 es invalid_text_representation: PostgreSQL recibio un texto que no
+     * puede convertir al tipo de la columna. En la practica siempre es lo
+     * mismo: un identificador de la URL que no tiene forma de UUID.
+     *
+     * Verificado en produccion el 18-08-2026: `GET /companies/no-soy-un-uuid`
+     * respondia «Error en la operacion de base de datos. Por favor, verifique
+     * los datos e intente nuevamente», que le echa la culpa a la base y manda a
+     * la persona a revisar unos datos que estan bien. El error esta en el
+     * enlace, y eso es lo que hay que decirle.
+     */
+    if (errorCode === '22P02') {
+      const esUuid = /invalid input syntax for type uuid/i.test(errorMessage);
+
+      response.status(HttpStatus.BAD_REQUEST).json({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: esUuid
+          ? 'El identificador de la dirección no es válido. Si llegaste por un enlace, puede estar mal copiado o incompleto.'
+          : 'Uno de los datos enviados no tiene el formato que corresponde. Revísalo e intenta nuevamente.',
+        error: 'Bad Request',
+      });
+      return;
+    }
+
+    // 22007 / 22008: fecha u hora que PostgreSQL no puede interpretar.
+    if (errorCode === '22007' || errorCode === '22008') {
+      response.status(HttpStatus.BAD_REQUEST).json({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message:
+          'Una de las fechas no es válida. Usa el formato AAAA-MM-DD, por ejemplo 2026-08-18.',
+        error: 'Bad Request',
+      });
+      return;
+    }
+
+    /**
+     * Lo que queda es un fallo nuestro: una columna que no existe, una
+     * conexion caida, una restriccion que no contemplamos. Antes todo esto
+     * salia como 400 «verifique los datos», que le pide a la persona corregir
+     * algo que no depende de ella. Un 5xx es la verdad, y ademas el front ya
+     * tiene un texto propio para los 5xx que dice que el problema es nuestro.
+     */
+    this.logger.error(
+      `Error de base de datos no manejado: código=${errorCode}, mensaje=${errorMessage}, ruta=${request.url}`,
+    );
+    response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      message:
+        'No pudimos completar la operación. El problema es nuestro, no tuyo: tus datos siguen ahí. Intenta nuevamente en unos minutos.',
+      error: 'Internal Server Error',
     });
   }
 }

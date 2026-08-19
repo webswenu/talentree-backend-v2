@@ -184,8 +184,15 @@ export class VideoRequirementsController {
     UserRole.WORKER,
     UserRole.GUEST,
   )
-  async downloadVideo(@Param('videoId') videoId: string, @Res() res: Response) {
-    const { stream, filename } = await this.videoRequirementsService.downloadVideo(videoId);
+  async downloadVideo(
+    @Param('videoId') videoId: string,
+    @Res() res: Response,
+    @Request() req,
+  ) {
+    const { stream, filename } = await this.videoRequirementsService.downloadVideo(
+      videoId,
+      req.user,
+    );
 
     res.set({
       'Content-Type': 'video/webm',

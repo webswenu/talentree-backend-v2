@@ -45,8 +45,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         err ||
         new UnauthorizedException(
           expirado
-            ? 'Tu sesion expiro por inactividad. Vuelve a iniciar sesion para continuar.'
-            : 'Necesitas iniciar sesion para ver esta informacion.',
+            ? 'Tu sesión expiró por inactividad. Vuelve a iniciar sesión para continuar.'
+            : 'Necesitas iniciar sesión para ver esta información.',
         )
       );
     }

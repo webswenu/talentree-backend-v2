@@ -287,7 +287,7 @@ export class UsersService {
 
     if (activeAdmins <= 1) {
       throw new BadRequestException(
-        'Es el ultimo administrador activo de Talentree. Crea o activa otro antes de dejarlo fuera de servicio.',
+        'Es el último administrador activo de Talentree. Crea o activa otro antes de dejarlo fuera de servicio.',
       );
     }
   }

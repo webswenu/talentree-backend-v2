@@ -1,6 +1,7 @@
 import {
   IsString,
   IsEmail,
+  IsNotEmpty,
   IsOptional,
   IsDateString,
   IsArray,
@@ -25,10 +26,22 @@ export class CreateWorkerDto {
   @IsEmail()
   email: string;
 
-  @IsOptional()
+  /**
+   * Obligatoria a proposito.
+   *
+   * Era opcional, y cuando no venia el servicio asignaba una contrasena fija
+   * escrita en el codigo, en un repositorio PUBLICO. El panel siempre manda
+   * una, asi que ese respaldo solo se disparaba en llamadas directas a la API;
+   * las cuentas que creara quedaban con una clave que puede leer cualquiera en
+   * GitHub. Vale mas fallar y decir que falta.
+   */
+  @IsNotEmpty({
+    message:
+      'La contraseña es obligatoria para crear un candidato. Elige una y comunícasela a la persona.',
+  })
   @IsString()
   @IsStrongPassword()
-  password?: string;
+  password: string;
 
   @IsOptional()
   @IsString()

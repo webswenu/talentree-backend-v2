@@ -44,23 +44,23 @@ const PASSWORDS_COMUNES = new Set([
 
 export function esPasswordFuerte(value: unknown): true | string {
   if (typeof value !== 'string') {
-    return 'La contrasena es obligatoria.';
+    return 'La contraseña es obligatoria.';
   }
 
   if (value.length < LARGO_MINIMO_PASSWORD) {
-    return `La contrasena debe tener al menos ${LARGO_MINIMO_PASSWORD} caracteres.`;
+    return `La contraseña debe tener al menos ${LARGO_MINIMO_PASSWORD} caracteres.`;
   }
 
   if (!/[a-zA-Z]/.test(value)) {
-    return 'La contrasena debe incluir al menos una letra.';
+    return 'La contraseña debe incluir al menos una letra.';
   }
 
   if (!/[0-9]/.test(value)) {
-    return 'La contrasena debe incluir al menos un numero.';
+    return 'La contraseña debe incluir al menos un número.';
   }
 
   if (PASSWORDS_COMUNES.has(value.toLowerCase())) {
-    return 'Esa contrasena es demasiado comun. Elige otra.';
+    return 'Esa contraseña es demasiado común. Elige otra.';
   }
 
   return true;
@@ -68,7 +68,7 @@ export function esPasswordFuerte(value: unknown): true | string {
 
 @ValidatorConstraint({ name: 'esPasswordFuerte', async: false })
 class PasswordFuerteConstraint implements ValidatorConstraintInterface {
-  private ultimoMotivo = 'La contrasena no cumple los requisitos minimos.';
+  private ultimoMotivo = 'La contraseña no cumple los requisitos mínimos.';
 
   validate(value: unknown): boolean {
     const resultado = esPasswordFuerte(value);

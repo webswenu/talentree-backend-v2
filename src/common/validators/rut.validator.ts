@@ -28,7 +28,7 @@ class EsRutValidoConstraint implements ValidatorConstraintInterface {
   }
 
   defaultMessage(): string {
-    return 'El RUT ingresado no es valido. Verifique el numero y el digito verificador.';
+    return 'El RUT ingresado no es válido. Verifique el número y el dígito verificador.';
   }
 }
 

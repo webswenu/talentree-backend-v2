@@ -21,22 +21,22 @@ import { ValidationError, BadRequestException } from '@nestjs/common';
 /** Traduce el nombre tecnico del campo a algo que el usuario reconozca. */
 const NOMBRES_DE_CAMPO: Record<string, string> = {
   email: 'el email',
-  password: 'la contrasena',
+  password: 'la contraseña',
   firstName: 'el nombre',
   lastName: 'el apellido',
   rut: 'el RUT',
-  phone: 'el telefono',
+  phone: 'el teléfono',
   name: 'el nombre',
-  code: 'el codigo',
+  code: 'el código',
   position: 'el cargo',
-  description: 'la descripcion',
+  description: 'la descripción',
   companyId: 'la empresa',
   userId: 'el usuario',
   processId: 'el proceso',
   workerId: 'el candidato',
   testId: 'el test',
   startDate: 'la fecha de inicio',
-  endDate: 'la fecha de termino',
+  endDate: 'la fecha de término',
   birthDate: 'la fecha de nacimiento',
   vacancies: 'la cantidad de vacantes',
   status: 'el estado',
@@ -55,17 +55,17 @@ function traducir(propiedad: string, mensaje: string): string {
   const Campo = campo.charAt(0).toUpperCase() + campo.slice(1);
 
   const reglas: Array<[RegExp, (m: RegExpMatchArray) => string]> = [
-    [/must be an email$/, () => `${Campo} debe ser una direccion de correo valida.`],
+    [/must be an email$/, () => `${Campo} debe ser una dirección de correo válida.`],
     [/should not be empty$/, () => `${Campo} es obligatorio.`],
     [/must be a string$/, () => `${Campo} debe ser texto.`],
-    [/must be a number.*$/, () => `${Campo} debe ser un numero.`],
+    [/must be a number.*$/, () => `${Campo} debe ser un número.`],
     [/must be a boolean value$/, () => `${Campo} debe ser verdadero o falso.`],
     // Formula neutra en genero a proposito: los nombres de campo son unos
     // femeninos y otros masculinos ('la empresa', 'el usuario'), asi que un
-    // adjetivo concordado daria 'La empresa seleccionado no es valido'.
-    [/must be a UUID$/, () => `${Campo} no tiene un valor valido.`],
-    [/must be a valid ISO 8601 date string$/, () => `${Campo} no tiene un formato de fecha valido.`],
-    [/must be a Date instance$/, () => `${Campo} no tiene un formato de fecha valido.`],
+    // adjetivo concordado daria 'La empresa seleccionado no es válido'.
+    [/must be a UUID$/, () => `${Campo} no tiene un valor válido.`],
+    [/must be a valid ISO 8601 date string$/, () => `${Campo} no tiene un formato de fecha válido.`],
+    [/must be a Date instance$/, () => `${Campo} no tiene un formato de fecha válido.`],
     [
       /must be longer than or equal to (\d+) characters$/,
       (m) => `${Campo} debe tener al menos ${m[1]} caracteres.`,
@@ -129,6 +129,6 @@ export function excepcionDeValidacionEnEspanol(errores: ValidationError[]) {
     error: 'Bad Request',
     message: mensajes.length
       ? mensajes
-      : ['Los datos enviados no son validos.'],
+      : ['Los datos enviados no son válidos.'],
   });
 }

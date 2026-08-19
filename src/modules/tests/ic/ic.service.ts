@@ -103,7 +103,17 @@ export class IcService extends BaseTestService {
     };
   }
 
-  async submitTest(submission: ITestSubmission): Promise<TestResponse> {
+  async submitTest(
+    submission: ITestSubmission,
+    user?: any,
+  ): Promise<TestResponse> {
+    /**
+     * La postulacion viaja en el CUERPO de la peticion, asi que la elige
+     * quien llama. Sin esta comprobacion, un candidato podia enviar un test
+     * completo y puntuado sobre la postulacion de otra persona.
+     */
+    await this.asegurarPostulacionPropia(submission.workerProcessId, user);
+
     await this.validateAnswers(submission);
 
     const scoring = await this.scoreTest(submission);
