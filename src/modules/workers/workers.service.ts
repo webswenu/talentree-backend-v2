@@ -238,6 +238,11 @@ export class WorkersService {
         // respuestas. Cuelgan de workerProcess, no del trabajador.
         'workerProcesses.testResponses',
         'workerProcesses.testResponses.test',
+        // Y el test fijo, que P-48 no cargo. Como en produccion TODAS las
+        // respuestas son de tests fijos (DISC, 16PF, IL, CFR, TAC, IC), sin
+        // esta relacion el nombre del test venia siempre en null y la ficha no
+        // podia decir que rindio la persona.
+        'workerProcesses.testResponses.fixedTest',
       ],
     });
 
