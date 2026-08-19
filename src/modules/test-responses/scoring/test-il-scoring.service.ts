@@ -9,7 +9,12 @@ export interface TestILScoringResult {
     percentage: number; // Porcentaje de respuestas correctas
   };
   interpretation: {
-    nivel: 'BAJO' | 'MEDIO' | 'ALTO';
+    /**
+     * `NO_DETERMINADO` no es un nivel de la persona: es que no se pudo leer lo
+     * que respondio. Se distingue a proposito de `BAJO`, porque son cosas
+     * completamente distintas y antes se confundian.
+     */
+    nivel: 'BAJO' | 'MEDIO' | 'ALTO' | 'NO_DETERMINADO';
     descripcion: string;
     capacidades: string[];
     recomendaciones: string[];
@@ -46,25 +51,72 @@ export class TestILScoringService {
 
     // Contar respuestas correctas
     let correctCount = 0;
+    let interpretadas = 0;
 
     for (const answer of answers) {
-      const userAnswer = answer.answer;
-      const correctAnswer = answer.fixedTestQuestion?.correctAnswer;
+      const pregunta = answer.fixedTestQuestion;
+      const correctAnswer = pregunta?.correctAnswer;
 
       if (!correctAnswer || typeof correctAnswer !== 'object') {
         this.logger.warn(
-          `Pregunta ${answer.fixedTestQuestion?.questionNumber} sin respuesta correcta definida`
+          `Pregunta ${pregunta?.questionNumber} sin respuesta correcta definida`
         );
         continue;
       }
 
-      // El correctAnswer tiene formato: { "answer": "C" }
-      const correctOption = (correctAnswer as any).answer;
+      /**
+       * EL DEFECTO QUE ARREGLA ESTO: antes se comparaba `userAnswer ===
+       * correctOption` a secas. `correctAnswer` guarda la LETRA (`{answer:
+       * "C"}`) y el formulario envia el TEXTO de la opcion ("50 minutos"),
+       * porque normaliza las opciones con `.map(([, value]) => value)` y
+       * descarta la clave. Nunca coincidian.
+       *
+       * Verificado en produccion el 19-08-2026: se respondieron las 20
+       * correctas y el resultado fue 0/20, con dictamen «nivel BAJO -
+       * Dificultad para resolver problemas o seguir instrucciones complejas».
+       * Todo candidato recibia eso, respondiera lo que respondiera.
+       *
+       * Se resuelven ambos lados a la letra antes de comparar, que es lo que
+       * ya hacia el puntuador de 16PF y por eso ese si funcionaba.
+       */
+      const elegida = this.resolverOpcion(answer.answer, pregunta?.options);
+      const correcta = this.resolverOpcion(
+        (correctAnswer as any).answer,
+        pregunta?.options,
+      );
 
-      // Comparar respuesta del usuario con la correcta
-      if (userAnswer === correctOption) {
+      if (!elegida || !correcta) {
+        this.logger.warn(
+          `Pregunta ${pregunta?.questionNumber}: no se pudo interpretar la respuesta ` +
+            `(elegida=${JSON.stringify(answer.answer)}, correcta=${JSON.stringify((correctAnswer as any).answer)})`,
+        );
+        continue;
+      }
+
+      interpretadas++;
+      if (elegida === correcta) {
         correctCount++;
       }
+    }
+
+    /**
+     * Sin una sola respuesta interpretable no hay puntaje que informar, y sobre
+     * todo no hay que informar un CERO: un cero se lee como «contesto todo mal»
+     * y aqui significa «no pudimos leer lo que contesto». Esa confusion es la
+     * que hacia que a cualquiera se le dijera que tiene baja capacidad
+     * cognitiva.
+     */
+    if (answers.length > 0 && interpretadas === 0) {
+      this.logger.error(
+        `Test IL sin ninguna respuesta interpretable (${answers.length} recibidas). No se emite nivel.`,
+      );
+      return this.resultadoNoCalculable();
+    }
+
+    if (interpretadas < answers.length) {
+      this.logger.warn(
+        `Test IL parcial: se interpretaron ${interpretadas} de ${answers.length} respuestas.`,
+      );
     }
 
     const rawScores = {
@@ -75,7 +127,9 @@ export class TestILScoringService {
       percentage: answers.length > 0 ? Math.round((correctCount / 20) * 100) : 0,
     };
 
-    this.logger.log(`Puntaje IL: ${correctCount}/20 (${scaledScores.percentage}%)`);
+    this.logger.log(
+      `Puntaje IL: ${correctCount}/20 (${scaledScores.percentage}%) — ${interpretadas}/${answers.length} respuestas interpretadas`,
+    );
 
     // Generar interpretación
     const interpretation = this.interpretScore(correctCount);
@@ -90,6 +144,77 @@ export class TestILScoringService {
   /**
    * Interpreta el puntaje según los rangos establecidos
    */
+  /**
+   * Lleva una respuesta a la LETRA de la opcion (A, B, C, D).
+   *
+   * Acepta las tres formas que circulan, porque lo que importa es que la
+   * comparacion sea entre iguales:
+   *   "C"              -> la letra directa
+   *   "50 minutos"     -> el texto de la opcion, que es lo que envia el
+   *                       formulario al normalizar las opciones
+   *   { value: "C" }   -> envuelta, por si algun cliente la manda asi
+   *
+   * Devuelve null cuando no se puede resolver, y quien llama decide: nunca se
+   * asume «entonces esta mala», que era justamente el error.
+   */
+  private resolverOpcion(respuesta: unknown, opciones: unknown): string | null {
+    if (respuesta === null || respuesta === undefined) return null;
+
+    let valor: unknown = respuesta;
+    if (typeof valor === 'object') {
+      const envuelta = valor as Record<string, unknown>;
+      valor = envuelta.value ?? envuelta.answer ?? envuelta.option ?? null;
+    }
+
+    if (typeof valor !== 'string' && typeof valor !== 'number') return null;
+
+    const texto = String(valor).trim();
+    if (!texto) return null;
+
+    if (!opciones || typeof opciones !== 'object') return null;
+
+    const mapa = opciones as Record<string, unknown>;
+    const claves = Object.keys(mapa).filter(
+      (k) => k !== 'scoring' && k !== 'format',
+    );
+
+    // Ya viene como letra.
+    const porClave = claves.find((k) => k.toLowerCase() === texto.toLowerCase());
+    if (porClave) return porClave;
+
+    // Viene como el texto de la opcion.
+    const porTexto = claves.find(
+      (k) => String(mapa[k]).trim().toLowerCase() === texto.toLowerCase(),
+    );
+    if (porTexto) return porTexto;
+
+    return null;
+  }
+
+  /**
+   * Resultado para cuando no se pudo interpretar ninguna respuesta.
+   *
+   * El puntaje va en cero pero el nivel NO es «BAJO»: decir que alguien tiene
+   * baja capacidad cognitiva porque el sistema no supo leer sus respuestas es
+   * exactamente el daño que hay que evitar.
+   */
+  private resultadoNoCalculable(): TestILScoringResult {
+    return {
+      rawScores: { total: 0 },
+      scaledScores: { percentage: 0 },
+      interpretation: {
+        nivel: 'NO_DETERMINADO',
+        descripcion:
+          'No fue posible calcular el resultado: las respuestas no quedaron en un formato interpretable. Este resultado NO refleja la capacidad de la persona y no debe usarse para evaluarla. Pídele que rinda el test nuevamente o avísale al equipo de Talentree.',
+        capacidades: [],
+        recomendaciones: [
+          'No tomar decisiones de selección con este resultado.',
+          'Repetir la evaluación.',
+        ],
+      },
+    };
+  }
+
   private interpretScore(score: number): TestILScoringResult['interpretation'] {
     let nivel: 'BAJO' | 'MEDIO' | 'ALTO';
     let descripcion: string;
