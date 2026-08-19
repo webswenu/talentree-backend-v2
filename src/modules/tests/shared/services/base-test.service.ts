@@ -7,6 +7,8 @@ import { TestResponse } from '../../../test-responses/entities/test-response.ent
 import { TestAnswer } from '../../../test-responses/entities/test-answer.entity';
 import { FixedTestCode } from '../enums';
 import { ITestScoring, ITestSubmission, ITestService } from '../interfaces';
+import { WorkerProcess } from '../../../workers/entities/worker-process.entity';
+import { assertPuedeAccederAPostulacion } from '../../../../common/helpers/ownership.helper';
 
 @Injectable()
 export abstract class BaseTestService implements ITestService {
@@ -49,6 +51,52 @@ export abstract class BaseTestService implements ITestService {
       where: { fixedTestId: test.id },
       order: { questionNumber: 'ASC' },
     });
+  }
+
+  /**
+   * Corta el paso si la postulacion que viene en el cuerpo no es de quien envia.
+   *
+   * EL DEFECTO QUE CIERRA: los cinco endpoints `POST /tests/<test>/submit`
+   * reciben `workerProcessId` y `workerId` EN EL CUERPO y no comprobaban nada
+   * mas alla del rol. Un candidato podia fabricar un test completo, puntuado y
+   * marcado como terminado sobre la postulacion de otra persona, con el perfil
+   * psicometrico que quisiera.
+   *
+   * Se llega al repositorio por el `manager` a proposito: agregarlo al
+   * constructor obligaria a tocar las seis subclases sin ganar nada.
+   */
+  protected async asegurarPostulacionPropia(
+    workerProcessId: string,
+    user: any,
+  ): Promise<void> {
+    const postulaciones =
+      this.testResponseRepository.manager.getRepository(WorkerProcess);
+
+    const postulacion = await postulaciones.findOne({
+      where: { id: workerProcessId },
+      relations: {
+        worker: { user: true },
+        process: { company: true, evaluators: true },
+      },
+    });
+
+    if (!postulacion) {
+      throw new NotFoundException(
+        'No encontramos esa postulación. Vuelve a entrar al proceso desde tu panel.',
+      );
+    }
+
+    assertPuedeAccederAPostulacion(
+      user,
+      {
+        usuarioDelCandidato: postulacion.worker?.user?.id,
+        empresaDelProceso: postulacion.process?.company?.id,
+        evaluadoresDelProceso: (postulacion.process?.evaluators || []).map(
+          (evaluador) => evaluador.id,
+        ),
+      },
+      'este test',
+    );
   }
 
   async saveTestResponse(

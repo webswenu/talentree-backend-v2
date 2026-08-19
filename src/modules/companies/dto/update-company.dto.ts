@@ -73,7 +73,7 @@ export class UpdateCompanyDto {
    * asignacion, porque `if (userId)` trata null y ausente igual.
    */
   @IsUUID('4', {
-    message: 'El usuario representante seleccionado no es valido',
+    message: 'El usuario representante seleccionado no es válido',
   })
   @IsOptional()
   @ValidateIf((_, value) => value !== null)

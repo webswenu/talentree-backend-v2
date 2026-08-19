@@ -103,7 +103,7 @@ export class NotificationsController {
 
     if (req.user?.role !== UserRole.ADMIN_TALENTREE && dueno !== req.user?.id) {
       throw new ForbiddenException(
-        'Esta notificacion no es tuya.',
+        'Esta notificación no es tuya.',
       );
     }
 

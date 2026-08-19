@@ -74,8 +74,8 @@ export class InvitationsController {
   @Get('company/:companyId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
-  findAll(@Param('companyId') companyId: string) {
-    return this.invitationsService.findAll(companyId);
+  findAll(@Param('companyId') companyId: string, @Request() req) {
+    return this.invitationsService.findAll(companyId, req.user);
   }
 
   @Get('token/:token')
@@ -92,31 +92,31 @@ export class InvitationsController {
   @Patch(':id/resend')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
-  resendInvitation(@Param('id') id: string) {
-    return this.invitationsService.resendInvitation(id);
+  resendInvitation(@Param('id') id: string, @Request() req) {
+    return this.invitationsService.resendInvitation(id, req.user);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
   @HttpCode(HttpStatus.NO_CONTENT)
-  cancelInvitation(@Param('id') id: string) {
-    return this.invitationsService.cancelInvitation(id);
+  cancelInvitation(@Param('id') id: string, @Request() req) {
+    return this.invitationsService.cancelInvitation(id, req.user);
   }
 
   @Patch('user/:userId/deactivate')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
   @HttpCode(HttpStatus.NO_CONTENT)
-  deactivateUser(@Param('userId') userId: string) {
-    return this.invitationsService.deactivateUser(userId);
+  deactivateUser(@Param('userId') userId: string, @Request() req) {
+    return this.invitationsService.deactivateUser(userId, req.user);
   }
 
   @Patch('user/:userId/reactivate')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
   @HttpCode(HttpStatus.NO_CONTENT)
-  reactivateUser(@Param('userId') userId: string) {
-    return this.invitationsService.reactivateUser(userId);
+  reactivateUser(@Param('userId') userId: string, @Request() req) {
+    return this.invitationsService.reactivateUser(userId, req.user);
   }
 }

@@ -36,7 +36,7 @@ export class InviteeDto {
 }
 
 export class BulkInviteWorkersDto {
-  @IsUUID('4', { message: 'El proceso seleccionado no es valido' })
+  @IsUUID('4', { message: 'El proceso seleccionado no es válido' })
   @IsNotEmpty({ message: 'Debes indicar a que proceso invitar' })
   processId: string;
 

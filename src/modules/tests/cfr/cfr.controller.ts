@@ -6,6 +6,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Request,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -33,7 +34,7 @@ export class CfrController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(RolesGuard)
   @Roles(UserRole.WORKER, UserRole.ADMIN_TALENTREE)
-  async submitTest(@Body() submitDto: SubmitTestDto) {
-    return this.cfrService.submitTest(submitDto);
+  async submitTest(@Body() submitDto: SubmitTestDto, @Request() req: any) {
+    return this.cfrService.submitTest(submitDto, req.user);
   }
 }

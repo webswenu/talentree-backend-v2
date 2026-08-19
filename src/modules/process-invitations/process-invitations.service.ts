@@ -215,7 +215,7 @@ export class ProcessInvitationsService {
         // que una fila mala no tumbe la carga completa.
         if (!ProcessInvitationsService.ES_EMAIL.test(emailComoVino)) {
           throw new BadRequestException(
-            `"${invitee.email}" no es una direccion de correo valida.`,
+            `"${invitee.email}" no es una dirección de correo válida.`,
           );
         }
 
@@ -233,7 +233,7 @@ export class ProcessInvitationsService {
         failed.push({
           fila,
           email: invitee.email,
-          reason: error?.message || 'No se pudo crear la invitacion.',
+          reason: error?.message || 'No se pudo crear la invitación.',
         });
       }
     }
@@ -453,7 +453,7 @@ export class ProcessInvitationsService {
     });
 
     if (!invitation) {
-      throw new NotFoundException('No encontramos esa invitacion. Puede que el enlace este mal copiado o que la invitacion ya no exista.');
+      throw new NotFoundException('No encontramos esa invitación. Puede que el enlace este mal copiado o que la invitación ya no exista.');
     }
 
     return this.mapToResponseDto(invitation);
@@ -646,7 +646,7 @@ export class ProcessInvitationsService {
     });
 
     if (!invitation) {
-      throw new NotFoundException('No encontramos esa invitacion. Puede que el enlace este mal copiado o que la invitacion ya no exista.');
+      throw new NotFoundException('No encontramos esa invitación. Puede que el enlace este mal copiado o que la invitación ya no exista.');
     }
 
     if (invitation.status === ProcessInvitationStatus.ACCEPTED) {
@@ -671,7 +671,7 @@ export class ProcessInvitationsService {
     });
 
     if (!invitation) {
-      throw new NotFoundException('No encontramos esa invitacion. Puede que el enlace este mal copiado o que la invitacion ya no exista.');
+      throw new NotFoundException('No encontramos esa invitación. Puede que el enlace este mal copiado o que la invitación ya no exista.');
     }
 
     if (invitation.status === ProcessInvitationStatus.ACCEPTED) {

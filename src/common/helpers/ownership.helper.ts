@@ -46,6 +46,22 @@ export function resolveUserCompanyId(user: any): string | null {
   return user?.company?.id ?? user?.companyId ?? null;
 }
 
+/**
+ * El id del usuario de la sesion.
+ *
+ * OJO, ESTA ES LA TRAMPA QUE HAY QUE CONOCER: `jwt.strategy.ts` devuelve la
+ * ENTIDAD `User`, que tiene `id`. Pero varios sitios del codigo escribieron
+ * `user.sub`, que es el nombre del claim DENTRO del token y aqui vale
+ * `undefined`. Una comprobacion escrita contra `user.sub` no protege nada
+ * cuando deja pasar, y bloquea a todo el mundo cuando corta.
+ *
+ * Se aceptan los dos por si algun dia la estrategia devuelve el payload crudo,
+ * pero lo correcto es `id`.
+ */
+export function resolveUserId(user: any): string | null {
+  return user?.id ?? user?.sub ?? null;
+}
+
 /** Roles que solo pueden ver lo de SU empresa. */
 export function isCompanyScopedRole(role: UserRole | string): boolean {
   return role === UserRole.COMPANY || role === UserRole.GUEST;
@@ -83,4 +99,116 @@ export function assertBelongsToUserCompany(
       `No tienes permiso para acceder a ${recurso}: pertenece a otra empresa.`,
     );
   }
+}
+
+/** Datos minimos de una postulacion para decidir quien puede tocarla. */
+export interface DuenosDePostulacion {
+  /** Id del USUARIO del candidato dueño de la postulacion. */
+  usuarioDelCandidato: string | null | undefined;
+  /** Id de la empresa del proceso al que postula. */
+  empresaDelProceso: string | null | undefined;
+  /** Ids de los usuarios evaluadores asignados a ese proceso. */
+  evaluadoresDelProceso: string[];
+}
+
+/**
+ * Quien puede ver o tocar una postulacion y sus respuestas de test.
+ *
+ * EL DEFECTO QUE CIERRA: en `test-responses.service.ts` habia dos controles
+ * comentados con la nota `// TEMPORARILY DISABLED FOR TESTING`, y otros dos
+ * endpoints que nunca tuvieron control. Solo se comprobaba el ROL, asi que
+ * cualquier candidato con sesion iniciada podia, sabiendo el UUID:
+ *   - leer las respuestas y el perfil psicometrico de otro candidato,
+ *   - ENVIAR el test de otro con `{"answers":[]}` y dejarselo cerrado,
+ *   - arrancar un test sobre la postulacion de otro.
+ * Y una empresa podia leer los tests de los candidatos de otra empresa.
+ *
+ * Las reglas, en el mismo orden en que se aplican:
+ *   Talentree  -> todo
+ *   candidato  -> solo lo suyo
+ *   empresa    -> solo lo de su empresa (delegado en assertBelongsToUserCompany)
+ *   invitado   -> igual que empresa
+ *   evaluador  -> solo los procesos que tiene asignados
+ */
+export function assertPuedeAccederAPostulacion(
+  user: any,
+  duenos: DuenosDePostulacion,
+  recurso = 'esta postulación',
+): void {
+  /**
+   * Sin usuario no se decide nada: se corta.
+   *
+   * Es a proposito que falle CERRADA. Si en algun refactor alguien deja de
+   * pasar `req.user`, lo correcto es que el endpoint deje de funcionar y se
+   * note, y no que pase de largo y vuelva a quedar abierto en silencio, que es
+   * exactamente como nacio este agujero. Verificado antes de ponerlo: los
+   * cuatro endpoints de test-responses y los cinco de envio de test son los
+   * unicos que llaman aqui, y todos reciben el usuario desde el controlador.
+   */
+  if (!user?.role) {
+    throw new ForbiddenException(
+      `No pudimos verificar tu sesión para acceder a ${recurso}. Vuelve a iniciar sesión.`,
+    );
+  }
+
+  const rol = user.role;
+
+  if (rol === UserRole.ADMIN_TALENTREE) return;
+
+  if (rol === UserRole.WORKER) {
+    const propio = resolveUserId(user);
+
+    if (!propio || !duenos.usuarioDelCandidato) {
+      throw new ForbiddenException(
+        `No tienes permiso para acceder a ${recurso}.`,
+      );
+    }
+
+    if (propio !== duenos.usuarioDelCandidato) {
+      throw new ForbiddenException(
+        `No tienes permiso para acceder a ${recurso}: es de otro candidato.`,
+      );
+    }
+
+    return;
+  }
+
+  /**
+   * DECISION EXPLICITA (Matias, 18-08-2026): el evaluador queda FUERA de este
+   * recorte por ahora y sigue viendo todo, como hasta hoy.
+   *
+   * El motivo es operativo, no tecnico: al 18-08-2026 NINGUNO de los 6
+   * procesos de produccion tiene evaluadores asignados, asi que exigir la
+   * asignacion habria dejado a los 2 evaluadores con 403 en cada test que
+   * abrieran, hasta que la clienta los asignara proceso por proceso.
+   *
+   * LO QUE QUEDA ABIERTO, para que no se pierda: un evaluador puede ver los
+   * candidatos y los tests de empresas que no le corresponden. Es un rol
+   * interno que crea Talentree a mano (no hay registro publico de evaluadores),
+   * asi que el riesgo es de confidencialidad entre clientas, no de que un
+   * desconocido entre desde la calle.
+   *
+   * Para cerrarlo: asignar evaluadores a los procesos y reemplazar este bloque
+   * por la comprobacion contra `duenos.evaluadoresDelProceso`, que ya viene
+   * calculada y llega hasta aca sin usarse.
+   */
+  if (rol === UserRole.EVALUATOR) return;
+
+  if (isCompanyScopedRole(rol)) {
+    assertBelongsToUserCompany(user, duenos.empresaDelProceso, recurso);
+    return;
+  }
+
+  /**
+   * Cualquier rol que no este contemplado arriba no pasa.
+   *
+   * Antes esta funcion terminaba delegando en `assertBelongsToUserCompany`,
+   * que retorna temprano cuando el rol no es de empresa: un rol nuevo o mal
+   * escrito habria pasado de largo. Hoy el guard de roles lo haria imposible,
+   * pero esa es exactamente la clase de suposicion que dejo este agujero
+   * abierto la primera vez.
+   */
+  throw new ForbiddenException(
+    `No tienes permiso para acceder a ${recurso} con tu tipo de cuenta.`,
+  );
 }

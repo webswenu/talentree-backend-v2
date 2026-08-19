@@ -31,8 +31,8 @@ export class TestResponsesController {
 
   @Post('start')
   @Roles(UserRole.WORKER, UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
-  startTest(@Body() startTestDto: StartTestDto) {
-    return this.testResponsesService.startTest(startTestDto);
+  startTest(@Body() startTestDto: StartTestDto, @Request() req: any) {
+    return this.testResponsesService.startTest(startTestDto, req.user);
   }
 
   @Post(':id/submit')
@@ -93,8 +93,14 @@ export class TestResponsesController {
     UserRole.EVALUATOR,
     UserRole.WORKER,
   )
-  findByWorkerProcess(@Param('workerProcessId') workerProcessId: string) {
-    return this.testResponsesService.findByWorkerProcess(workerProcessId);
+  findByWorkerProcess(
+    @Param('workerProcessId') workerProcessId: string,
+    @Request() req: any,
+  ) {
+    return this.testResponsesService.findByWorkerProcess(
+      workerProcessId,
+      req.user,
+    );
   }
 
   @Get('test/:testId')

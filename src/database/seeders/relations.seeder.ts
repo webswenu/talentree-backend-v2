@@ -235,7 +235,7 @@ export class RelationsSeeder {
     const existentes = await this.workerProcessRepository.count();
     if (existentes > 0) {
       console.log(
-        `⚠️  Ya hay ${existentes} postulacion(es): no se siembran mas`,
+        `⚠️  Ya hay ${existentes} postulación(es): no se siembran mas`,
       );
       return;
     }
@@ -270,7 +270,7 @@ export class RelationsSeeder {
 
       await this.workerProcessRepository.save(postulacion);
       console.log(
-        `✅ Postulacion sembrada: ${trabajador.email} -> ${proceso.name} (${estados[i % estados.length]})`,
+        `✅ Postulación sembrada: ${trabajador.email} -> ${proceso.name} (${estados[i % estados.length]})`,
       );
     }
   }

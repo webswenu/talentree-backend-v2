@@ -11,7 +11,7 @@ import { IsStrongPassword } from '../../../common/validators/password.validator'
 import { UserRole } from '../../../common/enums/user-role.enum';
 
 export class CreateUserDto {
-  @IsEmail({}, { message: 'El email ingresado no es valido' })
+  @IsEmail({}, { message: 'El email ingresado no es válido' })
   email: string;
 
   // P-52: la politica de contrasena vale para todas las vias de alta.

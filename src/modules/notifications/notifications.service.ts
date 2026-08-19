@@ -65,6 +65,31 @@ export class NotificationsService {
     return this.update(id, { isRead: true });
   }
 
+  /**
+   * Marca como leida SOLO si la notificacion es de esa persona.
+   *
+   * Devuelve `null` en vez de lanzar cuando no lo es: el unico consumidor es el
+   * canal de sockets, donde no hay una respuesta HTTP que devolver, y ademas
+   * conviene no confirmarle a quien lo intenta que ese id existe. El intento
+   * queda en el log.
+   *
+   * La ruta HTTP equivalente ya comprobaba la pertenencia por su cuenta
+   * (`assertOwn` en el controlador); el socket era el que no lo hacia.
+   */
+  async markAsReadForUser(
+    id: string,
+    userId: string,
+  ): Promise<Notification | null> {
+    const resultado = await this.notificationRepository.update(
+      { id, user: { id: userId } },
+      { isRead: true },
+    );
+
+    if (!resultado.affected) return null;
+
+    return this.notificationRepository.findOne({ where: { id } });
+  }
+
   async markAllAsRead(userId: string): Promise<void> {
     await this.notificationRepository.update(
       { user: { id: userId }, isRead: false },

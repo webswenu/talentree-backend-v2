@@ -41,7 +41,7 @@ export class SixteenPfService extends BaseTestService {
     const normativeTable = test.configuration?.normativeTable;
     if (!normativeTable || !Array.isArray(normativeTable)) {
       throw new BadRequestException(
-        'Este test no tiene su tabla de puntuacion configurada, asi que no se puede corregir. Contacta al equipo de Talentree.',
+        'Este test no tiene su tabla de puntuación configurada, así que no se puede corregir. Contacta al equipo de Talentree.',
       );
     }
 
@@ -67,7 +67,7 @@ export class SixteenPfService extends BaseTestService {
 
       if (!['A', 'B', 'C'].includes(answer.answer)) {
         throw new BadRequestException(
-          `La respuesta de la pregunta ${question.questionNumber} no es valida. Vuelve a seleccionar una de las opciones (A, B o C).`,
+          `La respuesta de la pregunta ${question.questionNumber} no es válida. Vuelve a seleccionar una de las opciones (A, B o C).`,
         );
       }
     }
@@ -99,7 +99,17 @@ export class SixteenPfService extends BaseTestService {
     };
   }
 
-  async submitTest(submission: ITestSubmission): Promise<TestResponse> {
+  async submitTest(
+    submission: ITestSubmission,
+    user?: any,
+  ): Promise<TestResponse> {
+    /**
+     * La postulacion viaja en el CUERPO de la peticion, asi que la elige
+     * quien llama. Sin esta comprobacion, un candidato podia enviar un test
+     * completo y puntuado sobre la postulacion de otra persona.
+     */
+    await this.asegurarPostulacionPropia(submission.workerProcessId, user);
+
     await this.validateAnswers(submission);
 
     const scoring = await this.scoreTest(submission);

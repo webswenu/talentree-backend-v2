@@ -12,11 +12,14 @@ import {
   VideoRequirementStatus,
 } from '../entities/worker-video-requirement.entity';
 import { Worker } from '../../workers/entities/worker.entity';
+import { SelectionProcess } from '../../processes/entities/selection-process.entity';
+import { assertPuedeAccederAPostulacion } from '../../../common/helpers/ownership.helper';
 import { UploadVideoDto, ReviewVideoDto } from '../shared/dtos';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import * as fs from 'fs';
-import * as path from 'path';
+// `fs` y `path` se quitaron al eliminar la lectura de videos desde el disco:
+// este modulo ya no toca el sistema de archivos, y conviene que ni siquiera lo
+// tenga a mano.
 import { S3Service } from '../../../common/services/s3.service';
 import { uploadFileAndGetPublicUrl, extractS3KeyFromUrl } from '../../../common/helpers/s3.helper';
 
@@ -64,6 +67,25 @@ export class VideoRequirementsService {
     if (existingVideo) {
       throw new BadRequestException(
         'Ya existe un video para este proceso. No puedes subir uno nuevo.',
+      );
+    }
+
+    /**
+     * La ubicacion del video la elige quien sube, asi que se comprueba ANTES de
+     * guardarla: si no apunta a nuestra carpeta de videos, no entra a la base.
+     *
+     * La descarga tambien lo comprueba por su cuenta. Son dos capas a
+     * proposito: esta impide que quede guardada una ubicacion invalida, y la
+     * otra protege a las filas que ya estuvieran guardadas de antes.
+     */
+    const claveDelVideo = extractS3KeyFromUrl(uploadDto.videoUrl);
+
+    if (!this.esClaveDeVideoValida(claveDelVideo)) {
+      this.logger.warn(
+        `Intento de guardar un video con una ubicación fuera del almacenamiento: ${uploadDto.videoUrl}`,
+      );
+      throw new BadRequestException(
+        'La ubicación del video no es válida. Vuelve a grabarlo desde la plataforma.',
       );
     }
 
@@ -291,7 +313,10 @@ export class VideoRequirementsService {
     }
   }
 
-  async downloadVideo(videoId: string): Promise<{ stream: any; filename: string }> {
+  async downloadVideo(
+    videoId: string,
+    user?: any,
+  ): Promise<{ stream: any; filename: string }> {
     const video = await this.videoRequirementRepository.findOne({
       where: { id: videoId },
     });
@@ -300,42 +325,99 @@ export class VideoRequirementsService {
       throw new NotFoundException('Este proceso no tiene configurado el requisito de video.');
     }
 
+    /**
+     * Este endpoint no comprobaba de quien era el video: con el id, cualquier
+     * candidato descargaba la entrevista en video de otro. Es el mismo defecto
+     * que tenian las respuestas de test, y se cierra con la misma funcion.
+     *
+     * El dueño se resuelve desde el candidato y el proceso guardados en la
+     * fila, que siempre estan; `workerProcessId` es opcional y no sirve como
+     * unica fuente.
+     */
+    const candidato = await this.workerRepository.findOne({
+      where: { id: video.workerId },
+      relations: ['user'],
+    });
+
+    const proceso = await this.workerRepository.manager
+      .getRepository(SelectionProcess)
+      .findOne({
+        where: { id: video.processId },
+        relations: { company: true, evaluators: true },
+      });
+
+    assertPuedeAccederAPostulacion(
+      user,
+      {
+        usuarioDelCandidato: candidato?.user?.id,
+        empresaDelProceso: proceso?.company?.id,
+        evaluadoresDelProceso: (proceso?.evaluators || []).map((e) => e.id),
+      },
+      'este video',
+    );
+
     if (!video.videoUrl) {
       throw new NotFoundException('Este candidato todavia no ha subido su video.');
     }
 
-    this.logger.log(`Attempting to download video ${videoId}, videoUrl: ${video.videoUrl}`);
-
-    // Extract S3 key from URL or use as-is
     const key = extractS3KeyFromUrl(video.videoUrl);
-    this.logger.log(`Extracted S3 key: ${key}`);
 
-    // If it's an S3 key (starts with 'videos/'), download from S3
-    if (key && key.startsWith('videos/')) {
-      try {
-        this.logger.log(`Downloading from S3 with key: ${key}`);
-        const stream = await this.s3Service.getFileStream(key);
-        const filename = key.split('/').pop() || 'video.webm';
-        this.logger.log(`Successfully retrieved video stream from S3: ${key}`);
-        return { stream, filename };
-      } catch (error) {
-        this.logger.error(
-          `Failed to download video from S3 (key: ${key}): ${error instanceof Error ? error.message : String(error)}`,
-        );
-        throw new NotFoundException('No se pudo descargar el video desde S3');
-      }
+    /**
+     * SE ELIMINO LA RAMA DE ARCHIVO LOCAL, Y ESE ERA EL AGUJERO.
+     *
+     * Antes, cuando la clave no empezaba con `videos/`, se caia a leer del
+     * disco con `path.join(process.cwd(), video.videoUrl)`, sin normalizar ni
+     * comprobar que quedara dentro de ninguna carpeta. Y `videoUrl` lo elige
+     * quien sube el video: el DTO solo pedia `@IsUrl()`.
+     *
+     * Verificado el 18-08-2026 ejecutando el validador real:
+     *   '../../../../etc/passwd'            -> lo rechaza @IsUrl()
+     *   'http://a.com/../../../etc/passwd'  -> `new URL()` normaliza y no escapa
+     *   'a.com/../../../../etc/passwd'      -> PASA @IsUrl() (URL sin protocolo),
+     *      `extractS3KeyFromUrl` la devuelve tal cual porque no tiene '://',
+     *      y `path.join` resuelve a /etc/passwd.
+     *
+     * El rol que puede subir es WORKER, que es de registro publico. En ese host
+     * el .env tiene JWT_SECRET, la base de datos, las llaves de AWS y la clave
+     * del correo: con el secreto se firman tokens de administrador.
+     *
+     * No se "contiene" la ruta: se saca. Los videos viven en S3 y en produccion
+     * no hay ninguna fila con ruta local (comprobado antes de borrarla), asi
+     * que no hay nada legitimo que servir desde el disco.
+     */
+    if (!this.esClaveDeVideoValida(key)) {
+      this.logger.error(
+        `Video ${videoId} con una ubicación que no es del almacenamiento de videos: ${video.videoUrl}`,
+      );
+      throw new NotFoundException(
+        'No pudimos encontrar ese video. Puede que se haya eliminado.',
+      );
     }
 
-    // If it's a local file (legacy), read from filesystem
-    this.logger.log(`Attempting to read video from local filesystem: ${video.videoUrl}`);
-    const videoPath = path.join(process.cwd(), video.videoUrl);
-    if (!fs.existsSync(videoPath)) {
-      this.logger.error(`Local video file not found at path: ${videoPath}`);
-      throw new NotFoundException('El archivo de video no existe en el servidor');
+    try {
+      const stream = await this.s3Service.getFileStream(key);
+      const filename = key.split('/').pop() || 'video.webm';
+      return { stream, filename };
+    } catch (error) {
+      this.logger.error(
+        `Failed to download video from S3 (key: ${key}): ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw new NotFoundException(
+        'No pudimos descargar el video en este momento. Intenta nuevamente en unos minutos.',
+      );
     }
+  }
 
-    const stream = fs.createReadStream(videoPath);
-    const filename = path.basename(videoPath);
-    return { stream, filename };
+  /**
+   * Una clave de video valida es la de NUESTRA carpeta de videos y nada mas.
+   *
+   * Se comprueba con una lista blanca y no buscando '..', porque las listas de
+   * lo prohibido siempre se quedan cortas: '..' se puede escribir codificado,
+   * con barras invertidas o con rutas absolutas.
+   */
+  private esClaveDeVideoValida(key: string): boolean {
+    if (!key || typeof key !== 'string') return false;
+
+    return /^videos\/[A-Za-z0-9._\-/]+$/.test(key) && !key.includes('..');
   }
 }

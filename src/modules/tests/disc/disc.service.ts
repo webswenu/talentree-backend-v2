@@ -61,7 +61,7 @@ export class DiscService extends BaseTestService {
 
       if (!discAnswer.mas || !discAnswer.menos) {
         throw new BadRequestException(
-          `En la pregunta ${question.questionNumber} tienes que marcar una opcion como la que MAS te representa y otra como la que MENOS.`,
+          `En la pregunta ${question.questionNumber} tienes que marcar una opción como la que MAS te representa y otra como la que MENOS.`,
         );
       }
 
@@ -70,13 +70,13 @@ export class DiscService extends BaseTestService {
         !validDimensions.includes(discAnswer.menos)
       ) {
         throw new BadRequestException(
-          `La respuesta de la pregunta ${question.questionNumber} no es valida. Vuelve a seleccionarla.`,
+          `La respuesta de la pregunta ${question.questionNumber} no es válida. Vuelve a seleccionarla.`,
         );
       }
 
       if (discAnswer.mas === discAnswer.menos) {
         throw new BadRequestException(
-          `En la pregunta ${question.questionNumber} marcaste la misma opcion como la que mas y la que menos te representa. Tienen que ser distintas.`,
+          `En la pregunta ${question.questionNumber} marcaste la misma opción como la que mas y la que menos te representa. Tienen que ser distintas.`,
         );
       }
     }
@@ -111,7 +111,17 @@ export class DiscService extends BaseTestService {
     };
   }
 
-  async submitTest(submission: ITestSubmission): Promise<TestResponse> {
+  async submitTest(
+    submission: ITestSubmission,
+    user?: any,
+  ): Promise<TestResponse> {
+    /**
+     * La postulacion viaja en el CUERPO de la peticion, asi que la elige
+     * quien llama. Sin esta comprobacion, un candidato podia enviar un test
+     * completo y puntuado sobre la postulacion de otra persona.
+     */
+    await this.asegurarPostulacionPropia(submission.workerProcessId, user);
+
     await this.validateAnswers(submission);
 
     const scoring = await this.scoreTest(submission);
