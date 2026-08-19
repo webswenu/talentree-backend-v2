@@ -102,6 +102,12 @@ export class ReportsService {
       where: { id },
       relations: [
         'createdBy',
+        // `approvedBy` SI se guarda al aprobar (ver approveReport), pero no
+        // estaba en esta lista, asi que la API lo devolvia siempre en null y la
+        // interfaz no podia mostrar quien aprobo. Para un documento que se le
+        // entrega a una clienta, con nombre y RUT de una persona, saber quien
+        // lo firmo no es un adorno.
+        'approvedBy',
         'process',
         'process.company',
         'process.evaluators',
@@ -351,22 +357,20 @@ export class ReportsService {
               });
             }
 
-            // Notificar también a los usuarios de la empresa
-            if (reportWithRelations.process?.company?.id) {
-              const companyUsers = await this.usersService.findCompanyUsers(
-                reportWithRelations.process.company.id
-              );
-              const companyUserIds = companyUsers.map((user) => user.id);
-
-              if (companyUserIds.length > 0) {
-                await this.notificationsGateway.broadcastNotification(companyUserIds, {
-                  title: 'Reporte listo para revisión',
-                  message: `El reporte de ${reportWithRelations.worker.firstName} ${reportWithRelations.worker.lastName} está disponible`,
-                  type: NotificationType.REPORT_READY,
-                  link: `/empresa/reportes`,
-                });
-              }
-            }
+            /**
+             * AQUI NO SE LE AVISA A LA EMPRESA, A PROPOSITO.
+             *
+             * Antes, al subir el PDF se le mandaba a la empresa un aviso que
+             * decia «El reporte de X esta disponible» con enlace a
+             * /empresa/reportes. Pero en este punto el informe queda en
+             * REVISION_ADMIN o REVISION_EVALUADOR, y el recorte de empresa solo
+             * deja ver los APROBADOS: la persona hacia clic y encontraba la
+             * pantalla vacia.
+             *
+             * El aviso correcto va en `approveReport`, que es el momento en que
+             * el informe pasa a ser visible para ella. El aviso a Talentree de
+             * mas arriba si corresponde aqui: es justo lo que tiene que revisar.
+             */
           }
         } catch (error) {
           this.logger.error(
@@ -492,7 +496,63 @@ export class ReportsService {
       report.approvedAt = null;
     }
 
-    return this.reportRepository.save(report);
+    const guardado = await this.reportRepository.save(report);
+
+    if (guardado.status === ReportStatus.APPROVED) {
+      await this.avisarALaEmpresaQueElInformeEstaDisponible(guardado.id);
+    }
+
+    return guardado;
+  }
+
+  /**
+   * Le avisa a la empresa recien cuando el informe queda aprobado, que es el
+   * momento en que de verdad puede verlo.
+   *
+   * Antes el aviso salia al subir el PDF, con el informe todavia en revision:
+   * la persona hacia clic y encontraba la pantalla vacia, porque su recorte
+   * solo muestra los APROBADOS. Y en el momento en que si pasaba a ser visible,
+   * no se enteraba nadie.
+   *
+   * El fallo del aviso no puede tumbar la aprobacion: el informe ya quedo
+   * guardado y aprobado, y no avisar es molesto pero no invalida la operacion.
+   */
+  private async avisarALaEmpresaQueElInformeEstaDisponible(
+    reportId: string,
+  ): Promise<void> {
+    try {
+      const informe = await this.reportRepository.findOne({
+        where: { id: reportId },
+        relations: ['worker', 'process', 'process.company'],
+      });
+
+      const companyId = informe?.process?.company?.id;
+      if (!companyId) return;
+
+      const usuarios = await this.usersService.findCompanyUsers(companyId);
+      const ids = usuarios.map((u) => u.id);
+      if (ids.length === 0) return;
+
+      const candidato = [informe.worker?.firstName, informe.worker?.lastName]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+
+      await this.notificationsGateway.broadcastNotification(ids, {
+        title: 'Informe disponible',
+        message: candidato
+          ? `El informe de evaluación de ${candidato} ya está disponible para descargar.`
+          : 'Hay un nuevo informe de evaluación disponible para descargar.',
+        type: NotificationType.REPORT_READY,
+        link: '/empresa/reportes',
+      });
+    } catch (error) {
+      this.logger.error(
+        `No se pudo avisar a la empresa del informe ${reportId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
   }
 
   /**
