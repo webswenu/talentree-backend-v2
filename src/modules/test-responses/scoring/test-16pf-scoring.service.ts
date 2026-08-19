@@ -106,6 +106,7 @@ export class Test16PFScoringService {
     });
 
     // Sumar puntajes por factor
+    let resueltas = 0;
     for (const answer of answers) {
       const factor = answer.fixedTestQuestion?.factor;
       if (!factor) {
@@ -114,11 +115,29 @@ export class Test16PFScoringService {
       }
 
       const score = this.extractAnswerScore(answer);
-      rawScores[factor] += score;
+      if (score !== null) {
+        rawScores[factor] += score;
+        resueltas++;
+      }
       factorCounts[factor]++;
     }
 
-    this.logger.log(`Puntajes brutos por factor: ${JSON.stringify(rawScores)}`);
+    this.logger.log(
+      `Puntajes brutos por factor: ${JSON.stringify(rawScores)} (${resueltas}/${answers.length} respuestas interpretadas)`,
+    );
+
+    // Si no se pudo interpretar ninguna respuesta, el resultado no existe: hay
+    // que decirlo. Antes se seguia adelante con los 16 factores en cero, los
+    // decatipos caian al piso (1) y el informe declaraba a la persona "muy
+    // bajo" en las 16 dimensiones. Eso fue lo que quedo guardado en las dos
+    // respuestas de 16PF que hay en produccion, ambas puntuadas antes de que
+    // se agregara el respaldo por texto (11-12-2025).
+    if (resueltas === 0) {
+      this.logger.error(
+        `16PF sin ninguna respuesta interpretable de ${answers.length}: no se emite dictamen`,
+      );
+      return this.resultadoNoCalculable(answers.length);
+    }
 
     // Convertir a decatipos (escala 1-10)
     const scaledScores = this.convertToDecatipos(rawScores, factorCounts);
@@ -136,53 +155,69 @@ export class Test16PFScoringService {
   /**
    * Extrae el puntaje de la respuesta según las opciones de la pregunta
    */
-  private extractAnswerScore(answer: TestAnswer): number {
+  /**
+   * Deja un texto comparable: sin tildes, sin espacios sobrantes, en minuscula.
+   *
+   * Hace falta en los dos lados. En produccion hay opciones sembradas como
+   * "Si " (con espacio al final, 4 preguntas) y candidatos que respondieron
+   * "Termino medio" con tilde contra una opcion sin tilde. Comparando en
+   * crudo, esas respuestas no calzaban con ninguna opcion y valian cero.
+   */
+  private normalizar(valor: unknown): string {
+    return String(valor ?? '')
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .trim()
+      .toLowerCase();
+  }
+
+  /**
+   * Extrae el puntaje de la respuesta segun las opciones de la pregunta.
+   *
+   * Devuelve null cuando la respuesta no se puede interpretar, para poder
+   * distinguirlo de un cero legitimo: en este test la opcion "A" vale 0, asi
+   * que un cero es un dato valido y no puede usarse como senal de fallo.
+   */
+  private extractAnswerScore(answer: TestAnswer): number | null {
     const selectedOption = answer.answer;
     const options = answer.fixedTestQuestion?.options;
     const questionNum = answer.fixedTestQuestion?.questionNumber;
 
     if (!options || !options.scoring) {
       this.logger.warn(`[Q${questionNum}] Pregunta sin opciones de scoring`);
-      return 0;
+      return null;
     }
 
-    // La respuesta puede ser "A", "B", "C", el texto de la opción, un número, o un objeto
-    let optionKey = selectedOption;
+    // La respuesta puede venir como "A", como el texto de la opcion, como un
+    // numero, o envuelta en un objeto.
+    let optionKey: unknown = selectedOption;
 
-    // Si la respuesta es un objeto con propiedad 'value' o similar
     if (typeof selectedOption === 'object' && selectedOption !== null) {
-      optionKey = selectedOption.value || selectedOption.answer || selectedOption.option || Object.values(selectedOption)[0];
+      const obj = selectedOption as Record<string, unknown>;
+      optionKey = obj.value ?? obj.answer ?? obj.option ?? Object.values(obj)[0];
     }
 
-    // Convertir a string
-    optionKey = String(optionKey).trim();
+    let clave = String(optionKey ?? '').trim();
+    if (clave === '') {
+      return null;
+    }
 
-    // Si la respuesta es un número, mapear a letra
-    if (/^\d+$/.test(optionKey)) {
-      const numKey = parseInt(optionKey, 10);
+    // Un numero se mapea a la letra que le corresponde.
+    if (/^\d+$/.test(clave)) {
+      const numKey = parseInt(clave, 10);
       const keys = ['A', 'B', 'C'];
-      optionKey = keys[numKey - 1] || keys[numKey] || 'A';
+      clave = keys[numKey - 1] || keys[numKey] || 'A';
     }
 
-    // Intentar primero con la clave directa (A, B, C)
-    let score = options.scoring[optionKey.toUpperCase()];
+    // 1) por clave directa (A, B, C)
+    let score = options.scoring[clave.toUpperCase()];
 
-    // Si no encuentra por clave, buscar por el texto de la opción
+    // 2) por el texto de la opcion, normalizado en ambos lados
     if (score === undefined) {
-      // Buscar la clave cuyo valor coincide con la respuesta
+      const buscado = this.normalizar(clave);
       for (const [key, value] of Object.entries(options)) {
-        if (key !== 'scoring' && key !== 'format' && value === optionKey) {
-          score = options.scoring[key];
-          break;
-        }
-      }
-    }
-
-    // Si aún no encuentra, puede ser que la respuesta sea el texto normalizado
-    if (score === undefined) {
-      const optionKeyLower = optionKey.toLowerCase();
-      for (const [key, value] of Object.entries(options)) {
-        if (key !== 'scoring' && key !== 'format' && String(value).toLowerCase() === optionKeyLower) {
+        if (key === 'scoring' || key === 'format') continue;
+        if (this.normalizar(value) === buscado) {
           score = options.scoring[key];
           break;
         }
@@ -190,11 +225,53 @@ export class Test16PFScoringService {
     }
 
     if (score === undefined) {
-      this.logger.warn(`[Q${questionNum}] Score no encontrado para "${optionKey}". Opciones: ${JSON.stringify(options)}`);
-      return 0;
+      this.logger.warn(
+        `[Q${questionNum}] Score no encontrado para "${clave}". Opciones: ${JSON.stringify(options)}`,
+      );
+      return null;
     }
 
     return score;
+  }
+
+  /**
+   * Resultado para cuando no se pudo interpretar ninguna respuesta.
+   *
+   * Mismo criterio que en DISC e IL: es preferible decir que no se pudo
+   * calcular a entregar un perfil inventado que alguien va a usar para
+   * decidir sobre una persona.
+   */
+  private resultadoNoCalculable(totalRespuestas: number): Test16PFScoringResult {
+    const rawScores: { [factor: string]: number } = {};
+    const scaledScores: { [factor: string]: number } = {};
+    const factorDescriptions: Test16PFScoringResult['interpretation']['factorDescriptions'] = {};
+
+    this.FACTORS.forEach((factor) => {
+      rawScores[factor] = 0;
+      scaledScores[factor] = 0;
+      factorDescriptions[factor] = {
+        decatipo: 0,
+        nivel: 'MEDIO',
+        descripcion: 'No determinado: no se pudo interpretar la respuesta.',
+      };
+    });
+
+    return {
+      rawScores,
+      scaledScores,
+      interpretation: {
+        factorDescriptions,
+        resumenGlobal:
+          `No fue posible calcular el perfil 16PF: ninguna de las ${totalRespuestas} ` +
+          'respuestas registradas pudo asociarse a una opcion valida del test. ' +
+          'Este resultado NO refleja la personalidad de la persona y no debe usarse ' +
+          'para evaluarla. Es necesario revisar el registro de respuestas y volver a puntuar.',
+        recomendaciones: [
+          'No utilizar este resultado para tomar decisiones sobre el candidato.',
+          'Revisar el registro de respuestas antes de volver a puntuar el test.',
+        ],
+      },
+    };
   }
 
   /**
