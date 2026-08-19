@@ -26,6 +26,12 @@ import { WorkerStatus } from '../../common/enums/worker-status.enum';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
 import { paginate } from '../../common/helpers/pagination.helper';
 import { EmailHelper } from '../../common/helpers/email.helper';
+import {
+  assertBelongsToUserCompany,
+  isCompanyScopedRole,
+  resolveUserCompanyId,
+  NO_COMPANY,
+} from '../../common/helpers/ownership.helper';
 
 @Injectable()
 export class ProcessInvitationsService {
@@ -139,7 +145,7 @@ export class ProcessInvitationsService {
     // Cargar las relaciones para la respuesta
     const invitationWithRelations = await this.invitationRepository.findOne({
       where: { id: savedInvitation.id },
-      relations: ['process'],
+      relations: ['process', 'process.company'],
     });
 
     // Enviar email con el token de invitación
@@ -401,11 +407,33 @@ export class ProcessInvitationsService {
    */
   async findAll(
     queryDto: QueryProcessInvitationsDto,
+    requester?: any,
   ): Promise<PaginatedResult<ProcessInvitationResponseDto>> {
     const queryBuilder = this.invitationRepository
       .createQueryBuilder('invitation')
       .leftJoinAndSelect('invitation.process', 'process')
+      .leftJoinAndSelect('process.company', 'company')
       .leftJoinAndSelect('invitation.createdBy', 'createdBy');
+
+    /**
+     * EL DEFECTO QUE CIERRA ESTO: este listado solo filtraba por proceso,
+     * estado y busqueda, todos opcionales y elegidos por quien llama. Sin
+     * `processId`, una empresa recibia las invitaciones de TODAS las demas,
+     * con el nombre y el correo de los candidatos de la competencia.
+     *
+     * Verificado en produccion el 19-08-2026 con una sesion real: una empresa
+     * recien creada, con CERO invitaciones propias, recibio 15 de otras cinco
+     * empresas.
+     *
+     * El recorte se decide aqui a partir de la sesion, no del querystring: el
+     * `processId` que manda el navegador no sirve como control, porque lo elige
+     * el cliente.
+     */
+    if (isCompanyScopedRole(requester?.role)) {
+      queryBuilder.andWhere('company.id = :empresaDeLaSesion', {
+        empresaDeLaSesion: resolveUserCompanyId(requester) ?? NO_COMPANY,
+      });
+    }
 
     // Filtrar por proceso
     if (queryDto.processId) {
@@ -446,15 +474,23 @@ export class ProcessInvitationsService {
   /**
    * Obtiene una invitación por ID
    */
-  async findOne(id: string): Promise<ProcessInvitationResponseDto> {
+  async findOne(id: string, requester?: any): Promise<ProcessInvitationResponseDto> {
     const invitation = await this.invitationRepository.findOne({
       where: { id },
-      relations: ['process', 'createdBy'],
+      relations: ['process', 'process.company', 'createdBy'],
     });
 
     if (!invitation) {
       throw new NotFoundException('No encontramos esa invitación. Puede que el enlace este mal copiado o que la invitación ya no exista.');
     }
+
+    // La invitacion cuelga de un proceso, y el proceso de una empresa: sin esto
+    // bastaba conocer el id para leer la invitacion de otra empresa.
+    assertBelongsToUserCompany(
+      requester,
+      invitation.process?.company?.id,
+      'esta invitación',
+    );
 
     return this.mapToResponseDto(invitation);
   }
@@ -465,7 +501,7 @@ export class ProcessInvitationsService {
   async findByToken(token: string): Promise<ProcessInvitationResponseDto> {
     const invitation = await this.invitationRepository.findOne({
       where: { token },
-      relations: ['process'],
+      relations: ['process', 'process.company'],
     });
 
     if (!invitation) {
@@ -520,7 +556,16 @@ export class ProcessInvitationsService {
    */
   async acceptById(
     invitationId: string,
-    userId: string,
+    /**
+     * Este parametro NO SE USA, y hay que dejarlo dicho: el controlador le pasa
+     * `req.user.sub`, que es `undefined`, porque la estrategia JWT devuelve la
+     * entidad `User` (tiene `id`, no `sub`). Hoy no rompe nada justamente
+     * porque nadie lo lee, pero el dia que alguien lo use para decidir algo va
+     * a estar comparando contra undefined. Es la misma trampa que tenian los
+     * controles de dueno comentados en test-responses. Si se va a usar, primero
+     * corregir el controlador a `req.user.id`.
+     */
+    _userIdSinUsar: string,
     userEmail: string,
   ): Promise<{
     status: 'applied';
@@ -639,15 +684,21 @@ export class ProcessInvitationsService {
   /**
    * Cancela una invitación
    */
-  async cancel(id: string): Promise<ProcessInvitationResponseDto> {
+  async cancel(id: string, requester?: any): Promise<ProcessInvitationResponseDto> {
     const invitation = await this.invitationRepository.findOne({
       where: { id },
-      relations: ['process'],
+      relations: ['process', 'process.company'],
     });
 
     if (!invitation) {
       throw new NotFoundException('No encontramos esa invitación. Puede que el enlace este mal copiado o que la invitación ya no exista.');
     }
+
+    assertBelongsToUserCompany(
+      requester,
+      invitation.process?.company?.id,
+      'esta invitación',
+    );
 
     if (invitation.status === ProcessInvitationStatus.ACCEPTED) {
       throw new BadRequestException(
@@ -664,15 +715,23 @@ export class ProcessInvitationsService {
   /**
    * Reenvía una invitación (genera nuevo token y extiende expiración)
    */
-  async resend(id: string): Promise<ProcessInvitationResponseDto> {
+  async resend(id: string, requester?: any): Promise<ProcessInvitationResponseDto> {
     const invitation = await this.invitationRepository.findOne({
       where: { id },
-      relations: ['process'],
+      relations: ['process', 'process.company'],
     });
 
     if (!invitation) {
       throw new NotFoundException('No encontramos esa invitación. Puede que el enlace este mal copiado o que la invitación ya no exista.');
     }
+
+    // Reenviar una invitacion ajena es escribirle a un candidato de otra
+    // empresa en nombre de ella.
+    assertBelongsToUserCompany(
+      requester,
+      invitation.process?.company?.id,
+      'esta invitación',
+    );
 
     if (invitation.status === ProcessInvitationStatus.ACCEPTED) {
       throw new BadRequestException(
