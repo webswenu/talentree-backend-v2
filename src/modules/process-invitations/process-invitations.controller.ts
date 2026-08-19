@@ -71,8 +71,8 @@ export class ProcessInvitationsController {
    */
   @Get()
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
-  findAll(@Query() queryDto: QueryProcessInvitationsDto) {
-    return this.processInvitationsService.findAll(queryDto);
+  findAll(@Query() queryDto: QueryProcessInvitationsDto, @Request() req) {
+    return this.processInvitationsService.findAll(queryDto, req.user);
   }
 
   /**
@@ -111,8 +111,8 @@ export class ProcessInvitationsController {
    */
   @Get(':id')
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
-  findOne(@Param('id') id: string) {
-    return this.processInvitationsService.findOne(id);
+  findOne(@Param('id') id: string, @Request() req) {
+    return this.processInvitationsService.findOne(id, req.user);
   }
 
   /**
@@ -121,8 +121,8 @@ export class ProcessInvitationsController {
    */
   @Patch(':id/cancel')
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
-  cancel(@Param('id') id: string) {
-    return this.processInvitationsService.cancel(id);
+  cancel(@Param('id') id: string, @Request() req) {
+    return this.processInvitationsService.cancel(id, req.user);
   }
 
   /**
@@ -131,7 +131,7 @@ export class ProcessInvitationsController {
    */
   @Patch(':id/resend')
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
-  resend(@Param('id') id: string) {
-    return this.processInvitationsService.resend(id);
+  resend(@Param('id') id: string, @Request() req) {
+    return this.processInvitationsService.resend(id, req.user);
   }
 }
