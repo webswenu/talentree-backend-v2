@@ -172,6 +172,10 @@ export class TestResponsesService {
         'workerProcess',
         'workerProcess.worker',
         'workerProcess.worker.user',
+        // Sin esto la pantalla de revision del evaluador mostraba la linea
+        // "Proceso:" en blanco: pedia workerProcess.process.name y la relacion
+        // nunca se cargaba.
+        'workerProcess.process',
       ],
     });
 
