@@ -1165,7 +1165,7 @@
     "questionType": "multiple_choice_ternary",
     "factor": "N",
     "options": {
-      "A": "0.42857142857142855",
+      "A": "3/7",
       "B": "3/9",
       "C": "3/11",
       "scoring": {
