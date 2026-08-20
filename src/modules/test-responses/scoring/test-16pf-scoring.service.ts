@@ -66,24 +66,65 @@ export class Test16PFScoringService {
    * La fórmula de decatipos es: DT = (Z × 2) + 5.5
    * Donde Z = (PD - Media) / DesviaciónEstándar
    */
-  private readonly NORMATIVE_TABLE: { [factor: string]: { mean: number; sd: number } } = {
-    'A': { mean: 13.0, sd: 4.5 },   // Afectividad: max 26 (13 preguntas × 2)
-    'B': { mean: 8.0, sd: 3.0 },    // Razonamiento: max 16 (8 preguntas × 2)
-    'C': { mean: 12.0, sd: 4.0 },   // Estabilidad: max 24 (12 preguntas × 2)
-    'E': { mean: 11.0, sd: 3.8 },   // Dominancia: max 22 (11 preguntas × 2)
-    'F': { mean: 12.0, sd: 4.0 },   // Impulsividad: max 24 (12 preguntas × 2)
-    'G': { mean: 13.0, sd: 4.5 },   // Conformidad: max 26 (13 preguntas × 2)
-    'H': { mean: 13.0, sd: 4.5 },   // Atrevimiento: max 26 (13 preguntas × 2)
-    'I': { mean: 11.0, sd: 3.8 },   // Sensibilidad: max 22 (11 preguntas × 2)
-    'L': { mean: 10.0, sd: 3.5 },   // Suspicacia: max 20 (10 preguntas × 2)
-    'M': { mean: 12.0, sd: 4.0 },   // Imaginación: max 24 (12 preguntas × 2)
-    'N': { mean: 12.0, sd: 4.0 },   // Astucia: max 24 (12 preguntas × 2)
-    'O': { mean: 13.0, sd: 4.5 },   // Culpabilidad: max 26 (13 preguntas × 2)
-    'Q1': { mean: 11.0, sd: 3.8 },  // Rebeldía: max 22 (11 preguntas × 2)
-    'Q2': { mean: 12.0, sd: 4.0 },  // Autosuficiencia: max 24 (12 preguntas × 2)
-    'Q3': { mean: 12.0, sd: 4.0 },  // Autocontrol: max 24 (12 preguntas × 2)
-    'Q4': { mean: 12.0, sd: 4.0 },  // Tensión: max 24 (12 preguntas × 2)
+  /**
+   * NOTA HISTORICA. Aqui habia una tabla normativa fija con la media y la
+   * desviacion de cada factor. Se quito porque suponia una cantidad de
+   * preguntas por factor que el cuestionario sembrado no tiene (13 para A y 8
+   * para B; hay 11 y 13), asi que el decatipo salia corrido aunque el puntaje
+   * bruto estuviera bien. El criterio con el que estaba construida —media = la
+   * mitad del maximo, desviacion = un sexto— se conserva en normaAproximada(),
+   * que lo aplica sobre los conteos reales.
+   *
+   * Sigue siendo una aproximacion declarada: no hay baremos, y sin baremos el
+   * decatipo solo sirve para comparar candidatos entre si, no para situarlos
+   * respecto de la poblacion.
+   */
+
+
+
+  /**
+   * Los 13 items de razonamiento (factor B), con su respuesta correcta.
+   *
+   * POR QUE ESTA TABLA EXISTE. En el 16PF real el factor B no se puntua como
+   * los otros quince: sus items son de capacidad, no de personalidad, y valen
+   * 0 o 1 segun si la respuesta es CORRECTA, no 0/1/2 segun que opcion se
+   * eligio. Aqui se estaban puntuando por posicion, asi que en varias de estas
+   * preguntas acertar daba 0 y equivocarse daba 2.
+   *
+   * COMO SE IDENTIFICARON. No por criterio: el orden de las preguntas conserva
+   * la estructura original del cuestionario, que cicla con periodo 19. Los 13
+   * items de razonamiento caen en solo 2 de esas 19 ranuras; al azar se
+   * esperarian ~9,6 ranuras distintas. Ese agrupamiento es del dato, no una
+   * interpretacion.
+   *
+   * Tres respuestas quedaron marcadas como A CONFIRMAR porque admiten una
+   * segunda lectura defendible. Se dejan puntuando con la lectura mas probable
+   * y anotadas aqui, en vez de inventarlas en silencio.
+   */
+  private readonly ITEMS_DE_RAZONAMIENTO: { [numeroDePregunta: number]: string } = {
+    3: 'B',    // Algo / Nada / Mucho -> "Nada"; las otras dos son cantidad presente
+    22: 'B',   // A CONFIRMAR: Cansado:Trabajador :: Orgulloso:"Tener Exito" o "Ser Feliz"
+    40: 'B',   // Vela / Luna / Luz Electrica -> "Luna"; las otras son luz artificial
+    41: 'C',   // A CONFIRMAR: Miedo:"Terrible" (el estimulo) o "Ansioso" (la persona)
+    59: 'B',   // 3/7, 3/9, 3/11 -> "3/9" es la unica reducible
+    60: 'C',   // Tamano:Longitud :: Delito:"Robo" (tipo especifico de)
+    78: 'A',   // AB:dc :: SR:"qp" (par anterior, invertido, en minuscula)
+    79: 'A',   // Mejor:pesimo :: Menor:"Mayor" (opuesto)
+    97: 'B',   // X1 O4 X2 O3 X3 ... -> siguen "OOXX"
+    116: 'A',  // Pala:Cavar :: Cuchillo:"Cortar" (herramienta y su funcion)
+    135: 'C',  // Llama:calor :: rosa:"Aroma" (lo que emite)
+    154: 'A',  // Ancho / zigzag / Recto -> "Ancho"; las otras describen forma de trazo
+    173: 'A',  // A CONFIRMAR: "nunca" es negacion y no opuesto -> "en ningun sitio"
   };
+
+  /**
+   * Norma asumida del factor B con puntuacion por acierto: 13 items de 0 o 1.
+   *
+   * Es un supuesto declarado, no un baremo medido: se toma la mitad del maximo
+   * como media. Vale lo mismo que el resto de la tabla normativa de este
+   * servicio, que tambien es aproximada por no disponer de los baremos.
+   */
+  private readonly NORMA_RAZONAMIENTO = { mean: 6.5, sd: 2.5 };
 
   /**
    * Calcula el puntaje del Test 16PF
@@ -107,10 +148,37 @@ export class Test16PFScoringService {
 
     // Sumar puntajes por factor
     let resueltas = 0;
+    let razonamientoRespondidas = 0;
+
     for (const answer of answers) {
+      const numero = answer.fixedTestQuestion?.questionNumber;
+      const correcta = numero !== undefined ? this.ITEMS_DE_RAZONAMIENTO[numero] : undefined;
+
+      // Los items de razonamiento van SIEMPRE al factor B y se puntuan por
+      // acierto, sin importar a que factor los mande la siembra: hoy el
+      // cuestionario los reparte entre once factores distintos, ninguno de
+      // ellos B.
+      if (correcta !== undefined) {
+        const elegida = this.resolverLetraElegida(answer);
+        if (elegida !== null) {
+          razonamientoRespondidas++;
+          resueltas++;
+          if (elegida === correcta) rawScores['B'] += 1;
+        }
+        factorCounts['B']++;
+        continue;
+      }
+
       const factor = answer.fixedTestQuestion?.factor;
       if (!factor) {
-        this.logger.warn(`Pregunta sin factor: ${answer.fixedTestQuestion?.questionNumber}`);
+        this.logger.warn(`Pregunta sin factor: ${numero}`);
+        continue;
+      }
+
+      // B queda reservado a los items de razonamiento, que se puntuan por
+      // acierto (0 o 1). Las preguntas de personalidad que caian en B se
+      // dejan fuera: valen 0, 1 o 2, y mezclarlas romperia la escala.
+      if (factor === 'B') {
         continue;
       }
 
@@ -121,6 +189,11 @@ export class Test16PFScoringService {
       }
       factorCounts[factor]++;
     }
+
+    this.logger.log(
+      `Razonamiento (B): ${rawScores['B']}/${razonamientoRespondidas} aciertos ` +
+        `sobre ${Object.keys(this.ITEMS_DE_RAZONAMIENTO).length} items`,
+    );
 
     this.logger.log(
       `Puntajes brutos por factor: ${JSON.stringify(rawScores)} (${resueltas}/${answers.length} respuestas interpretadas)`,
@@ -169,6 +242,49 @@ export class Test16PFScoringService {
       .replace(/\p{Diacritic}/gu, '')
       .trim()
       .toLowerCase();
+  }
+
+  /**
+   * Devuelve la LETRA que eligio la persona (A, B o C), o null si no se puede
+   * determinar.
+   *
+   * Hace falta aparte de extractAnswerScore porque en los items de
+   * razonamiento no interesa el puntaje de la opcion sino cual se marco, para
+   * compararla con la respuesta correcta. El front manda el TEXTO de la
+   * opcion, asi que hay que traducirlo de vuelta a su letra.
+   */
+  private resolverLetraElegida(answer: TestAnswer): string | null {
+    const options = answer.fixedTestQuestion?.options;
+    if (!options) return null;
+
+    let elegida: unknown = answer.answer;
+    if (typeof elegida === 'object' && elegida !== null) {
+      const obj = elegida as Record<string, unknown>;
+      elegida = obj.value ?? obj.answer ?? obj.option ?? Object.values(obj)[0];
+    }
+
+    const crudo = String(elegida ?? '').trim();
+    if (crudo === '') return null;
+
+    // Ya viene como letra.
+    if (/^[ABC]$/i.test(crudo)) return crudo.toUpperCase();
+
+    // Viene como numero: 1 -> A, 2 -> B, 3 -> C.
+    if (/^\d+$/.test(crudo)) {
+      return ['A', 'B', 'C'][parseInt(crudo, 10) - 1] ?? null;
+    }
+
+    // Viene como el texto de la opcion.
+    const buscado = this.normalizar(crudo);
+    for (const [clave, valor] of Object.entries(options)) {
+      if (clave === 'scoring' || clave === 'format') continue;
+      if (this.normalizar(valor) === buscado) return clave.toUpperCase();
+    }
+
+    this.logger.warn(
+      `[Q${answer.fixedTestQuestion?.questionNumber}] No se pudo resolver la letra de "${crudo}"`,
+    );
+    return null;
   }
 
   /**
@@ -286,6 +402,19 @@ export class Test16PFScoringService {
    * - 4-7: Medio
    * - 8-10: Alto
    */
+  /**
+   * Norma aproximada de un factor de personalidad, a partir de cuantas
+   * preguntas tiene.
+   *
+   * Cada pregunta vale 0, 1 o 2, asi que el maximo del factor es 2n. Se toma
+   * la media en la mitad de ese maximo y la desviacion en un sexto, que es el
+   * criterio con el que estaba escrita la tabla fija original.
+   */
+  private normaAproximada(cantidadDePreguntas: number): { mean: number; sd: number } {
+    const maximo = cantidadDePreguntas * 2;
+    return { mean: maximo / 2, sd: Math.max(1, maximo / 6) };
+  }
+
   private convertToDecatipos(
     rawScores: { [factor: string]: number },
     factorCounts: { [factor: string]: number }
@@ -302,8 +431,19 @@ export class Test16PFScoringService {
         continue;
       }
 
-      // Obtener tabla normativa del factor
-      const norm = this.NORMATIVE_TABLE[factor];
+      // Norma del factor.
+      //
+      // La tabla fija de este servicio segui­a el criterio de su autor —media =
+      // la mitad del maximo, desviacion = un sexto del maximo— pero con
+      // conteos de preguntas que el cuestionario no tiene: supone 13 items
+      // para A y 8 para B, y hay 11 y 13. Con la media equivocada el decatipo
+      // sale corrido aunque el puntaje bruto este bien.
+      //
+      // Se mantiene EL MISMO criterio y se le dan los conteos reales, que ya
+      // vienen contados en factorCounts. Sigue siendo una norma aproximada,
+      // no un baremo medido, y como tal solo permite comparar candidatos entre
+      // si; pero al menos ahora es coherente con el instrumento que se rindio.
+      const norm = factor === 'B' ? this.NORMA_RAZONAMIENTO : this.normaAproximada(questionCount);
       if (!norm) {
         this.logger.warn(`No hay tabla normativa para factor ${factor}, usando valor por defecto`);
         decatipos[factor] = 5;
