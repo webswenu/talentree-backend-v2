@@ -480,7 +480,17 @@ export class WorkersService {
   async getWorkerProcesses(workerId: string): Promise<WorkerProcess[]> {
     return this.workerProcessRepository.find({
       where: { worker: { id: workerId } },
-      relations: ['process', 'testResponses'],
+      // `process.company` y `testResponses.test` no venían: por eso el trabajador
+      // veía "-" en la columna Empresa de Mis Postulaciones y "Test sin nombre"
+      // en Mis Resultados. El front los lee como `process.company.name` y
+      // `testResponse.test.name`.
+      relations: [
+        'process',
+        'process.company',
+        'testResponses',
+        'testResponses.test',
+        'testResponses.fixedTest',
+      ],
       order: { createdAt: 'DESC' },
     });
   }

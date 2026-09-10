@@ -521,11 +521,31 @@ export class TestResponsesService {
 
     testResponse.score = totalScore;
     testResponse.maxScore = maxScore;
-    testResponse.passed =
-      testResponse.test.passingScore !== null &&
-      totalScore >= testResponse.test.passingScore;
+    testResponse.passed = this.alcanzaElPuntajeDeAprobacion(
+      totalScore,
+      maxScore,
+      testResponse.test?.passingScore,
+    );
 
     return this.testResponseRepository.save(testResponse);
+  }
+
+  /**
+   * `passingScore` está guardado como PORCENTAJE (70, 75, 80 — y así lo
+   * describen los propios tests: «Debes obtener al menos 80% para aprobar»),
+   * pero se venía comparando contra el puntaje en PUNTOS. Con un test de 30
+   * puntos y umbral 80, ni un 30/30 alcanzaba: `30 >= 80` es falso, así que
+   * todo candidato salía «No Aprobado» con 100%. Se compara porcentaje contra
+   * porcentaje.
+   */
+  private alcanzaElPuntajeDeAprobacion(
+    totalScore: number,
+    maxScore: number,
+    passingScore?: number | null,
+  ): boolean {
+    if (passingScore === null || passingScore === undefined) return false;
+    if (!maxScore) return false;
+    return (totalScore / maxScore) * 100 >= passingScore;
   }
 
   /**
@@ -681,9 +701,11 @@ export class TestResponsesService {
 
     testResponse.score = totalScore;
     testResponse.maxScore = maxScore;
-    testResponse.passed =
-      testResponse.test.passingScore !== null &&
-      totalScore >= testResponse.test.passingScore;
+    testResponse.passed = this.alcanzaElPuntajeDeAprobacion(
+      totalScore,
+      maxScore,
+      testResponse.test?.passingScore,
+    );
 
     const savedTestResponse = await this.testResponseRepository.save(testResponse);
 

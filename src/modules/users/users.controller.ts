@@ -148,6 +148,28 @@ export class UsersController {
     );
   }
 
+  /**
+   * Usuarios de una empresa. El front ya llamaba a esta ruta desde
+   * `usersService.getByCompany()`, pero nunca existió en el controlador: la
+   * ficha de empresa recibía un 404 y por eso mostraba 0 usuarios.
+   * `findCompanyUsers` ya estaba implementado en el servicio, solo faltaba
+   * exponerlo. Va ANTES de @Get(':id') porque en Nest manda el orden.
+   */
+  @Get('by-company/:companyId')
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
+  findByCompany(@Request() req, @Param('companyId') companyId: string) {
+    // Una empresa solo puede consultar la nómina de la suya.
+    if (
+      req.user.role === UserRole.COMPANY &&
+      req.user.companyId !== companyId
+    ) {
+      throw new ForbiddenException(
+        'Solo puedes consultar los usuarios de tu propia empresa.',
+      );
+    }
+    return this.usersService.findCompanyUsers(companyId);
+  }
+
   @Get(':id')
   @Roles(
     UserRole.ADMIN_TALENTREE,
