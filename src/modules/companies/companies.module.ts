@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Company } from './entities/company.entity';
 import { SelectionProcess } from '../processes/entities/selection-process.entity';
 import { WorkerProcess } from '../workers/entities/worker-process.entity';
+import { ProcessInvitation } from '../process-invitations/entities/process-invitation.entity';
 import { CompaniesService } from './companies.service';
 import { CompaniesController } from './companies.controller';
 import { UsersModule } from '../users/users.module';
@@ -10,7 +11,12 @@ import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Company, SelectionProcess, WorkerProcess]),
+    TypeOrmModule.forFeature([
+      Company,
+      SelectionProcess,
+      WorkerProcess,
+      ProcessInvitation,
+    ]),
     UsersModule,
     NotificationsModule,
   ],
