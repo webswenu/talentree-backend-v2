@@ -13,6 +13,10 @@ import { UpdateCompanyDto } from './dto/update-company.dto';
 import { CompanyFilterDto } from './dto/company-filter.dto';
 import { SelectionProcess } from '../processes/entities/selection-process.entity';
 import { WorkerProcess } from '../workers/entities/worker-process.entity';
+import {
+  ProcessInvitation,
+  ProcessInvitationStatus,
+} from '../process-invitations/entities/process-invitation.entity';
 import { ProcessStatus } from '../../common/enums/process-status.enum';
 import { WorkerStatus } from '../../common/enums/worker-status.enum';
 import { UsersService } from '../users/users.service';
@@ -44,6 +48,8 @@ export class CompaniesService {
     private readonly processRepository: Repository<SelectionProcess>,
     @InjectRepository(WorkerProcess)
     private readonly workerProcessRepository: Repository<WorkerProcess>,
+    @InjectRepository(ProcessInvitation)
+    private readonly invitationRepository: Repository<ProcessInvitation>,
     private readonly usersService: UsersService,
     private readonly s3Service: S3Service,
     private readonly notificationsGateway: NotificationsGateway,
@@ -408,8 +414,8 @@ export class CompaniesService {
         })),
       );
 
-    // Solo las 5 últimas: es lo que el panel muestra.
-    const actividadReciente = await this.workerProcessRepository
+    // Postulaciones (candidatos que ya aplicaron).
+    const postulacionesActividad = await this.workerProcessRepository
       .createQueryBuilder('wp')
       .innerJoin('wp.process', 'process')
       .innerJoin('wp.worker', 'worker')
@@ -424,7 +430,7 @@ export class CompaniesService {
       .getRawMany()
       .then((filas) =>
         filas.map((f) => ({
-          id: f.id,
+          id: `wp-${f.id}`,
           tipo: 'nuevo_postulante',
           nombre:
             `${f.firstName ?? ''} ${f.lastName ?? ''}`.trim() || 'Candidato',
@@ -432,6 +438,56 @@ export class CompaniesService {
           appliedAt: f.appliedAt,
         })),
       );
+
+    /**
+     * Invitaciones a candidatos. Antes la actividad reciente solo miraba las
+     * postulaciones, así que la empresa no veía en su panel que se habían
+     * enviado invitaciones a sus procesos, ni cuándo se aceptaban: solo
+     * aparecían cuando el candidato ya había postulado. Se suman aquí, con la
+     * fecha del hito (aceptada > enviada > creada) para ordenar bien contra las
+     * postulaciones.
+     */
+    const invitacionesActividad = await this.invitationRepository
+      .createQueryBuilder('inv')
+      .innerJoin('inv.process', 'process')
+      .where('process.company_id = :companyId', { companyId })
+      .select('inv.id', 'id')
+      .addSelect('inv.firstName', 'firstName')
+      .addSelect('inv.lastName', 'lastName')
+      .addSelect('process.name', 'proceso')
+      .addSelect('inv.status', 'status')
+      .addSelect('inv.sentAt', 'sentAt')
+      .addSelect('inv.acceptedAt', 'acceptedAt')
+      .addSelect('inv.createdAt', 'createdAt')
+      .orderBy('inv.created_at', 'DESC')
+      .limit(5)
+      .getRawMany()
+      .then((filas) =>
+        filas.map((f) => ({
+          id: `inv-${f.id}`,
+          tipo:
+            f.status === ProcessInvitationStatus.ACCEPTED
+              ? 'invitacion_aceptada'
+              : 'invitacion_enviada',
+          nombre:
+            `${f.firstName ?? ''} ${f.lastName ?? ''}`.trim() || 'Candidato',
+          proceso: f.proceso,
+          appliedAt: f.acceptedAt ?? f.sentAt ?? f.createdAt,
+        })),
+      );
+
+    // Se mezclan las dos fuentes y se dejan las 5 más recientes, que es lo que
+    // el panel muestra.
+    const actividadReciente = [
+      ...postulacionesActividad,
+      ...invitacionesActividad,
+    ]
+      .sort(
+        (a, b) =>
+          new Date(b.appliedAt ?? 0).getTime() -
+          new Date(a.appliedAt ?? 0).getTime(),
+      )
+      .slice(0, 5);
 
     return {
       procesosActivosDetalle: detallePorProceso,
