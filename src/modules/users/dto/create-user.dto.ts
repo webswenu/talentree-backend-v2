@@ -8,6 +8,10 @@ import {
   IsUUID,
 } from 'class-validator';
 import { IsStrongPassword } from '../../../common/validators/password.validator';
+import {
+  IsTelefono,
+  NormalizeTelefono,
+} from '../../../common/validators/telefono.validator';
 import { UserRole } from '../../../common/enums/user-role.enum';
 
 export class CreateUserDto {
@@ -25,8 +29,11 @@ export class CreateUserDto {
   @IsString({ message: 'El apellido es obligatorio' })
   lastName: string;
 
+  // R-10. Es la via por la que el propio candidato edita su telefono desde el
+  // perfil: sin regla aqui, la del registro solo duraba hasta el primer cambio.
   @IsOptional()
-  @IsString()
+  @NormalizeTelefono()
+  @IsTelefono()
   phone?: string;
 
   @IsOptional()
