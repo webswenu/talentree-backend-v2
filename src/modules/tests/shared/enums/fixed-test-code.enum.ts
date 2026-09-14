@@ -5,4 +5,6 @@ export enum FixedTestCode {
   TEST_CFR = 'TEST_CFR',
   TEST_IC = 'TEST_IC',
   TEST_TAC = 'TEST_TAC',
+  TEST_CEAL = 'TEST_CEAL',
+  TEST_BIS11 = 'TEST_BIS11',
 }

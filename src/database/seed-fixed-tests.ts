@@ -6,6 +6,8 @@ import { WonderlicSeeder } from './seeders/wonderlic.seeder';
 import { CfrSeeder } from './seeders/cfr.seeder';
 import { IcSeeder } from './seeders/ic.seeder';
 import { TacSeeder } from './seeders/tac.seeder';
+import { CealSeeder } from './seeders/ceal.seeder';
+import { Bis11Seeder } from './seeders/bis11.seeder';
 
 // Load environment variables
 config();
@@ -53,6 +55,14 @@ async function seedFixedTests() {
 
     // Run TAC Seeder
     await TacSeeder.run(AppDataSource);
+    console.log('');
+
+    // Run CEAL Seeder
+    await CealSeeder.run(AppDataSource);
+    console.log('');
+
+    // Run BIS-11 Seeder
+    await Bis11Seeder.run(AppDataSource);
     console.log('');
 
     console.log('✅ All fixed tests seeded successfully!\n');

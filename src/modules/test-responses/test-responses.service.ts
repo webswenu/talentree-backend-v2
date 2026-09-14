@@ -23,6 +23,8 @@ import { TestDISCScoringService } from './scoring/test-disc-scoring.service';
 import { TestILScoringService } from './scoring/test-il-scoring.service';
 import { TestICScoringService } from './scoring/test-ic-scoring.service';
 import { TestTACScoringService } from './scoring/test-tac-scoring.service';
+import { TestCEALScoringService } from './scoring/test-ceal-scoring.service';
+import { TestBIS11ScoringService } from './scoring/test-bis11-scoring.service';
 import { FixedTestCode } from '../tests/shared/enums/fixed-test-code.enum';
 import { WorkerStatus } from '../../common/enums/worker-status.enum';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
@@ -52,6 +54,8 @@ export class TestResponsesService {
     private readonly testILScoringService: TestILScoringService,
     private readonly testICScoringService: TestICScoringService,
     private readonly testTACScoringService: TestTACScoringService,
+    private readonly testCEALScoringService: TestCEALScoringService,
+    private readonly testBIS11ScoringService: TestBIS11ScoringService,
     private readonly notificationsGateway: NotificationsGateway,
     private readonly usersService: UsersService,
   ) {}
@@ -626,6 +630,28 @@ export class TestResponsesService {
         );
         break;
 
+      case FixedTestCode.TEST_CEAL:
+        const cealResult =
+          this.testCEALScoringService.calculateScore(testResponse.answers);
+        testResponse.rawScores = cealResult.rawScores;
+        testResponse.scaledScores = cealResult.scaledScores;
+        testResponse.interpretation = cealResult.interpretation;
+        this.logger.log(
+          `CEAL Test evaluated: ${cealResult.interpretation.resultadoResumen}`,
+        );
+        break;
+
+      case FixedTestCode.TEST_BIS11:
+        const bis11Result =
+          this.testBIS11ScoringService.calculateScore(testResponse.answers);
+        testResponse.rawScores = bis11Result.rawScores;
+        testResponse.scaledScores = bis11Result.scaledScores;
+        testResponse.interpretation = bis11Result.interpretation;
+        this.logger.log(
+          `BIS-11 Test evaluated: ${bis11Result.interpretation.resultadoResumen}`,
+        );
+        break;
+
       default:
         this.logger.warn(
           `No scoring service implemented for fixed test: ${testResponse.fixedTest.code}`,
@@ -796,6 +822,15 @@ export class TestResponsesService {
     if (!testResponse) {
       throw new NotFoundException(`TestResponse con ID ${id} no encontrado`);
     }
+
+    /**
+     * Las preguntas de un test fijo se cargan sin ORDER BY, así que Postgres
+     * puede devolverlas en cualquier orden, y el formulario las numera por
+     * posición. En el CEAL eso cambiaría el «1. … 12.» del cuadernillo.
+     */
+    testResponse.fixedTest?.questions?.sort(
+      (a, b) => a.questionNumber - b.questionNumber,
+    );
 
     /**
      * El segundo control comentado con `// TEMPORARILY DISABLED FOR TESTING`.

@@ -11,6 +11,8 @@ import { WonderlicSeeder } from './wonderlic.seeder';
 import { CfrSeeder } from './cfr.seeder';
 import { IcSeeder } from './ic.seeder';
 import { TacSeeder } from './tac.seeder';
+import { CealSeeder } from './ceal.seeder';
+import { Bis11Seeder } from './bis11.seeder';
 
 @Injectable()
 export class DatabaseSeeder {
@@ -46,13 +48,15 @@ export class DatabaseSeeder {
       // P-64: los tests fijos son los que de verdad se usan en los procesos, y
       // estaban en un comando aparte (seed:fixed-tests) que había que recordar
       // ejecutar. En una instalación nueva el catálogo salía vacío.
-      console.log('🧠 Seeding tests fijos (16PF, DISC, Wonderlic, CFR, IC, TAC)...');
+      console.log('🧠 Seeding tests fijos (16PF, DISC, Wonderlic, CFR, IC, TAC, CEAL, BIS-11)...');
       await SixteenPfSeeder.run(this.dataSource);
       await DiscSeeder.run(this.dataSource);
       await WonderlicSeeder.run(this.dataSource);
       await CfrSeeder.run(this.dataSource);
       await IcSeeder.run(this.dataSource);
       await TacSeeder.run(this.dataSource);
+      await CealSeeder.run(this.dataSource);
+      await Bis11Seeder.run(this.dataSource);
       console.log('');
 
       // P-21 y P-23: va al final, cuando ya existen usuarios, empresas y
