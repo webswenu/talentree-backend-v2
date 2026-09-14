@@ -21,6 +21,8 @@ import {
 } from 'docx';
 import { WorkerProcess } from '../workers/entities/worker-process.entity';
 import { TestResponse } from '../test-responses/entities/test-response.entity';
+import { formatearEfectividadCeal } from '../test-responses/scoring/test-ceal-scoring.service';
+import { CEAL_NIVELES_EFECTIVIDAD } from '../tests/shared/data/ceal.data';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
@@ -510,7 +512,11 @@ export class DocumentGeneratorService {
         : '-';
 
       let resultado = '-';
-      if (tr.interpretation?.nivel) {
+      if (tr.interpretation?.resultadoResumen) {
+        // CEAL y BIS-11: un nivel suelto («ALTA», «Moderado») no se entiende
+        // sin decir de qué es.
+        resultado = tr.interpretation.resultadoResumen;
+      } else if (tr.interpretation?.nivel) {
         resultado = tr.interpretation.nivel;
       } else if (tr.interpretation?.nivelGlobal) {
         resultado = tr.interpretation.nivelGlobal;
@@ -653,6 +659,12 @@ export class DocumentGeneratorService {
         break;
       case 'TEST_TAC':
         sections.push(...await this.renderTACSection(testResponse));
+        break;
+      case 'TEST_CEAL':
+        sections.push(...this.renderCEALSection(testResponse));
+        break;
+      case 'TEST_BIS11':
+        sections.push(...this.renderBIS11Section(testResponse));
         break;
       default:
         sections.push(...this.renderGenericSection(testResponse));
@@ -1365,6 +1377,312 @@ export class DocumentGeneratorService {
     return COLORS.text;
   }
 
+  // ========== SECCIÓN CEAL ==========
+
+  /**
+   * Sigue el «Feedback de resultados» del documento: tabla de estilos con su
+   * predominio y efectividad, la hoja de respuesta (estilos y efectividad
+   * situacional), el cuadrante tarea/personas y el cuadro de cómo son
+   * percibidos los estilos. Describe; no aprueba ni reprueba.
+   */
+  private renderCEALSection(testResponse: TestResponse): (Paragraph | Table)[] {
+    const sections: (Paragraph | Table)[] = [];
+    const interp = testResponse.interpretation as any;
+
+    if (!interp?.estilos?.length || !interp.efectividadGeneral) {
+      sections.push(...this.createResultadoNoDeterminado(interp?.descripcion));
+      return sections;
+    }
+
+    const estilos: any[] = interp.estilos;
+    const respuestas: any[] = interp.respuestas ?? [];
+    const general = interp.efectividadGeneral;
+    const efectividadDe = (e: any) =>
+      e.efectividad === null
+        ? 'Sin respuestas'
+        : `${formatearEfectividadCeal(e.efectividad)} (${e.nivelEfectividad})`;
+
+    sections.push(
+      this.createSubHeader('Resultados'),
+      this.createTablaDescriptiva(
+        ['Estilos', 'Predominio', 'Efectividad'],
+        [
+          ...estilos.map((e) => [`${e.numero}.- ${e.nombre}`, String(e.predominio), efectividadDe(e)]),
+          ['Efectividad general', '', `${formatearEfectividadCeal(general.puntaje)} (${general.nivel})`],
+        ],
+        [40, 20, 40],
+      ),
+      new Paragraph({
+        children: [new TextRun({ text: interp.referenciaTeorica, size: 18, italics: true, color: COLORS.textLight })],
+        spacing: { before: 120, after: 200 },
+      }),
+    );
+
+    if (respuestas.length > 0) {
+      sections.push(
+        this.createSubHeader('Estilos situacionales y efectividad situacional'),
+        this.createTablaDescriptiva(
+          ['Situación', ...respuestas.map((r) => String(r.situacion))],
+          [
+            ['Alternativa', ...respuestas.map((r) => r.alternativa)],
+            ['Estilo', ...respuestas.map((r) => String(r.estilo))],
+            ['Efectividad', ...respuestas.map((r) => formatearEfectividadCeal(r.efectividad))],
+          ],
+          [16, ...respuestas.map(() => 84 / respuestas.length)],
+        ),
+      );
+    }
+
+    sections.push(
+      this.createSubHeader('Estilos y efectividad de liderazgo'),
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: 'Eje vertical: orientación a la tarea (alta arriba). Eje horizontal: orientación a las personas (alta a la derecha).',
+            size: 18,
+            color: COLORS.textLight,
+          }),
+        ],
+        spacing: { after: 120 },
+      }),
+      this.createCuadranteCEAL(estilos, efectividadDe),
+      this.createSubHeader('Cómo podrían ser percibidos'),
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: 'Estos estilos podrían ser caracterizados según como son percibidos, por los demás, de acuerdo al siguiente cuadro:',
+            size: 20,
+          }),
+        ],
+        spacing: { after: 150 },
+      }),
+    );
+
+    for (const e of estilos) {
+      const titulo = `${e.numero}. ${e.nombre}`;
+      if (e.predominio === 0) {
+        sections.push(this.createParrafoEtiquetado(titulo, 'no se eligió en ninguna situación.'));
+      } else if (!e.percepcion) {
+        sections.push(
+          this.createParrafoEtiquetado(titulo, 'efectividad 0, en el punto medio: no se caracteriza como eficaz ni como ineficaz.'),
+        );
+      } else {
+        const tipo =
+          e.percepcion.tipo === 'EFICAZ'
+            ? 'eficaz, responde a la situación'
+            : 'ineficaz, no responde a la situación';
+        sections.push(
+          this.createParrafoEtiquetado(`${titulo} — ${e.percepcion.nombre}`, `(${tipo})`),
+          new Paragraph({
+            children: [new TextRun({ text: e.percepcion.descripcion, size: 20 })],
+            spacing: { after: 150 },
+          }),
+        );
+      }
+    }
+
+    sections.push(
+      this.createSubHeader('Pauta de corrección'),
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: 'Eficacia de cada estilo = efectividad situacional / estilos situacionales × 12. Tabla de efectividades:',
+            size: 18,
+            color: COLORS.textLight,
+          }),
+        ],
+        spacing: { after: 120 },
+      }),
+      this.createTablaDescriptiva(
+        ['Efectividad', 'Rango'],
+        [...CEAL_NIVELES_EFECTIVIDAD]
+          .reverse()
+          .map((n) => [n.nombre, `${formatearEfectividadCeal(n.min)} a ${formatearEfectividadCeal(n.max)}`]),
+        [50, 50],
+      ),
+    );
+
+    return sections;
+  }
+
+  /** El cuadrante del feedback: 1 y 2 arriba (tarea alta), 4 y 3 abajo. */
+  private createCuadranteCEAL(estilos: any[], efectividadDe: (e: any) => string): Table {
+    const celda = (numero: number) => {
+      const e = estilos.find((x) => x.numero === numero);
+      return new TableCell({
+        children: [
+          new Paragraph({
+            children: [new TextRun({ text: `${numero}  ${e?.nombre ?? ''}`, bold: true, size: 22, color: COLORS.primaryDark })],
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 120, after: 60 },
+          }),
+          new Paragraph({
+            children: [new TextRun({ text: `Predominio: ${e?.predominio ?? 0}`, size: 18 })],
+            alignment: AlignmentType.CENTER,
+          }),
+          new Paragraph({
+            children: [new TextRun({ text: `Efectividad: ${e ? efectividadDe(e) : '-'}`, size: 18 })],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 120 },
+          }),
+        ],
+        width: { size: 50, type: WidthType.PERCENTAGE },
+        shading: { type: ShadingType.SOLID, color: COLORS.background },
+        verticalAlign: VerticalAlign.CENTER,
+      });
+    };
+
+    return new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({ children: [celda(1), celda(2)] }),
+        new TableRow({ children: [celda(4), celda(3)] }),
+      ],
+    });
+  }
+
+  // ========== SECCIÓN BIS-11 ==========
+
+  /**
+   * Sigue la hoja «Informe» del Excel: resumen de puntajes, análisis por
+   * dimensión, conclusión general y nota metodológica. Describe; no aprueba ni
+   * reprueba.
+   */
+  private renderBIS11Section(testResponse: TestResponse): (Paragraph | Table)[] {
+    const sections: (Paragraph | Table)[] = [];
+    const interp = testResponse.interpretation as any;
+
+    if (!interp?.dimensiones?.length || !interp.total) {
+      sections.push(...this.createResultadoNoDeterminado(interp?.descripcion));
+      return sections;
+    }
+
+    const dimensiones: any[] = interp.dimensiones;
+    const total = interp.total;
+
+    sections.push(
+      this.createSubHeader('Resumen de puntajes'),
+      this.createTablaDescriptiva(
+        ['Dimensión', 'Puntaje', 'Máximo', 'Nivel'],
+        [...dimensiones, total].map((d) => [d.nombre, String(d.puntaje), String(d.maximo), d.nivel]),
+        [40, 20, 20, 20],
+      ),
+      this.createSubHeader('Análisis por dimensión'),
+    );
+
+    for (const d of dimensiones) {
+      sections.push(
+        new Paragraph({
+          children: [new TextRun({ text: `${d.nombre} — ${d.puntaje}/${d.maximo} puntos (${d.nivel})`, bold: true, size: 22 })],
+          spacing: { before: 150, after: 60 },
+        }),
+        new Paragraph({
+          children: [new TextRun({ text: d.interpretacion, size: 20 })],
+          spacing: { after: 150 },
+        }),
+      );
+    }
+
+    sections.push(
+      this.createSubHeader('Conclusión general'),
+      new Paragraph({
+        children: [
+          new TextRun({ text: `Puntaje total: ${total.puntaje}/${total.maximo} puntos — Nivel: ${total.nivel}`, bold: true, size: 22 }),
+        ],
+        spacing: { before: 150, after: 60 },
+      }),
+      new Paragraph({
+        children: [new TextRun({ text: total.interpretacion, size: 20 })],
+        spacing: { after: 200 },
+      }),
+    );
+
+    if (interp.notaMetodologica) {
+      sections.push(
+        this.createSubHeader('Nota metodológica'),
+        new Paragraph({
+          children: [new TextRun({ text: interp.notaMetodologica, size: 18, color: COLORS.textLight })],
+          spacing: { after: 200 },
+        }),
+      );
+    }
+
+    return sections;
+  }
+
+  // ========== AUXILIARES DE CEAL Y BIS-11 ==========
+
+  /** Tabla con encabezado y filas de texto. `anchos` en porcentaje. */
+  private createTablaDescriptiva(encabezados: string[], filas: string[][], anchos: number[]): Table {
+    const celda = (texto: string, i: number, opciones: { encabezado?: boolean; fondo: string }) =>
+      new TableCell({
+        children: [
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: texto,
+                bold: opciones.encabezado || i === 0,
+                size: 18,
+                color: opciones.encabezado ? COLORS.white : COLORS.text,
+              }),
+            ],
+            alignment: i === 0 ? AlignmentType.LEFT : AlignmentType.CENTER,
+            spacing: { before: 60, after: 60 },
+          }),
+        ],
+        width: { size: anchos[i], type: WidthType.PERCENTAGE },
+        shading: { type: ShadingType.SOLID, color: opciones.fondo },
+        verticalAlign: VerticalAlign.CENTER,
+      });
+
+    return new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({
+          tableHeader: true,
+          children: encabezados.map((t, i) => celda(t, i, { encabezado: true, fondo: COLORS.primaryDark })),
+        }),
+        ...filas.map(
+          (fila, indice) =>
+            new TableRow({
+              children: fila.map((t, i) =>
+                celda(t, i, { fondo: indice % 2 === 0 ? COLORS.white : COLORS.background }),
+              ),
+            }),
+        ),
+      ],
+    });
+  }
+
+  private createParrafoEtiquetado(etiqueta: string, texto: string): Paragraph {
+    return new Paragraph({
+      children: [
+        new TextRun({ text: `${etiqueta} `, bold: true, size: 20 }),
+        new TextRun({ text: texto, size: 20, color: COLORS.textLight }),
+      ],
+      spacing: { before: 100, after: 60 },
+    });
+  }
+
+  /** Cuando el puntuador no pudo leer las respuestas: se dice, no se inventa un resultado. */
+  private createResultadoNoDeterminado(descripcion?: string): Paragraph[] {
+    return [
+      new Paragraph({
+        children: [new TextRun({ text: 'RESULTADO NO DETERMINADO', bold: true, size: 24, color: COLORS.warning })],
+        spacing: { before: 200, after: 120 },
+      }),
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: descripcion || 'No fue posible calcular el resultado de este test.',
+            size: 22,
+          }),
+        ],
+        spacing: { after: 200 },
+      }),
+    ];
+  }
+
   // ========== SECCIÓN GENÉRICA ==========
 
   private renderGenericSection(testResponse: TestResponse): (Paragraph | Table)[] {
@@ -1436,7 +1754,9 @@ export class DocumentGeneratorService {
     workerProcess.testResponses?.forEach(tr => {
       if (tr.interpretation) {
         const testName = tr.fixedTest?.name || tr.test?.name || 'Test';
-        if (tr.interpretation.nivel) {
+        if (tr.interpretation.resultadoResumen) {
+          keyFindings.push(`${testName}: ${tr.interpretation.resultadoResumen}`);
+        } else if (tr.interpretation.nivel) {
           keyFindings.push(`${testName}: Nivel ${tr.interpretation.nivel}`);
         } else if (tr.interpretation.nivelGlobal) {
           keyFindings.push(`${testName}: ${tr.interpretation.nivelGlobal.replace('_', ' ')}`);
