@@ -98,8 +98,8 @@ export class WorkersController {
 
   @Post('apply-to-process')
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.WORKER)
-  applyToProcess(@Body() applyDto: ApplyToProcessDto) {
-    return this.workersService.applyToProcess(applyDto);
+  applyToProcess(@Body() applyDto: ApplyToProcessDto, @Request() req) {
+    return this.workersService.applyToProcess(applyDto, req.user);
   }
 
   @Get(':workerId/dashboard-stats')

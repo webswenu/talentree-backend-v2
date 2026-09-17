@@ -27,6 +27,10 @@ import { PaginatedResult } from '../../common/dto/pagination.dto';
 import { paginate } from '../../common/helpers/pagination.helper';
 import { EmailHelper } from '../../common/helpers/email.helper';
 import {
+  buildProcessInvitationEmail,
+  buildWelcomeToProcessEmail,
+} from '../../common/helpers/worker-emails';
+import {
   assertBelongsToUserCompany,
   isCompanyScopedRole,
   resolveUserCompanyId,
@@ -150,37 +154,7 @@ export class ProcessInvitationsService {
 
     // Enviar email con el token de invitación
     try {
-      const frontendUrl = globalThis.process.env.FRONTEND_URL || 'http://localhost:5173';
-      const invitationUrl = `${frontendUrl}/invitations/${invitationWithRelations.token}`;
-
-      await EmailHelper.sendEmail(
-        invitationWithRelations.email,
-        `Invitación para postular al proceso: ${invitationWithRelations.process.name}`,
-        `Hola ${invitationWithRelations.firstName} ${invitationWithRelations.lastName},\n\nHas sido invitado a postular al proceso: ${invitationWithRelations.process.name}\n\nPara aceptar, visita: ${invitationUrl}\n\nSaludos,\nEquipo Talentree`,
-        `
-<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"></head>
-<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1>¡Has sido invitado!</h1>
-  </div>
-  <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
-    <p>Hola <strong>${invitationWithRelations.firstName} ${invitationWithRelations.lastName}</strong>,</p>
-    <p>Has sido invitado a postular al siguiente proceso de selección:</p>
-    <div style="background: white; border-left: 4px solid #14b8a6; padding: 15px; margin: 20px 0; border-radius: 4px;">
-      <h3 style="margin-top: 0; color: #14b8a6;">${invitationWithRelations.process.name}</h3>
-    </div>
-    <div style="text-align: center; margin: 30px 0;">
-      <a href="${invitationUrl}" style="display: inline-block; background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">Aceptar Invitación</a>
-    </div>
-    <p style="color: #6b7280; font-size: 14px;">O copia este enlace: <a href="${invitationUrl}" style="color: #14b8a6;">${invitationUrl}</a></p>
-    <p style="color: #92400e; background: #fffbeb; padding: 10px; border-radius: 4px;"><strong>⏰ Importante:</strong> Esta invitación expira en 7 días.</p>
-  </div>
-</body>
-</html>
-        `,
-      );
+      await this.sendInvitationEmail(invitationWithRelations);
 
       // Marcar como enviado
       invitationWithRelations.sentAt = new Date();
@@ -389,6 +363,8 @@ export class ProcessInvitationsService {
         processName,
         companyName,
         position,
+        invitation.process.endDate,
+        workerProcess.id,
       );
     } catch (error) {
       // Log error pero no fallar - la aplicación se creó correctamente
@@ -669,6 +645,8 @@ export class ProcessInvitationsService {
         processName,
         companyName,
         position,
+        invitation.process.endDate,
+        workerProcess.id,
       );
     } catch (error) {
       console.error('Error sending welcome email:', error);
@@ -748,37 +726,7 @@ export class ProcessInvitationsService {
 
     // Reenviar email
     try {
-      const frontendUrl = globalThis.process.env.FRONTEND_URL || 'http://localhost:5173';
-      const invitationUrl = `${frontendUrl}/invitations/${updated.token}`;
-
-      await EmailHelper.sendEmail(
-        updated.email,
-        `Invitación para postular al proceso: ${updated.process.name}`,
-        `Hola ${updated.firstName} ${updated.lastName},\n\nHas sido invitado a postular al proceso: ${updated.process.name}\n\nPara aceptar, visita: ${invitationUrl}\n\nSaludos,\nEquipo Talentree`,
-        `
-<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"></head>
-<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1>¡Has sido invitado!</h1>
-  </div>
-  <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
-    <p>Hola <strong>${updated.firstName} ${updated.lastName}</strong>,</p>
-    <p>Has sido invitado a postular al siguiente proceso de selección:</p>
-    <div style="background: white; border-left: 4px solid #14b8a6; padding: 15px; margin: 20px 0; border-radius: 4px;">
-      <h3 style="margin-top: 0; color: #14b8a6;">${updated.process.name}</h3>
-    </div>
-    <div style="text-align: center; margin: 30px 0;">
-      <a href="${invitationUrl}" style="display: inline-block; background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">Aceptar Invitación</a>
-    </div>
-    <p style="color: #6b7280; font-size: 14px;">O copia este enlace: <a href="${invitationUrl}" style="color: #14b8a6;">${invitationUrl}</a></p>
-    <p style="color: #92400e; background: #fffbeb; padding: 10px; border-radius: 4px;"><strong>⏰ Importante:</strong> Esta invitación expira en 7 días.</p>
-  </div>
-</body>
-</html>
-        `,
-      );
+      await this.sendInvitationEmail(updated, true);
 
       // Marcar como enviado
       updated.sentAt = new Date();
@@ -807,7 +755,37 @@ export class ProcessInvitationsService {
   }
 
   /**
-   * Envía email de bienvenida al proceso
+   * Envía la invitación al proceso con las instrucciones paso a paso.
+   * Se usa tanto al crear la invitación como al reenviarla; el contenido
+   * vive en common/helpers/worker-emails.ts.
+   */
+  private async sendInvitationEmail(
+    invitation: ProcessInvitation,
+    reenvio = false,
+  ): Promise<void> {
+    const email = buildProcessInvitationEmail({
+      firstName: invitation.firstName,
+      lastName: invitation.lastName,
+      email: invitation.email,
+      token: invitation.token,
+      processName: invitation.process.name,
+      position: invitation.process.position,
+      companyName: invitation.process.company?.name,
+      expiresAt: invitation.expiresAt,
+      reenvio,
+    });
+
+    await EmailHelper.sendEmail(
+      invitation.email,
+      email.subject,
+      email.text,
+      email.html,
+    );
+  }
+
+  /**
+   * Envía el correo de bienvenida al proceso, con el paso a paso para
+   * ingresar a la plataforma y rendir las evaluaciones.
    */
   private async sendWelcomeToProcessEmail(
     email: string,
@@ -815,96 +793,19 @@ export class ProcessInvitationsService {
     processName: string,
     companyName: string,
     position: string,
+    endDate?: Date | null,
+    workerProcessId?: string,
   ): Promise<void> {
-    const subject = `¡Bienvenido al proceso de selección para ${position}!`;
+    const correo = buildWelcomeToProcessEmail({
+      workerName,
+      workerEmail: email,
+      processName,
+      companyName,
+      position,
+      endDate,
+      workerProcessId,
+    });
 
-    const textContent = `Hola ${workerName},
-
-¡Gracias por aceptar la invitación y postularte al proceso de selección "${processName}" en ${companyName}!
-
-Tu postulación ha sido recibida exitosamente. Ahora puedes comenzar a completar las evaluaciones asignadas.
-
-Pasos a seguir:
-1. Ingresa a la plataforma Talentree
-2. Ve a la sección "Mis Procesos"
-3. Completa los tests y evaluaciones asignadas
-
-Te recomendamos completar las evaluaciones lo antes posible para avanzar en el proceso de selección.
-
-¡Mucho éxito!
-
-Saludos,
-Equipo Talentree`;
-
-    const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-    .header h1 { margin: 0; font-size: 24px; }
-    .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
-    .welcome-badge { background: #d1fae5; color: #065f46; padding: 15px 25px; border-radius: 50px; display: inline-block; font-weight: bold; margin: 20px 0; }
-    .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #14b8a6; }
-    .steps { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
-    .step { display: flex; align-items: center; margin: 15px 0; }
-    .step-number { background: #14b8a6; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold; }
-    .footer { text-align: center; margin-top: 20px; color: #6b7280; font-size: 14px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>¡Bienvenido/a al Proceso!</h1>
-    </div>
-    <div class="content">
-      <p>Hola <strong>${workerName}</strong>,</p>
-
-      <div style="text-align: center;">
-        <span class="welcome-badge">✓ Invitación Aceptada</span>
-      </div>
-
-      <p>¡Gracias por aceptar nuestra invitación! Tu interés en formar parte de nuestro equipo es muy importante para nosotros.</p>
-
-      <div class="info-box">
-        <p style="margin: 0;"><strong>Proceso:</strong> ${processName}</p>
-        <p style="margin: 10px 0 0 0;"><strong>Empresa:</strong> ${companyName}</p>
-        <p style="margin: 10px 0 0 0;"><strong>Cargo:</strong> ${position}</p>
-      </div>
-
-      <div class="steps">
-        <h3 style="margin-top: 0; color: #0d9488;">Próximos pasos:</h3>
-        <div class="step">
-          <span class="step-number">1</span>
-          <span>Ingresa a la plataforma Talentree</span>
-        </div>
-        <div class="step">
-          <span class="step-number">2</span>
-          <span>Ve a la sección "Mis Procesos"</span>
-        </div>
-        <div class="step">
-          <span class="step-number">3</span>
-          <span>Completa los tests y evaluaciones asignadas</span>
-        </div>
-      </div>
-
-      <p style="color: #059669; background: #d1fae5; padding: 15px; border-radius: 8px; text-align: center;">
-        <strong>💡 Tip:</strong> Te recomendamos completar las evaluaciones lo antes posible para avanzar en el proceso de selección.
-      </p>
-
-      <div class="footer">
-        <p>¡Mucho éxito en tu proceso!</p>
-        <p>Equipo Talentree</p>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
-    `;
-
-    await EmailHelper.sendEmail(email, subject, textContent, htmlContent);
+    await EmailHelper.sendEmail(email, correo.subject, correo.text, correo.html);
   }
 }

@@ -31,6 +31,7 @@ import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { NotificationType } from '../../common/enums/notification-type.enum';
 import { UsersService } from '../users/users.service';
 import { EmailHelper } from '../../common/helpers/email.helper';
+import { buildTestsCompletedEmail } from '../../common/helpers/worker-emails';
 import { assertPuedeAccederAPostulacion } from '../../common/helpers/ownership.helper';
 
 @Injectable()
@@ -1092,7 +1093,8 @@ export class TestResponsesService {
   }
 
   /**
-   * Sends email notification when worker completes all tests
+   * Correo al completar la última evaluación del proceso: qué sigue y dónde
+   * ver el estado de la postulación. Contenido en common/helpers/worker-emails.ts.
    */
   private async sendTestsCompletedEmail(
     email: string,
@@ -1102,84 +1104,14 @@ export class TestResponsesService {
     position: string,
     testsCompleted: number,
   ): Promise<void> {
-    const subject = `¡Has completado todas las evaluaciones para ${position}!`;
+    const correo = buildTestsCompletedEmail({
+      workerName,
+      processName,
+      companyName,
+      position,
+      testsCompleted,
+    });
 
-    const textContent = `Hola ${workerName},
-
-¡Felicitaciones! Has completado exitosamente todas las ${testsCompleted} evaluaciones del proceso de selección "${processName}" en ${companyName}.
-
-¿Qué sigue ahora?
-Tu perfil y resultados serán revisados por el equipo de selección. Te notificaremos sobre los siguientes pasos del proceso.
-
-Te recomendamos mantener tus datos de contacto actualizados para no perderte ninguna comunicación importante.
-
-¡Gracias por tu participación!
-
-Saludos,
-Equipo Talentree`;
-
-    const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-    .header h1 { margin: 0; font-size: 24px; }
-    .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
-    .success-badge { background: #d1fae5; color: #065f46; padding: 15px 25px; border-radius: 50px; display: inline-block; font-weight: bold; margin: 20px 0; }
-    .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #059669; }
-    .stats { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }
-    .stat-number { font-size: 48px; font-weight: bold; color: #059669; }
-    .stat-label { color: #6b7280; font-size: 14px; }
-    .next-steps { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 4px; margin: 20px 0; }
-    .footer { text-align: center; margin-top: 20px; color: #6b7280; font-size: 14px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>¡Evaluaciones Completadas!</h1>
-    </div>
-    <div class="content">
-      <p>Hola <strong>${workerName}</strong>,</p>
-
-      <div style="text-align: center;">
-        <span class="success-badge">✓ ¡Proceso de Evaluación Completado!</span>
-      </div>
-
-      <div class="stats">
-        <div class="stat-number">${testsCompleted}</div>
-        <div class="stat-label">evaluaciones completadas</div>
-      </div>
-
-      <div class="info-box">
-        <p style="margin: 0;"><strong>Proceso:</strong> ${processName}</p>
-        <p style="margin: 10px 0 0 0;"><strong>Empresa:</strong> ${companyName}</p>
-        <p style="margin: 10px 0 0 0;"><strong>Cargo:</strong> ${position}</p>
-      </div>
-
-      <div class="next-steps">
-        <h3 style="margin-top: 0; color: #92400e;">¿Qué sigue ahora?</h3>
-        <p style="margin-bottom: 0;">Tu perfil y resultados serán revisados por el equipo de selección. Te notificaremos sobre los siguientes pasos del proceso.</p>
-      </div>
-
-      <p style="color: #059669; background: #d1fae5; padding: 15px; border-radius: 8px; text-align: center;">
-        <strong>💡 Tip:</strong> Mantén tus datos de contacto actualizados para no perderte ninguna comunicación importante.
-      </p>
-
-      <div class="footer">
-        <p>¡Gracias por tu participación!</p>
-        <p>Equipo Talentree</p>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
-    `;
-
-    await EmailHelper.sendEmail(email, subject, textContent, htmlContent);
+    await EmailHelper.sendEmail(email, correo.subject, correo.text, correo.html);
   }
 }
