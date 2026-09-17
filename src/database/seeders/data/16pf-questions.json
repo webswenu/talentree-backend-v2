@@ -5,7 +5,7 @@
     "questionType": "multiple_choice_ternary",
     "factor": "A",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -21,11 +21,11 @@
   },
   {
     "questionNumber": 2,
-    "questionText": "Estoy dispuesto (a) a contestar todas las afirmaciones con sinceridad",
+    "questionText": "Estoy dispuesto(a) a contestar todas las afirmaciones con sinceridad",
     "questionType": "multiple_choice_ternary",
     "factor": "B",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -41,7 +41,7 @@
   },
   {
     "questionNumber": 3,
-    "questionText": "¿Cuáles de las siguientes palabras es diferente de las otras dos?",
+    "questionText": "¿Cuál de las siguientes palabras es diferente de las otras dos?",
     "questionType": "multiple_choice_ternary",
     "factor": "C",
     "options": {
@@ -65,7 +65,7 @@
     "questionType": "multiple_choice_ternary",
     "factor": "E",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "Frecuentemente",
       "C": "Raras Veces",
       "scoring": {
@@ -81,11 +81,11 @@
   },
   {
     "questionNumber": 5,
-    "questionText": "Evito criticar a la gente y su ideas",
+    "questionText": "Evito criticar a la gente y sus ideas",
     "questionType": "multiple_choice_ternary",
     "factor": "F",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "Algunas Veces",
       "C": "No",
       "scoring": {
@@ -121,13 +121,13 @@
   },
   {
     "questionNumber": 7,
-    "questionText": "Me gusta más la musica semiclásica que las canciones populares",
+    "questionText": "Me gusta más la música semiclásica que las canciones populares",
     "questionType": "multiple_choice_ternary",
     "factor": "H",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -165,7 +165,7 @@
     "questionType": "multiple_choice_ternary",
     "factor": "L",
     "options": {
-      "A": "Facilmente soy de los que toman la iniciativa",
+      "A": "Fácilmente soy de los que toman la iniciativa",
       "B": "Intervengo algunas veces",
       "C": "Prefiero quedarme tranquilamente a distancia",
       "scoring": {
@@ -181,7 +181,7 @@
   },
   {
     "questionNumber": 10,
-    "questionText": "Seria mas intere ser",
+    "questionText": "Sería más interesante ser",
     "questionType": "multiple_choice_ternary",
     "factor": "M",
     "options": {
@@ -201,13 +201,13 @@
   },
   {
     "questionNumber": 11,
-    "questionText": "Generalmente puedo tolerar a la gente presuntuosa, aunquefanfarronee o piensesn demasiado bien de si mismas",
+    "questionText": "Generalmente puedo tolerar a la gente presuntuosa, aunque fanfarronee o piense demasiado bien de sí misma",
     "questionType": "multiple_choice_ternary",
     "factor": "N",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
-      "C": " NO",
+      "A": "Sí",
+      "B": "Término medio",
+      "C": "No",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -221,13 +221,13 @@
   },
   {
     "questionNumber": 12,
-    "questionText": "Cuando una persona  no es honrada, casi siempre se le puede nortar en la cara",
+    "questionText": "Cuando una persona no es honrada, casi siempre se le puede notar en la cara",
     "questionType": "multiple_choice_ternary",
     "factor": "O",
     "options": {
-      "A": "True",
-      "B": "Termino Medio",
-      "C": "False",
+      "A": "Verdadero",
+      "B": "Término medio",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -241,11 +241,11 @@
   },
   {
     "questionNumber": 13,
-    "questionText": "Aceptaría mejor el riesgo de un trabajo donde pudiera tener ganancias mayores, aunque eventuales, que otro on sueldo pequeño, pero seguro",
+    "questionText": "Aceptaría mejor el riesgo de un trabajo donde pudiera tener ganancias mayores, aunque eventuales, que otro con sueldo pequeño, pero seguro",
     "questionType": "multiple_choice_ternary",
     "factor": "Q1",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -265,8 +265,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q2",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -286,7 +286,7 @@
     "factor": "Q3",
     "options": {
       "A": "No me siento culpable",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Todavía me siento culpable",
       "scoring": {
         "A": 0,
@@ -305,7 +305,7 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q4",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -321,12 +321,12 @@
   },
   {
     "questionNumber": 17,
-    "questionText": "La mayoría de las personas serían más felices si convivivieran más con la gemte de su novel e hicieran cosas como los demás",
+    "questionText": "La mayoría de las personas serían más felices si convivieran más con la gente de su nivel e hicieran cosas como los demás",
     "questionType": "multiple_choice_ternary",
     "factor": "A",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -341,13 +341,13 @@
   },
   {
     "questionNumber": 18,
-    "questionText": "En ocasiones, mirandome al espejo me entran dudas sobre lo que es mi izquierda o derecha",
+    "questionText": "En ocasiones, mirándome al espejo me entran dudas sobre lo que es mi izquierda o derecha",
     "questionType": "multiple_choice_ternary",
     "factor": "B",
     "options": {
-      "A": "True",
-      "B": "Termino Medio",
-      "C": "False",
+      "A": "Verdadero",
+      "B": "Término medio",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -361,12 +361,12 @@
   },
   {
     "questionNumber": 19,
-    "questionText": "Cuando algo realmete me pone furioso, suelo calmarme muey pronto",
+    "questionText": "Cuando algo realmente me pone furioso, suelo calmarme muy pronto",
     "questionType": "multiple_choice_ternary",
     "factor": "C",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -381,13 +381,13 @@
   },
   {
     "questionNumber": 20,
-    "questionText": "Preferiria tener una casa",
+    "questionText": "Preferiría tener una casa",
     "questionType": "multiple_choice_ternary",
     "factor": "E",
     "options": {
       "A": "En un barrio con vida social",
-      "B": "Termino Medio",
-      "C": "Aislada en e bosque",
+      "B": "Término medio",
+      "C": "Aislada en el bosque",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -421,11 +421,11 @@
   },
   {
     "questionNumber": 22,
-    "questionText": "\"Cansado es a \"Trabajador\", como Orulloso es a ",
+    "questionText": "\"Cansado\" es a \"Trabajador\" como \"Orgulloso\" es a",
     "questionType": "multiple_choice_ternary",
     "factor": "G",
     "options": {
-      "A": "Sonreir",
+      "A": "Sonreír",
       "B": "Tener Éxito",
       "C": "Ser Feliz",
       "scoring": {
@@ -441,11 +441,11 @@
   },
   {
     "questionNumber": 23,
-    "questionText": "Me pongo algo nervioso ante animales salvajes, incluso cuandi están encerrados en fuertes jaulas",
+    "questionText": "Me pongo algo nervioso ante animales salvajes, incluso cuando están encerrados en fuertes jaulas",
     "questionType": "multiple_choice_ternary",
     "factor": "H",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -466,7 +466,7 @@
     "factor": "I",
     "options": {
       "A": "Solo después de muchas discusiones",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Inmediatamente",
       "scoring": {
         "A": 0,
@@ -485,8 +485,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "L",
     "options": {
-      "A": "Si",
-      "B": "No Estoy Seguro",
+      "A": "Sí",
+      "B": "No estoy seguro",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -501,12 +501,12 @@
   },
   {
     "questionNumber": 26,
-    "questionText": "Me gusta salir a divertirme o ir a un espectaculo",
+    "questionText": "Me gusta salir a divertirme o ir a un espectáculo",
     "questionType": "multiple_choice_ternary",
     "factor": "M",
     "options": {
       "A": "Más de una vez por semana (lo corriente)",
-      "B": "Alrededor de una vez por semana ",
+      "B": "Alrededor de una vez por semana",
       "C": "Menos de una vez por semana",
       "scoring": {
         "A": 0,
@@ -527,7 +527,7 @@
     "options": {
       "A": "Lo acepto simplemente",
       "B": "Término medio",
-      "C": "Me disgusta y me fastiia",
+      "C": "Me disgusta y me fastidia",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -541,12 +541,12 @@
   },
   {
     "questionNumber": 28,
-    "questionText": "Estano en un grupo social me siento u poco turbado si de ponto paso a ser el foco de atención",
+    "questionText": "Estando en un grupo social me siento un poco turbado si de pronto paso a ser el foco de atención",
     "questionType": "multiple_choice_ternary",
     "factor": "O",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -565,9 +565,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q1",
     "options": {
-      "A": "Vernadero",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -581,11 +581,11 @@
   },
   {
     "questionNumber": 30,
-    "questionText": "Cuando me ponen al frente de algo, insisto en que sigan mis instrucciones, en caso contratio, renuncio",
+    "questionText": "Cuando me ponen al frente de algo, insisto en que sigan mis instrucciones, en caso contrario, renuncio",
     "questionType": "multiple_choice_ternary",
     "factor": "Q2",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "Algunas Veces",
       "C": "No",
       "scoring": {
@@ -626,7 +626,7 @@
     "factor": "Q4",
     "options": {
       "A": "Sólo si es necesario",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Fácilmente, siempre que tengo la ocasión",
       "scoring": {
         "A": 0,
@@ -641,13 +641,13 @@
   },
   {
     "questionNumber": 33,
-    "questionText": "Me siento muy abatido cuando la gente me ritica en un grupo",
+    "questionText": "Me siento muy abatido cuando la gente me critica en un grupo",
     "questionType": "multiple_choice_ternary",
     "factor": "A",
     "options": {
-      "A": "True",
-      "B": "Termino Medio",
-      "C": "False",
+      "A": "Verdadero",
+      "B": "Término medio",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -666,7 +666,7 @@
     "factor": "B",
     "options": {
       "A": "Aprovecho para pedirle algo que deseo",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Temo haber hecho algo mal",
       "scoring": {
         "A": 0,
@@ -701,7 +701,7 @@
   },
   {
     "questionNumber": 36,
-    "questionText": "En mi adolescencia pertenecia a grupos deportivos",
+    "questionText": "En mi adolescencia pertenecía a grupos deportivos",
     "questionType": "multiple_choice_ternary",
     "factor": "E",
     "options": {
@@ -726,7 +726,7 @@
     "factor": "F",
     "options": {
       "A": "Decir las cosas tal como se me ocurren",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Organizar antes mis ideas",
       "scoring": {
         "A": 0,
@@ -745,8 +745,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "G",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -801,7 +801,7 @@
   },
   {
     "questionNumber": 41,
-    "questionText": "\"Sorpresa\" es a \"Extraño\", como \"Miedo es a",
+    "questionText": "\"Sorpresa\" es a \"Extraño\", como \"Miedo\" es a",
     "questionType": "multiple_choice_ternary",
     "factor": "L",
     "options": {
@@ -821,13 +821,13 @@
   },
   {
     "questionNumber": 42,
-    "questionText": "A veces no puedo dormirme porque tengo una iea que me da vueltas en la cabeza",
+    "questionText": "A veces no puedo dormirme porque tengo una idea que me da vueltas en la cabeza",
     "questionType": "multiple_choice_ternary",
     "factor": "M",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -845,9 +845,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "N",
     "options": {
-      "A": "True",
-      "B": "Termino Medio",
-      "C": "False",
+      "A": "Verdadero",
+      "B": "Término medio",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -865,8 +865,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "O",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -885,9 +885,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q1",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -901,13 +901,13 @@
   },
   {
     "questionNumber": 46,
-    "questionText": "Creo que es más importante mucha libertad que buena educación y respeto a la ley ",
+    "questionText": "Creo que es más importante mucha libertad que buena educación y respeto a la ley",
     "questionType": "multiple_choice_ternary",
     "factor": "Q2",
     "options": {
-      "A": "Vernadero",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -925,8 +925,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q3",
     "options": {
-      "A": "Si ",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -941,7 +941,7 @@
   },
   {
     "questionNumber": 48,
-    "questionText": "En mi época de estudiante me gustaba(gusta)",
+    "questionText": "En mi época de estudiante me gustaba (gusta)",
     "questionType": "multiple_choice_ternary",
     "factor": "Q4",
     "options": {
@@ -986,7 +986,7 @@
     "factor": "B",
     "options": {
       "A": "Ayudar a sus hijos a desarrollarse afectivamente",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Enseñarles a controlar sus emociones",
       "scoring": {
         "A": 0,
@@ -1005,8 +1005,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "C",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -1026,7 +1026,7 @@
     "factor": "E",
     "options": {
       "A": "Muy raramente",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Muy a menudo",
       "scoring": {
         "A": 0,
@@ -1045,8 +1045,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "F",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -1081,11 +1081,11 @@
   },
   {
     "questionNumber": 55,
-    "questionText": "Preferiría tener un negocio propio, no ompartido con otra persona",
+    "questionText": "Preferiría tener un negocio propio, no compartido con otra persona",
     "questionType": "multiple_choice_ternary",
     "factor": "H",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -1105,8 +1105,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "I",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -1125,8 +1125,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "L",
     "options": {
-      "A": "Si ",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -1181,7 +1181,7 @@
   },
   {
     "questionNumber": 60,
-    "questionText": "\"Tamaño\" es a \"Longitud\" como \"Delito es a",
+    "questionText": "\"Tamaño\" es a \"Longitud\" como \"Delito\" es a",
     "questionType": "multiple_choice_ternary",
     "factor": "O",
     "options": {
@@ -1201,13 +1201,13 @@
   },
   {
     "questionNumber": 61,
-    "questionText": "En mi vida personal cosigo casi siempre todos mis propósitos",
+    "questionText": "En mi vida personal consigo casi siempre todos mis propósitos",
     "questionType": "multiple_choice_ternary",
     "factor": "Q1",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "No",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -1225,7 +1225,7 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q2",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -1245,7 +1245,7 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q3",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -1265,9 +1265,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q4",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -1281,12 +1281,12 @@
   },
   {
     "questionNumber": 65,
-    "questionText": "Algunas veces la gente dice que soy descuidado (a), aunque me considera una persona agradable",
+    "questionText": "Algunas veces la gente dice que soy descuidado(a), aunque me considera una persona agradable",
     "questionType": "multiple_choice_ternary",
     "factor": "A",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -1305,8 +1305,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "B",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -1325,8 +1325,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "C",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -1345,9 +1345,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "E",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -1366,7 +1366,7 @@
     "factor": "F",
     "options": {
       "A": "Intentar mejorar los preparativos",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Llevar las actas o registros y procurar que se cumplan las normas",
       "scoring": {
         "A": 0,
@@ -1385,8 +1385,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "G",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -1406,7 +1406,7 @@
     "factor": "H",
     "options": {
       "A": "No me importa nada",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Me siento afectado",
       "scoring": {
         "A": 0,
@@ -1421,11 +1421,11 @@
   },
   {
     "questionNumber": 72,
-    "questionText": "Siempre estoy alertaante los intentos de propaganda en las cosas que leo",
+    "questionText": "Siempre estoy alerta ante los intentos de propaganda en las cosas que leo",
     "questionType": "multiple_choice_ternary",
     "factor": "I",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -1445,9 +1445,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "L",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -1466,7 +1466,7 @@
     "factor": "M",
     "options": {
       "A": "Discutir los acontecimientos con la gente",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Apoyarme en las informaciones periodísticas de actualidad",
       "scoring": {
         "A": 0,
@@ -1485,9 +1485,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "N",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -1605,9 +1605,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "A",
     "options": {
-      "A": "True",
-      "B": "Termino Medio",
-      "C": "False",
+      "A": "Verdadero",
+      "B": "Término medio",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -1625,8 +1625,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "B",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -1645,8 +1645,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "C",
     "options": {
-      "A": "Intento organizarme andes de que aparezcan",
-      "B": "Termino Medio",
+      "A": "Intento organizarme antes de que aparezcan",
+      "B": "Término medio",
       "C": "Por supuesto que puedo dominarlas cuando vengan",
       "scoring": {
         "A": 0,
@@ -1665,8 +1665,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "E",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -1725,8 +1725,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "H",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -1745,8 +1745,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "I",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -1765,8 +1765,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "L",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -1785,8 +1785,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "M",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -1806,7 +1806,7 @@
     "factor": "N",
     "options": {
       "A": "Mantenía mi opinión",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Aceptaba su autoridad",
       "scoring": {
         "A": 0,
@@ -1825,8 +1825,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "O",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -1845,9 +1845,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q1",
     "options": {
-      "A": "True",
-      "B": "Termino Medio",
-      "C": "False",
+      "A": "Verdadero",
+      "B": "Término medio",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -1885,8 +1885,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q3",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -1941,13 +1941,13 @@
   },
   {
     "questionNumber": 98,
-    "questionText": "Algunas personas parecen ignorarme o evitarme, aunque no sé porqué",
+    "questionText": "Algunas personas parecen ignorarme o evitarme, aunque no sé por qué",
     "questionType": "multiple_choice_ternary",
     "factor": "B",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -1981,12 +1981,12 @@
   },
   {
     "questionNumber": 100,
-    "questionText": "Aunque no sea en un grupo mixto de mujeres y hombres, me disgusta que se use un lenguaje obceno",
+    "questionText": "Aunque no sea en un grupo mixto de mujeres y hombres, me disgusta que se use un lenguaje obsceno",
     "questionType": "multiple_choice_ternary",
     "factor": "E",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2005,8 +2005,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "F",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2025,8 +2025,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "G",
     "options": {
-      "A": "Si ",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2045,8 +2045,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "H",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2065,9 +2065,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "I",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -2085,7 +2085,7 @@
     "questionType": "multiple_choice_ternary",
     "factor": "L",
     "options": {
-      "A": "Orientador vocacional para ayudar a los jovenes en la búsqueda de profesión",
+      "A": "Orientador vocacional para ayudar a los jóvenes en la búsqueda de profesión",
       "B": "No estoy seguro",
       "C": "Directivo de una empresa industrial",
       "scoring": {
@@ -2105,9 +2105,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "M",
     "options": {
-      "A": "True",
-      "B": "Termino Medio",
-      "C": "False",
+      "A": "Verdadero",
+      "B": "Término medio",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -2125,8 +2125,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "N",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2145,9 +2145,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "O",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -2186,7 +2186,7 @@
     "factor": "Q2",
     "options": {
       "A": "Un determinado sueldo fijo",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Un sueldo más alto pero siempre que demuestre a los demás que lo merezco",
       "scoring": {
         "A": 0,
@@ -2225,8 +2225,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q4",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2245,8 +2245,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "A",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2261,12 +2261,12 @@
   },
   {
     "questionNumber": 114,
-    "questionText": "Siempre duermo bien, nunca hablo en sueños ni me levanto nonámbulo",
+    "questionText": "Siempre duermo bien, nunca hablo en sueños ni me levanto sonámbulo",
     "questionType": "multiple_choice_ternary",
     "factor": "B",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2285,8 +2285,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "C",
     "options": {
-      "A": "Atentiendo a los clientes",
-      "B": "Termino Medio",
+      "A": "Atendiendo a los clientes",
+      "B": "Término medio",
       "C": "Llevando las cuentas o los archivos",
       "scoring": {
         "A": 0,
@@ -2326,7 +2326,7 @@
     "factor": "F",
     "options": {
       "A": "Me quedo tranquilo",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "La menosprecio",
       "scoring": {
         "A": 0,
@@ -2346,7 +2346,7 @@
     "factor": "G",
     "options": {
       "A": "Puedo concentrarme en ella sin que me molesten",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Eso me impide disfrutar de ella y me incomoda",
       "scoring": {
         "A": 0,
@@ -2366,7 +2366,7 @@
     "factor": "H",
     "options": {
       "A": "Comedido y reposado",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Enérgico",
       "scoring": {
         "A": 0,
@@ -2385,9 +2385,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "I",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -2421,12 +2421,12 @@
   },
   {
     "questionNumber": 122,
-    "questionText": "Cuando es necesario que alguien emplee un poco de diplomacia y persuasión para conseguir que la gente actúe, generalmente sólo me lo encargan a mi",
+    "questionText": "Cuando es necesario que alguien emplee un poco de diplomacia y persuasión para conseguir que la gente actúe, generalmente sólo me lo encargan a mí",
     "questionType": "multiple_choice_ternary",
     "factor": "M",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2445,8 +2445,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "N",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2466,7 +2466,7 @@
     "factor": "O",
     "options": {
       "A": "Ligera, movida y animada",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Emotiva y sentimental",
       "scoring": {
         "A": 0,
@@ -2481,12 +2481,12 @@
   },
   {
     "questionNumber": 125,
-    "questionText": "Si estoy completamente seguro (a) de que una persona es injusta o se comporta egoístamente, se lo digo, incluso si esto me causa un problema",
+    "questionText": "Si estoy completamente seguro(a) de que una persona es injusta o se comporta egoístamente, se lo digo, incluso si esto me causa un problema",
     "questionType": "multiple_choice_ternary",
     "factor": "Q1",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2521,12 +2521,12 @@
   },
   {
     "questionNumber": 127,
-    "questionText": "En una situación que puede llegar a ser peligrosa, creo que es mejor alborotar o hablar alto, aún cuando se pierda la calma y la cortesía",
+    "questionText": "En una situación que puede llegar a ser peligrosa, creo que es mejor alborotar o hablar alto, aun cuando se pierda la calma y la cortesía",
     "questionType": "multiple_choice_ternary",
     "factor": "Q3",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2545,8 +2545,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q4",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2565,8 +2565,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "A",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2605,7 +2605,7 @@
     "questionType": "multiple_choice_ternary",
     "factor": "C",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -2625,8 +2625,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "E",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2645,8 +2645,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "F",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2705,9 +2705,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "I",
     "options": {
-      "A": "True",
-      "B": "Termino Medio",
-      "C": "False",
+      "A": "Verdadero",
+      "B": "Término medio",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -2721,12 +2721,12 @@
   },
   {
     "questionNumber": 137,
-    "questionText": "Puedo trabajar cuidadosamente en la mayor parte de las cosas sin que me molesnten las personas que hacen mucho ruido a mi alrededor",
+    "questionText": "Puedo trabajar cuidadosamente en la mayor parte de las cosas sin que me molesten las personas que hacen mucho ruido a mi alrededor",
     "questionType": "multiple_choice_ternary",
     "factor": "L",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2745,8 +2745,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "M",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2765,9 +2765,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "N",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -2785,8 +2785,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "O",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2806,7 +2806,7 @@
     "factor": "Q1",
     "options": {
       "A": "Muestro mis emociones tal como las siento",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Guardo mis emociones para mis adentros",
       "scoring": {
         "A": 0,
@@ -2825,7 +2825,7 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q2",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -2845,8 +2845,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q3",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2865,7 +2865,7 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q4",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -2885,9 +2885,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "A",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -2901,12 +2901,12 @@
   },
   {
     "questionNumber": 146,
-    "questionText": "Si alguien me dice aldo que yo sé que no es cierto, suelo pensar",
+    "questionText": "Si alguien me dice algo que yo sé que no es cierto, suelo pensar",
     "questionType": "multiple_choice_ternary",
     "factor": "B",
     "options": {
       "A": "\"Es un mentiroso\"",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "\"Evidentemente no está bien informado\"",
       "scoring": {
         "A": 0,
@@ -2925,7 +2925,7 @@
     "questionType": "multiple_choice_ternary",
     "factor": "C",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -2946,7 +2946,7 @@
     "factor": "E",
     "options": {
       "A": "Me gustaría ver quién es el ganador",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Desearía que se suavizara de nuevo la situación",
       "scoring": {
         "A": 0,
@@ -2965,8 +2965,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "F",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -2985,9 +2985,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "G",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -3005,7 +3005,7 @@
     "questionType": "multiple_choice_ternary",
     "factor": "H",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "Algunas Veces",
       "C": "No",
       "scoring": {
@@ -3025,9 +3025,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "I",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -3061,12 +3061,12 @@
   },
   {
     "questionNumber": 154,
-    "questionText": "¿Cuál de las siguientes palabras es diferete de las otras dos?",
+    "questionText": "¿Cuál de las siguientes palabras es diferente de las otras dos?",
     "questionType": "multiple_choice_ternary",
     "factor": "M",
     "options": {
       "A": "Ancho",
-      "B": "zigzag",
+      "B": "Zigzag",
       "C": "Recto",
       "scoring": {
         "A": 0,
@@ -3105,8 +3105,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "O",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -3125,8 +3125,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q1",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -3145,8 +3145,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q2",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -3165,9 +3165,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q3",
     "options": {
-      "A": "True",
-      "B": "Termino Medio",
-      "C": "False",
+      "A": "Verdadero",
+      "B": "Término medio",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -3185,9 +3185,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q4",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
-      "C": "False",
+      "A": "Verdadero",
+      "B": "Término medio",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -3205,9 +3205,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "A",
     "options": {
-      "A": "True",
-      "B": "Termino Medio",
-      "C": "False",
+      "A": "Verdadero",
+      "B": "Término medio",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -3226,7 +3226,7 @@
     "factor": "B",
     "options": {
       "A": "La dejo pasar",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Doy a la gente oportunidad de volver a escucharla",
       "scoring": {
         "A": 0,
@@ -3245,8 +3245,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "C",
     "options": {
-      "A": "Si ",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -3265,8 +3265,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "E",
     "options": {
-      "A": "Si",
-      "B": "no estoy seguro",
+      "A": "Sí",
+      "B": "No estoy seguro",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -3281,11 +3281,11 @@
   },
   {
     "questionNumber": 165,
-    "questionText": "En un viaje al extranjero, preferriría ir en un grupo organizado, con un experto, que planear yo mismo los lugares que deseo visitar",
+    "questionText": "En un viaje al extranjero, preferiría ir en un grupo organizado, con un experto, que planear yo mismo los lugares que deseo visitar",
     "questionType": "multiple_choice_ternary",
     "factor": "F",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -3305,9 +3305,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "G",
     "options": {
-      "A": "True",
-      "B": "Termino Medio",
-      "C": "Falo",
+      "A": "Verdadero",
+      "B": "Término medio",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -3325,8 +3325,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "H",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -3346,7 +3346,7 @@
     "factor": "I",
     "options": {
       "A": "Leyendo un libro bien escrito",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Participando en un grupo de discusión",
       "scoring": {
         "A": 0,
@@ -3361,7 +3361,7 @@
   },
   {
     "questionNumber": 169,
-    "questionText": "Me gusta esperar a estar seguro de lo que voy a decir  es correcto, antes de exponer mis ideas",
+    "questionText": "Me gusta esperar a estar seguro de que lo que voy a decir es correcto, antes de exponer mis ideas",
     "questionType": "multiple_choice_ternary",
     "factor": "L",
     "options": {
@@ -3381,7 +3381,7 @@
   },
   {
     "questionNumber": 170,
-    "questionText": "Algunas veces me \"sacan de quicio\" de un modo insoportable pequeña cosas, aunque reconozca que son triviales",
+    "questionText": "Algunas veces me \"sacan de quicio\" de un modo insoportable pequeñas cosas, aunque reconozca que son triviales",
     "questionType": "multiple_choice_ternary",
     "factor": "M",
     "options": {
@@ -3405,9 +3405,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "N",
     "options": {
-      "A": "True",
+      "A": "Verdadero",
       "B": "No estoy seguro",
-      "C": "False",
+      "C": "Falso",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -3427,7 +3427,7 @@
     "options": {
       "A": "Aceptaría",
       "B": "No estoy seguro",
-      "C": "Ditía cortésmente que estoy ocupado",
+      "C": "Diría cortésmente que estoy ocupado",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -3441,7 +3441,7 @@
   },
   {
     "questionNumber": 173,
-    "questionText": "\"Pronto\" es a \"nunca\" como \"cerca\" es a ",
+    "questionText": "\"Pronto\" es a \"nunca\" como \"cerca\" es a",
     "questionType": "multiple_choice_ternary",
     "factor": "Q1",
     "options": {
@@ -3465,7 +3465,7 @@
     "questionType": "multiple_choice_ternary",
     "factor": "Q2",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -3481,13 +3481,13 @@
   },
   {
     "questionNumber": 175,
-    "questionText": "Se me considera un \"hombre de ideas\" que casi siempre puede apuntar alguna solución  a un problema",
+    "questionText": "Se me considera un \"hombre de ideas\" que casi siempre puede apuntar alguna solución a un problema",
     "questionType": "multiple_choice_ternary",
     "factor": "Q3",
     "options": {
-      "A": "Si",
-      "B": " Término medio",
-      "C": "no",
+      "A": "Sí",
+      "B": "Término medio",
+      "C": "No",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -3525,8 +3525,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "A",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -3541,12 +3541,12 @@
   },
   {
     "questionNumber": 178,
-    "questionText": "Me gusta un trabajo que requiera capacidadde atención  y exactitud",
+    "questionText": "Me gusta un trabajo que requiera capacidad de atención y exactitud",
     "questionType": "multiple_choice_ternary",
     "factor": "B",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -3565,7 +3565,7 @@
     "questionType": "multiple_choice_ternary",
     "factor": "C",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -3585,9 +3585,9 @@
     "questionType": "multiple_choice_ternary",
     "factor": "E",
     "options": {
-      "A": "Lengua o Literatuta",
+      "A": "Lengua o Literatura",
       "B": "No estoy seguro",
-      "C": "Matemáticas o Aristética",
+      "C": "Matemáticas o Aritmética",
       "scoring": {
         "A": 0,
         "B": 1,
@@ -3601,11 +3601,11 @@
   },
   {
     "questionNumber": 181,
-    "questionText": "Algunas veces me ha turbado que la gente diga a mi espalda cosas desagradables de mi sin fundamento",
+    "questionText": "Algunas veces me ha turbado que la gente diga a mi espalda cosas desagradables de mí sin fundamento",
     "questionType": "multiple_choice_ternary",
     "factor": "F",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
@@ -3626,7 +3626,7 @@
     "factor": "G",
     "options": {
       "A": "Es a menudo muy interesante e instructivo",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Me molesta porque no hay profundidad o se trata de chismes y cosas sin importancia",
       "scoring": {
         "A": 0,
@@ -3645,8 +3645,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "H",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -3661,12 +3661,12 @@
   },
   {
     "questionNumber": 184,
-    "questionText": "En la formación del niño, es más importate",
+    "questionText": "En la formación del niño, es más importante",
     "questionType": "multiple_choice_ternary",
     "factor": "I",
     "options": {
       "A": "Darle bastante afecto",
-      "B": "Termino Medio",
+      "B": "Término medio",
       "C": "Procurar que aprenda hábitos y actitudes deseables",
       "scoring": {
         "A": 0,
@@ -3685,8 +3685,8 @@
     "questionType": "multiple_choice_ternary",
     "factor": "L",
     "options": {
-      "A": "Si",
-      "B": "Termino Medio",
+      "A": "Sí",
+      "B": "Término medio",
       "C": "No",
       "scoring": {
         "A": 0,
@@ -3701,7 +3701,7 @@
   },
   {
     "questionNumber": 186,
-    "questionText": "Creo que en el mundo actual es mas importante resolver",
+    "questionText": "Creo que en el mundo actual es más importante resolver",
     "questionType": "multiple_choice_ternary",
     "factor": "M",
     "options": {
@@ -3725,7 +3725,7 @@
     "questionType": "multiple_choice_ternary",
     "factor": "N",
     "options": {
-      "A": "Si",
+      "A": "Sí",
       "B": "No estoy seguro",
       "C": "No",
       "scoring": {
