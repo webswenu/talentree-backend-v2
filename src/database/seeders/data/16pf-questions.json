@@ -421,7 +421,7 @@
   },
   {
     "questionNumber": 22,
-    "questionText": "\"Cansado\" es a \"Trabajador\" como \"Orgulloso\" es a",
+    "questionText": "\"Cansado\" es a \"Trabajar\" como \"Orgulloso\" es a",
     "questionType": "multiple_choice_ternary",
     "factor": "G",
     "options": {
@@ -606,7 +606,7 @@
     "factor": "Q3",
     "options": {
       "A": "De acuerdo",
-      "B": "No estoy de acuerdo",
+      "B": "No estoy seguro",
       "C": "En desacuerdo",
       "scoring": {
         "A": 0,
