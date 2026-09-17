@@ -3,7 +3,8 @@
  *
  * Fuente: `CEAL-Test-y-tabulacion-de-CEAL.doc` (cuadernillo, hoja de respuesta,
  * pauta de corrección y feedback de resultados). Este archivo lo generó un
- * script a partir del documento: los textos van tal cual, sin corregir.
+ * script a partir del documento. Los textos se corrigieron solo de ortografía
+ * (17-09-2026); la redacción y el contenido siguen siendo los del documento.
  *
  * La clave (`clave`) es la del bloque «Alternativa de acción» de la hoja de
  * respuesta: para cada letra, el número de arriba a la izquierda es el estilo y
@@ -40,7 +41,7 @@ export const CEAL_INSTRUCCIONES: string[] = [
   'LEA cada situación atentamente y piense lo que Ud. haría en cada circunstancia.',
   'MARQUE en su hoja de respuesta la letra de la alternativa que, según Ud., describe mejor su comportamiento en la situación que se presenta.',
   'MARQUE SOLO UNA ALTERNATIVA',
-  'Debe marcar la elección para cada situación en la hoja de respuestas, colocando la letra A,B,C ó D que, según su opinión, describe mejor su comportamiento de líder. Escriba la letra correspondiente en los casilleros superiores numerados del 1 al 12.',
+  'Debe marcar la elección para cada situación en la hoja de respuestas, colocando la letra A, B, C o D que, según su opinión, describe mejor su comportamiento de líder. Escriba la letra correspondiente en los casilleros superiores numerados del 1 al 12.',
   'No deje ninguna pregunta sin responder.',
   'Responda con sinceridad y espontaneidad.',
   'No raye el cuadernillo.',
@@ -375,10 +376,10 @@ export const CEAL_SITUACIONES: SituacionCeal[] = [
     texto:
       'La información reciente indica la existencia de dificultades internas entre los subordinados. El grupo tiene una historia de excelentes logros. Los miembros han mantenido en forma efectiva los objetivos a largo plazo y han trabajado en armonía todo el año anterior. Todos están bien calificados para sus tareas.',
     alternativas: {
-      A: 'Pruebo una solución mía con los subordinados, mientras reviso la necesidad de nuevas práctica.',
+      A: 'Pruebo una solución mía con los subordinados, mientras reviso la necesidad de nuevas prácticas.',
       B: 'Permito a los miembros del grupo que lo resuelvan por sí mismos.',
       C: 'Actúo rápida y firmemente para corregir y reorientar.',
-      D: 'Estoy disponible para la discusión, pero tengo cuidado de no dañar las relaciones jefe- subordinados.',
+      D: 'Estoy disponible para la discusión, pero tengo cuidado de no dañar las relaciones jefe - subordinados.',
     },
     clave: {
       A: {
@@ -428,7 +429,7 @@ export const CEAL_ESTILOS: Record<NumeroEstiloCeal, EstiloCeal> = {
     eficaz: {
       nombre: 'EJECUTIVO',
       descripcion:
-        'Visto a menudo como alguien que es un buen motivador, maneja normas elevadas, trata a cada uno de modo diferente prefiere administrar en equipo.',
+        'Visto a menudo como alguien que es un buen motivador, maneja normas elevadas, trata a cada uno de modo diferente y prefiere administrar en equipo.',
     },
   },
   '3': {
@@ -437,12 +438,12 @@ export const CEAL_ESTILOS: Record<NumeroEstiloCeal, EstiloCeal> = {
     ineficaz: {
       nombre: 'MISIONERO',
       descripcion:
-        'Visto a menudo como alguien que está primordialmente interesado en la armonía y en ser considerado “buena gente” reticente a arriesgar la ruptura de una relación con tal de cumplir una tarea.',
+        'Visto a menudo como alguien que está primordialmente interesado en la armonía y en ser considerado “buena gente”, reticente a arriesgar la ruptura de una relación con tal de cumplir una tarea.',
     },
     eficaz: {
       nombre: 'PROMOTOR',
       descripcion:
-        'Visto a menudo como alguien que tiene una confianza - implícita en las personas y que se interesa primordialmente en desarrollar sus aptitudes.',
+        'Visto a menudo como alguien que tiene una confianza implícita en las personas y que se interesa primordialmente en desarrollar sus aptitudes.',
     },
   },
   '4': {
@@ -517,7 +518,7 @@ export const CEAL_NIVELES_EFECTIVIDAD: {
 export const CEAL_PAUTA = {
   mide: 'Estilos de liderazgo, efectividad de cada estilo y efectividad total.',
   aplicacion:
-    'Se aplica para aquellos cargos que tiene que cumplir con funciones de supervisión.',
+    'Se aplica para aquellos cargos que tienen que cumplir con funciones de supervisión.',
   puntajes:
     'Esta prueba entrega datos respecto al uso de diferentes estilos de liderazgo, en términos de predominio y en términos de efectividad con que se utiliza cada estilo. Mayores detalles se entregan en la parte corrección de la prueba.',
   referenciaTeorica:

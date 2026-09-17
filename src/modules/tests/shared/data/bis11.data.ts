@@ -4,7 +4,8 @@
  * Fuente: `Barrett_Escala_de_Impulsividad_TABULADO.xlsx` (hojas Instrucciones,
  * Cuestionario, Tabulación, Resultados e Informe). Este archivo lo generó un
  * script a partir del Excel, y el script comprobó que las fórmulas son las que
- * implementa el puntuador. Los textos van tal cual, sin corregir.
+ * implementa el puntuador. Los textos se corrigieron solo de ortografía
+ * (17-09-2026); el contenido sigue siendo el del Excel.
  *
  * Es la versión chilena publicada (Salvo y Castro, 2013): escala 0-1-3-4,
  * 12 ítems inversos, subescalas de 8, 10 y 12 ítems.
@@ -22,7 +23,7 @@ export interface ItemBis11 {
 }
 
 export const BIS11_INSTRUCCIONES =
-  'Esta es una escala para medir algunas de las formas en que usted actúa y piensa. No se detenga demasiado tiempo en las oraciones. Responsa rápida y honestamente marcando una X en la opción que más le represente';
+  'Esta es una escala para medir algunas de las formas en que usted actúa y piensa. No se detenga demasiado tiempo en las oraciones. Responda rápida y honestamente marcando una X en la opción que más le represente';
 
 /** Encabezados del cuestionario: «Raramente o nunca (0)» … «Siempre o casi siempre (4)». */
 export const BIS11_OPCIONES: {
@@ -92,13 +93,13 @@ export const BIS11_ITEMS: ItemBis11[] = [
   {
     numero: 4,
     texto:
-      'Mis pensamientos pueden tener gran velocidad Imis pensamientos van muy rápido en mi mente)',
+      'Mis pensamientos pueden tener gran velocidad (mis pensamientos van muy rápido en mi mente)',
     dimension: 'ATENCIONAL',
     inverso: false,
   },
   {
     numero: 5,
-    texto: 'Planificomis viajes (actividades) con antelación',
+    texto: 'Planifico mis viajes (actividades) con antelación',
     dimension: 'NO_PLANIFICACION',
     inverso: true,
   },
@@ -122,7 +123,7 @@ export const BIS11_ITEMS: ItemBis11[] = [
   },
   {
     numero: 9,
-    texto: 'Se me hace dificil estar quieto/a por largos periodos de tiempo',
+    texto: 'Se me hace difícil estar quieto/a por largos periodos de tiempo',
     dimension: 'MOTORA',
     inverso: false,
   },
@@ -185,7 +186,7 @@ export const BIS11_ITEMS: ItemBis11[] = [
   {
     numero: 19,
     texto:
-      'Soy una persona que piensa sin distrarse (puedo enfocar mi mente en una sola cosa por mucho tiempo)',
+      'Soy una persona que piensa sin distraerse (puedo enfocar mi mente en una sola cosa por mucho tiempo)',
     dimension: 'ATENCIONAL',
     inverso: true,
   },
@@ -247,7 +248,7 @@ export const BIS11_ITEMS: ItemBis11[] = [
   {
     numero: 29,
     texto:
-      'Me siento inquieto/a si tengo que oir a alguien hablar demasido tiempo)',
+      'Me siento inquieto/a si tengo que oír a alguien hablar demasiado tiempo',
     dimension: 'MOTORA',
     inverso: false,
   },
