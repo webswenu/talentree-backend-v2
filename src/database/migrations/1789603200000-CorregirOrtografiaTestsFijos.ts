@@ -19,7 +19,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  */
 
 /** Valor completo de una opción del 16PF -> corregido. */
-export const OPCIONES_16PF: Record<string, string> = {
+const OPCIONES_16PF: Record<string, string> = {
   Si: 'Sí',
   'Si ': 'Sí',
   True: 'Verdadero',
@@ -40,13 +40,13 @@ export const OPCIONES_16PF: Record<string, string> = {
  * Pares que quedaban mezclados («Verdadero … No», «Sí … Falso»).
  * [número de pregunta, clave, valor corregido]
  */
-export const OPCIONES_16PF_PUNTUALES: [number, string, string][] = [
+const OPCIONES_16PF_PUNTUALES: [number, string, string][] = [
   [61, 'C', 'Falso'],
   [160, 'A', 'Verdadero'],
 ];
 
 /** Fragmento -> corregido, en enunciados y opciones de cada test. */
-export const FRAGMENTOS: Record<string, [string, string][]> = {
+const FRAGMENTOS: Record<string, [string, string][]> = {
   TEST_16PF: [
     ['Estoy dispuesto (a) a', 'Estoy dispuesto(a) a'],
     [
@@ -139,7 +139,7 @@ export const FRAGMENTOS: Record<string, [string, string][]> = {
 };
 
 /** Fragmento -> corregido, dentro de `fixed_tests.configuration` y `description`. */
-export const FRAGMENTOS_CONFIGURACION: Record<string, [string, string][]> = {
+const FRAGMENTOS_CONFIGURACION: Record<string, [string, string][]> = {
   TEST_CEAL: [
     ['la letra A,B,C ó D que', 'la letra A, B, C o D que'],
     [
@@ -150,7 +150,7 @@ export const FRAGMENTOS_CONFIGURACION: Record<string, [string, string][]> = {
   TEST_BIS11: [['Responsa rápida', 'Responda rápida']],
 };
 
-export function corregirTexto(codigo: string, texto: string): string {
+function corregirTexto(codigo: string, texto: string): string {
   let corregido = texto;
   for (const [antes, despues] of FRAGMENTOS[codigo] ?? []) {
     corregido = corregido.split(antes).join(despues);
@@ -158,7 +158,7 @@ export function corregirTexto(codigo: string, texto: string): string {
   return corregido.replace(/\s{2,}/g, ' ').trim();
 }
 
-export function corregirOpciones(
+function corregirOpciones(
   codigo: string,
   numero: number,
   opciones: Record<string, any> | null,
