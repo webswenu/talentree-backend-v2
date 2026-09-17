@@ -37,6 +37,7 @@ import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { NotificationType } from '../../common/enums/notification-type.enum';
 import { UsersService } from '../users/users.service';
 import { EmailHelper } from '../../common/helpers/email.helper';
+import { buildWelcomeToProcessEmail } from '../../common/helpers/worker-emails';
 
 @Injectable()
 export class WorkersService {
@@ -386,7 +387,16 @@ export class WorkersService {
     console.log(`[WorkersService.remove] Worker ${id} eliminado exitosamente`);
   }
 
-  async applyToProcess(applyDto: ApplyToProcessDto): Promise<WorkerProcess> {
+  /**
+   * Inscribe a un trabajador en un proceso. Lo llama el propio trabajador
+   * (postula desde la landing, Oportunidades o su panel) o la empresa/admin
+   * desde "Invitar Trabajadores". `requester` sirve para saber cual de los dos
+   * fue y redactar el correo en consecuencia.
+   */
+  async applyToProcess(
+    applyDto: ApplyToProcessDto,
+    requester?: { role?: UserRole },
+  ): Promise<WorkerProcess> {
     const existingApplication = await this.workerProcessRepository.findOne({
       where: {
         worker: { id: applyDto.workerId },
@@ -459,14 +469,21 @@ export class WorkersService {
           });
         }
 
-        // Enviar email de bienvenida al proceso
-        await this.sendWelcomeToProcessEmail(
-          workerProcessWithRelations.worker.email,
-          `${workerProcessWithRelations.worker.firstName} ${workerProcessWithRelations.worker.lastName}`,
-          workerProcessWithRelations.process.name,
-          workerProcessWithRelations.process.company?.name || 'la empresa',
-          workerProcessWithRelations.process.position || 'el cargo',
-        );
+        // Enviar email con el paso a paso para rendir las evaluaciones.
+        // Si quien inscribe no es el trabajador, fue la empresa o el admin.
+        const inscritoPorEmpresa =
+          !!requester?.role && requester.role !== UserRole.WORKER;
+
+        await this.sendWelcomeToProcessEmail({
+          email: workerProcessWithRelations.worker.email,
+          workerName: `${workerProcessWithRelations.worker.firstName} ${workerProcessWithRelations.worker.lastName}`,
+          processName: workerProcessWithRelations.process.name,
+          companyName: workerProcessWithRelations.process.company?.name || 'la empresa',
+          position: workerProcessWithRelations.process.position || 'el cargo',
+          endDate: workerProcessWithRelations.process.endDate,
+          workerProcessId: workerProcessWithRelations.id,
+          inscritoPorEmpresa,
+        });
       } catch (error) {
         this.logger.error(
           `Error sending notification for new application: ${error instanceof Error ? error.message : String(error)}`,
@@ -796,111 +813,36 @@ Equipo Talentree`;
   }
 
   /**
-   * Envía email de bienvenida cuando el trabajador se postula a un proceso
+   * Correo al quedar inscrito en un proceso (por postulación propia o porque
+   * la empresa lo inscribió): enlace directo a la postulación y paso a paso
+   * para rendir las evaluaciones. Contenido en common/helpers/worker-emails.ts.
    */
-  private async sendWelcomeToProcessEmail(
-    email: string,
-    workerName: string,
-    processName: string,
-    companyName: string,
-    position: string,
-  ): Promise<void> {
-    const subject = `¡Bienvenido al proceso de selección para ${position}!`;
-
-    const textContent = `Hola ${workerName},
-
-¡Gracias por postularte al proceso de selección "${processName}" en ${companyName}!
-
-Tu postulación ha sido recibida exitosamente. Ahora puedes comenzar a completar las evaluaciones asignadas.
-
-Pasos a seguir:
-1. Ingresa a la plataforma Talentree
-2. Ve a la sección "Mis Procesos"
-3. Completa los tests y evaluaciones asignadas
-
-Te recomendamos completar las evaluaciones lo antes posible para avanzar en el proceso de selección.
-
-¡Mucho éxito!
-
-Saludos,
-Equipo Talentree`;
-
-    const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-    .header h1 { margin: 0; font-size: 24px; }
-    .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
-    .welcome-badge { background: #d1fae5; color: #065f46; padding: 15px 25px; border-radius: 50px; display: inline-block; font-weight: bold; margin: 20px 0; }
-    .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #14b8a6; }
-    .steps { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
-    .step { display: flex; align-items: center; margin: 15px 0; }
-    .step-number { background: #14b8a6; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold; }
-    .footer { text-align: center; margin-top: 20px; color: #6b7280; font-size: 14px; }
-    .cta-button { display: inline-block; background: #14b8a6; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 20px 0; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>¡Bienvenido/a al Proceso!</h1>
-    </div>
-    <div class="content">
-      <p>Hola <strong>${workerName}</strong>,</p>
-
-      <div style="text-align: center;">
-        <span class="welcome-badge">✓ Postulación Recibida</span>
-      </div>
-
-      <p>¡Gracias por postularte! Tu interés en formar parte de nuestro equipo es muy importante para nosotros.</p>
-
-      <div class="info-box">
-        <p style="margin: 0;"><strong>Proceso:</strong> ${processName}</p>
-        <p style="margin: 10px 0 0 0;"><strong>Empresa:</strong> ${companyName}</p>
-        <p style="margin: 10px 0 0 0;"><strong>Cargo:</strong> ${position}</p>
-      </div>
-
-      <div class="steps">
-        <h3 style="margin-top: 0; color: #0d9488;">Próximos pasos:</h3>
-        <div class="step">
-          <span class="step-number">1</span>
-          <span>Ingresa a la plataforma Talentree</span>
-        </div>
-        <div class="step">
-          <span class="step-number">2</span>
-          <span>Ve a la sección "Mis Procesos"</span>
-        </div>
-        <div class="step">
-          <span class="step-number">3</span>
-          <span>Completa los tests y evaluaciones asignadas</span>
-        </div>
-      </div>
-
-      <p style="background: #fef3c7; padding: 15px; border-radius: 8px; color: #92400e;">
-        <strong>💡 Tip:</strong> Te recomendamos completar las evaluaciones lo antes posible para avanzar en el proceso de selección.
-      </p>
-
-      <p style="margin-top: 30px;">¡Mucho éxito!</p>
-
-      <p>Saludos,<br><strong>Equipo Talentree</strong></p>
-    </div>
-    <div class="footer">
-      <p>Este es un correo automático enviado por el sistema de selección de Talentree.</p>
-    </div>
-  </div>
-</body>
-</html>`;
+  private async sendWelcomeToProcessEmail(datos: {
+    email: string;
+    workerName: string;
+    processName: string;
+    companyName: string;
+    position: string;
+    endDate?: Date | null;
+    workerProcessId?: string;
+    inscritoPorEmpresa?: boolean;
+  }): Promise<void> {
+    const correo = buildWelcomeToProcessEmail({
+      workerName: datos.workerName,
+      workerEmail: datos.email,
+      processName: datos.processName,
+      companyName: datos.companyName,
+      position: datos.position,
+      endDate: datos.endDate,
+      workerProcessId: datos.workerProcessId,
+      inscritoPorEmpresa: datos.inscritoPorEmpresa,
+    });
 
     try {
-      await EmailHelper.sendEmail(email, subject, textContent, htmlContent);
-      this.logger.log(`Email de bienvenida enviado a ${email} para proceso ${processName}`);
+      await EmailHelper.sendEmail(datos.email, correo.subject, correo.text, correo.html);
+      this.logger.log(`Email de bienvenida enviado a ${datos.email} para proceso ${datos.processName}`);
     } catch (error) {
-      this.logger.error(`Error enviando email de bienvenida a ${email}: ${error.message}`);
+      this.logger.error(`Error enviando email de bienvenida a ${datos.email}: ${error.message}`);
     }
   }
 
