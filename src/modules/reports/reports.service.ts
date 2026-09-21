@@ -500,9 +500,60 @@ export class ReportsService {
 
     if (guardado.status === ReportStatus.APPROVED) {
       await this.avisarALaEmpresaQueElInformeEstaDisponible(guardado.id);
+    } else if (guardado.status === ReportStatus.REJECTED) {
+      await this.avisarAQuienSubioElInformeQueFueDevuelto(guardado, userId);
     }
 
     return guardado;
+  }
+
+  /**
+   * Devolver un informe no avisaba a nadie y el motivo quedaba guardado en
+   * una columna que ninguna pantalla mostraba: el evaluador no se enteraba
+   * de que tenía que corregir algo. Se le avisa a quien lo subió, con el
+   * motivo, y se le lleva a la ficha del candidato donde puede subir la
+   * versión corregida.
+   *
+   * No se avisa cuando quien devuelve es la misma persona que lo subió
+   * (un admin que revisa su propio informe). Y como el informe ya quedó
+   * devuelto, un fallo del aviso solo se registra.
+   */
+  private async avisarAQuienSubioElInformeQueFueDevuelto(
+    informe: Report,
+    devueltoPorId: string,
+  ): Promise<void> {
+    try {
+      const autor = informe.createdBy;
+      if (!autor?.id || autor.id === devueltoPorId) return;
+
+      const candidato = [informe.worker?.firstName, informe.worker?.lastName]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+      const motivo = informe.rejectionReason?.trim();
+      const base =
+        autor.role === UserRole.EVALUATOR ? '/evaluador' : '/admin';
+
+      await this.notificationsGateway.broadcastNotification([autor.id], {
+        title: 'Informe devuelto para corrección',
+        message:
+          (candidato
+            ? `El informe de ${candidato} fue devuelto`
+            : 'Un informe tuyo fue devuelto') +
+          (motivo ? `. Motivo: ${motivo}` : ' sin motivo indicado') +
+          '. Sube una versión corregida desde la ficha del candidato.',
+        type: NotificationType.WARNING,
+        link: informe.worker?.id
+          ? `${base}/trabajadores/${informe.worker.id}`
+          : `${base}/reportes`,
+      });
+    } catch (error) {
+      this.logger.error(
+        `No se pudo avisar la devolución del informe ${informe.id}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
   }
 
   /**

@@ -22,6 +22,7 @@ import { ApplyToProcessDto } from './dto/apply-to-process.dto';
 import { UpdateWorkerProcessStatusDto } from './dto/update-worker-process-status.dto';
 import { WorkerFilterDto } from './dto/worker-filter.dto';
 import { WorkerStatus } from '../../common/enums/worker-status.enum';
+import { ReportStatus } from '../../common/enums/report-status.enum';
 import { ProcessStatus } from '../../common/enums/process-status.enum';
 import { UserRole } from '../../common/enums/user-role.enum';
 import { paginate } from '../../common/helpers/pagination.helper';
@@ -588,6 +589,30 @@ export class WorkersService {
       }
     }
 
+    // Decidir sobre el postulante exige su informe de evaluación aprobado.
+    // Antes los dos flujos iban sueltos: se podía aprobar o rechazar a una
+    // persona sin informe o con el informe devuelto, y en la pantalla la
+    // admin devolvía el informe creyendo que rechazaba al candidato. El orden
+    // queda impuesto aquí, no solo en el front, para que ningún cliente lo
+    // salte.
+    const esDecision =
+      updateDto.status === WorkerStatus.APPROVED ||
+      updateDto.status === WorkerStatus.REJECTED;
+    if (esDecision && oldStatus !== updateDto.status) {
+      const informesAprobados = await this.reportRepository.count({
+        where: {
+          worker: { id: workerProcess.worker.id },
+          process: { id: workerProcess.process.id },
+          status: ReportStatus.APPROVED,
+        },
+      });
+      if (informesAprobados === 0) {
+        throw new BadRequestException(
+          'Para aprobar o rechazar al postulante primero hay que aprobar su informe de evaluación.',
+        );
+      }
+    }
+
     Object.assign(workerProcess, updateDto);
     workerProcess.evaluatedAt = new Date();
 
@@ -604,6 +629,8 @@ export class WorkersService {
             [WorkerStatus.COMPLETED]: 'Completado',
             [WorkerStatus.APPROVED]: 'Aprobado',
             [WorkerStatus.REJECTED]: 'Rechazado',
+            // Faltaba: el aviso decía "ha cambiado a undefined".
+            [WorkerStatus.HIRED]: 'Contratado',
           };
 
           await this.notificationsGateway.broadcastNotification([workerUserId], {
