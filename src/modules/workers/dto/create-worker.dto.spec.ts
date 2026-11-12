@@ -50,3 +50,46 @@ describe('CreateWorkerDto · contraseña', () => {
     expect(fallos).toContain('comunícasela a la persona');
   });
 });
+
+/**
+ * R-10. El formato de telefono existia SOLO en el registro publico. El mismo
+ * candidato al que se le exigio '+56912345678' para entrar podia dejarlo en
+ * 'no tengo' al dia siguiente, porque ni el alta desde el panel ni la edicion
+ * de perfil validaban nada. La regla tiene que valer en todas las vias que
+ * escriben el dato, o dura hasta el primer cambio.
+ */
+describe('CreateWorkerDto · telefono', () => {
+  it('acepta el telefono como lo escribe la gente', () => {
+    for (const escrito of ['+56 9 1234 5678', '+56912345678', '+1 415 555 0132']) {
+      expect(erroresDe(alta({ password: 'GruaQa2026', phone: escrito }), 'phone')).toEqual([]);
+    }
+  });
+
+  it('guarda siempre la misma forma', () => {
+    const dto = alta({ password: 'GruaQa2026', phone: '+56 9 1234 5678' });
+    expect(dto.phone).toBe('+56912345678');
+  });
+
+  it('exige el prefijo del pais', () => {
+    const fallos = erroresDe(alta({ password: 'GruaQa2026', phone: '912345678' }), 'phone');
+    expect(fallos.join(' ')).toContain('prefijo');
+  });
+
+  it('rechaza el texto libre que antes se guardaba tal cual', () => {
+    expect(
+      erroresDe(alta({ password: 'GruaQa2026', phone: 'no tengo' }), 'phone').length,
+    ).toBeGreaterThan(0);
+  });
+
+  it('trata el telefono vacio como ausente', () => {
+    expect(erroresDe(alta({ password: 'GruaQa2026', phone: '' }), 'phone')).toEqual([]);
+    expect(alta({ password: 'GruaQa2026', phone: '' }).phone).toBeUndefined();
+  });
+});
+
+describe('CreateWorkerDto · contrasena con mayuscula (D-3)', () => {
+  it('rechaza la contrasena sin mayuscula', () => {
+    const fallos = erroresDe(alta({ password: 'gruaqa2026' }), 'password');
+    expect(fallos.join(' ')).toContain('mayúscula');
+  });
+});

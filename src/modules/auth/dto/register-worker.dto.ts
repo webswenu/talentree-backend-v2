@@ -1,13 +1,16 @@
 import {
   IsString,
   IsEmail,
-  MinLength,
   IsOptional,
   IsDateString,
-  Matches,
 } from 'class-validator';
 import { IsRut, NormalizeRut } from '../../../common/validators/rut.validator';
 import { IsStrongPassword } from '../../../common/validators/password.validator';
+import {
+  IsTelefono,
+  NormalizeTelefono,
+} from '../../../common/validators/telefono.validator';
+import { VacioComoAusente } from '../../../common/validators/opcional.validator';
 
 export class RegisterWorkerDto {
   @IsEmail({}, { message: 'Email inválido' })
@@ -32,34 +35,43 @@ export class RegisterWorkerDto {
   @NormalizeRut()
   rut: string;
 
+  // R-01 / R-04 / R-10. Antes: un @Matches propio de este DTO que (a) fallaba
+  // con la cadena vacia, aunque el campo se rotula «opcional» en pantalla, y
+  // (b) rechazaba los espacios que el propio formulario dejaba escribir.
   @IsOptional()
-  @IsString()
-  @Matches(/^\+?[0-9]{8,15}$/, {
-    message: 'Formato de teléfono inválido',
-  })
+  @NormalizeTelefono()
+  @IsTelefono()
   phone?: string;
 
+  // R-02. Mismo caso que el telefono: el paso 3 se titula «Datos opcionales»
+  // y la fecha en blanco impedia registrarse.
   @IsOptional()
+  @VacioComoAusente()
   @IsDateString({}, { message: 'Fecha de nacimiento inválida' })
   birthDate?: string;
 
   @IsOptional()
+  @VacioComoAusente()
   @IsString()
   address?: string;
 
   @IsOptional()
+  @VacioComoAusente()
   @IsString()
   city?: string;
 
   @IsOptional()
+  @VacioComoAusente()
   @IsString()
   region?: string;
 
   @IsOptional()
+  @VacioComoAusente()
   @IsString()
   education?: string;
 
   @IsOptional()
+  @VacioComoAusente()
   @IsString()
   experience?: string;
 }

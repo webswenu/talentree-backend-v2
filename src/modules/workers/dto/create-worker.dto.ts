@@ -5,10 +5,14 @@ import {
   IsOptional,
   IsDateString,
   IsArray,
-  MinLength,
 } from 'class-validator';
 import { IsRut, NormalizeRut } from '../../../common/validators/rut.validator';
 import { IsStrongPassword } from '../../../common/validators/password.validator';
+import {
+  IsTelefono,
+  NormalizeTelefono,
+} from '../../../common/validators/telefono.validator';
+import { VacioComoAusente } from '../../../common/validators/opcional.validator';
 
 export class CreateWorkerDto {
   @IsString()
@@ -43,11 +47,15 @@ export class CreateWorkerDto {
   @IsStrongPassword()
   password: string;
 
+  // R-10. El alta desde el panel aceptaba cualquier texto como telefono,
+  // mientras el registro publico exigia formato. Misma regla en los dos.
   @IsOptional()
-  @IsString()
+  @NormalizeTelefono()
+  @IsTelefono()
   phone?: string;
 
   @IsOptional()
+  @VacioComoAusente()
   @IsDateString()
   birthDate?: string;
 

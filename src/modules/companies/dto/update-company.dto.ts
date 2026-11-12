@@ -7,6 +7,10 @@ import {
   IsUUID,
   ValidateIf,
 } from 'class-validator';
+import {
+  IsTelefono,
+  NormalizeTelefono,
+} from '../../../common/validators/telefono.validator';
 
 export class UpdateCompanyDto {
   @IsString()
@@ -21,8 +25,12 @@ export class UpdateCompanyDto {
   @IsOptional()
   email?: string;
 
-  @IsString()
+  // R-10. Ojo: este campo sigue sin columna en la entidad Company (L3-01), asi
+  // que hoy se acepta y no se guarda. Eso es harina de otro costal; aqui solo
+  // se unifica el formato para que no sea una quinta regla distinta.
   @IsOptional()
+  @NormalizeTelefono()
+  @IsTelefono()
   phone?: string;
 
   @IsString()

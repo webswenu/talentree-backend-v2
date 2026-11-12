@@ -16,8 +16,10 @@ import {
  *
  * La regla vale donde importa, que es el backend.
  *
- * PENDIENTE DE DEFINICION con la clienta: si quiere exigir ademas un simbolo,
- * o subir el minimo a 10, se cambia aqui y aplica a todo el sistema.
+ * D-3 (decidido): se exige ademas al menos una mayuscula. Si mas adelante se
+ * quiere un simbolo, o subir el minimo a 10, se cambia aqui y aplica a todo
+ * el sistema, incluido el formulario, que deriva su texto de ayuda de esta
+ * misma regla.
  */
 
 /** Largo minimo. Antes eran 6. */
@@ -53,6 +55,13 @@ export function esPasswordFuerte(value: unknown): true | string {
 
   if (!/[a-zA-Z]/.test(value)) {
     return 'La contraseña debe incluir al menos una letra.';
+  }
+
+  // D-3: decidido con la clienta. El frontend ya exigia mayuscula en una regla
+  // que no usaba nadie; ahora la regla vale y vale en los dos lados.
+  // No invalida cuentas existentes: el login compara el hash, no la politica.
+  if (!/[A-ZÁÉÍÓÚÑÜ]/.test(value)) {
+    return 'La contraseña debe incluir al menos una letra mayúscula.';
   }
 
   if (!/[0-9]/.test(value)) {
