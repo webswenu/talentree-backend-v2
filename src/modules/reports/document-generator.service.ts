@@ -110,8 +110,15 @@ export class DocumentGeneratorService {
 
     // ========== DETALLE DE CADA TEST ==========
     if (workerProcess.testResponses && workerProcess.testResponses.length > 0) {
+      // Antes cada test arrancaba con salto de página forzado: cuando una
+      // sección se pasaba por un par de líneas, quedaba una página casi en
+      // blanco antes del test siguiente (DISC y TAC con frecuencia). Ahora las
+      // secciones fluyen, y los encabezados llevan `keepNext` para no quedar
+      // solos al pie de una página.
+      let primero = true;
       for (const testResponse of workerProcess.testResponses) {
-        sections.push(this.createPageBreakParagraph());
+        sections.push(primero ? this.createPageBreakParagraph() : this.createSpacing(500));
+        primero = false;
         const testSections = await this.createTestDetailSection(testResponse);
         sections.push(...testSections);
       }
@@ -383,6 +390,8 @@ export class DocumentGeneratorService {
       ],
       shading: { type: ShadingType.SOLID, color: COLORS.primary },
       spacing: { before: 300, after: 200 },
+      keepNext: true,
+      keepLines: true,
     });
   }
 
@@ -397,6 +406,8 @@ export class DocumentGeneratorService {
         }),
       ],
       spacing: { before: 300, after: 150 },
+      keepNext: true,
+      keepLines: true,
       border: {
         bottom: { color: COLORS.primaryLight, size: 10, style: BorderStyle.SINGLE, space: 4 },
       },
@@ -2000,6 +2011,10 @@ export class DocumentGeneratorService {
       // sin decir de qué es.
       return legible(i.resultadoResumen);
     }
+    // CFR: guarda `nivel` (BAJO/MEDIO/ALTO) y `riesgo` (PRUDENTE/MODERADO/
+    // IMPULSIVO), y su sección muestra el riesgo. El resumen decía «MEDIO»
+    // y la sección «MODERADO» para el mismo resultado.
+    if (i.riesgo) return `Riesgo ${legible(i.riesgo)}`;
     if (i.nivel) return `Nivel ${legible(i.nivel)}`;
     if (i.nivelGlobal) return legible(i.nivelGlobal);
     if (i.perfilPredominante) return `Perfil ${i.perfilPredominante}`;
