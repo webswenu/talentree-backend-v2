@@ -499,7 +499,10 @@ export class DocumentGeneratorService {
 
       let status = 'Pendiente';
       let statusColor = COLORS.warning;
-      if (tr.status === 'completed' || tr.isCompleted) {
+      // `isCompleted` queda en true con CUALQUIER envío, también uno con 0
+      // respuestas; decide `status`. Solo las respuestas antiguas, sin
+      // `status`, caen al respaldo de `isCompleted`.
+      if (tr.status === 'completed' || (!tr.status && tr.isCompleted)) {
         status = 'Completado';
         statusColor = COLORS.success;
       } else if (tr.status === 'insufficient_answers') {
@@ -1734,7 +1737,7 @@ export class DocumentGeneratorService {
   private createConclusionsSection(workerProcess: WorkerProcess): (Paragraph | Table)[] {
     const sections: (Paragraph | Table)[] = [];
 
-    const completedTests = workerProcess.testResponses?.filter(tr => tr.isCompleted || tr.status === 'completed').length || 0;
+    const completedTests = workerProcess.testResponses?.filter(tr => tr.status === 'completed' || (!tr.status && tr.isCompleted)).length || 0;
     const totalTests = workerProcess.testResponses?.length || 0;
 
     sections.push(
