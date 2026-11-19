@@ -213,6 +213,33 @@ export class TestResponsesService {
 
     const isFixedTest = !!testResponse.fixedTest;
 
+    /**
+     * Un envío sin respuestas solo se acepta cuando el tiempo de verdad se
+     * acabó, medido con el reloj del SERVIDOR.
+     *
+     * El 19-11-2026 una candidata con el PC adelantado abrió DISC, IC e IL y
+     * el temporizador del navegador —que comparaba su reloj con `startedAt`—
+     * los dio por vencidos y los envió vacíos al segundo. Esto se aceptaba,
+     * cerraba la postulación y generaba un informe sin un solo dato.
+     *
+     * Los tests sin tiempo (CEAL, BIS-11: `duration` null) nunca vencen, así
+     * que para ellos un envío vacío siempre se rechaza.
+     */
+    const duracionMinutos = isFixedTest
+      ? testResponse.fixedTest.duration
+      : testResponse.test?.duration;
+    const transcurridoMs = testResponse.startedAt
+      ? Date.now() - new Date(testResponse.startedAt).getTime()
+      : 0;
+    const margenMs = 30 * 1000; // relojes y latencia
+    const tiempoVencido =
+      !!duracionMinutos && transcurridoMs >= duracionMinutos * 60 * 1000 - margenMs;
+    if ((submitTestDto.answers?.length ?? 0) === 0 && !tiempoVencido) {
+      throw new BadRequestException(
+        'No se puede enviar el test sin respuestas. Responde al menos una pregunta antes de enviarlo.',
+      );
+    }
+
     const answers = submitTestDto.answers.map((answerDto) => {
       // Find existing answer - support both regular tests and fixed tests
       const existingAnswer = testResponse.answers?.find((a) => {
@@ -252,7 +279,19 @@ export class TestResponsesService {
     const totalQuestions = isFixedTest
       ? testResponse.fixedTest.questions?.length || 0
       : testResponse.test.questions?.length || 0;
-    const answeredQuestions = submitTestDto.answers.length;
+    // Preguntas distintas que pertenecen a este test. Antes se contaba
+    // `answers.length` del cuerpo, y 30 copias de la misma pregunta pasaban
+    // por un test de 30 preguntas respondido al 100 %.
+    const idsDelTest = new Set(
+      (isFixedTest ? testResponse.fixedTest.questions : testResponse.test.questions)?.map(
+        (q) => q.id,
+      ) ?? [],
+    );
+    const answeredQuestions = new Set(
+      submitTestDto.answers
+        .map((a) => a.questionId)
+        .filter((id) => idsDelTest.has(id)),
+    ).size;
     const answerPercentage = totalQuestions > 0 ? (answeredQuestions / totalQuestions) * 100 : 0;
 
     // Determine status: 'completed' ONLY if 100% answered, 'insufficient_answers' otherwise
@@ -436,7 +475,10 @@ export class TestResponsesService {
       // Count tests with status 'completed' (not 'insufficient_answers')
       const completedTestsCount = allTestResponses.filter((tr) => tr.status === 'completed').length;
       const insufficientTestsCount = allTestResponses.filter((tr) => tr.status === 'insufficient_answers').length;
-      const submittedTestsCount = allTestResponses.length;
+      // Solo los ENVIADOS. `startTest` crea la fila al abrir el test, así que
+      // contarlas todas daba la postulación por terminada —y generaba el
+      // informe— con tests abiertos y nunca enviados.
+      const submittedTestsCount = allTestResponses.filter((tr) => tr.isCompleted).length;
 
       this.logger.log(
         `WorkerProcess ${workerProcessId}: ${completedTestsCount} completed / ${insufficientTestsCount} insufficient / ${submittedTestsCount} submitted / ${totalTests} total tests`,
@@ -457,6 +499,16 @@ export class TestResponsesService {
 
       // Update WorkerProcess status to 'completed'
       await this.updateWorkerProcessStatusOnAllTestsCompleted(workerProcessId, totalTests);
+
+      // Sin un solo test con resultado, el informe saldría vacío y llegaría
+      // igual a revisión del admin. La postulación queda «completada» y el
+      // admin la ve sin informe, que es lo que corresponde.
+      if (completedTestsCount === 0) {
+        this.logger.warn(
+          `WorkerProcess ${workerProcessId}: ningún test con respuestas suficientes. No se genera informe.`,
+        );
+        return;
+      }
 
       await this.reportsService.generateReport(workerProcessId);
 
