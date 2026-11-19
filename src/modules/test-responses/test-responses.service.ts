@@ -228,6 +228,8 @@ export class TestResponsesService {
     const duracionMinutos = isFixedTest
       ? testResponse.fixedTest.duration
       : testResponse.test?.duration;
+    // `startedAt` lo escribe este mismo proceso con `new Date()` y el driver
+    // lo lee en la misma zona horaria, así que la resta es coherente.
     const transcurridoMs = testResponse.startedAt
       ? Date.now() - new Date(testResponse.startedAt).getTime()
       : 0;
