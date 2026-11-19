@@ -514,18 +514,8 @@ export class DocumentGeneratorService {
         ? new Date(tr.completedAt).toLocaleDateString('es-CL')
         : '-';
 
-      let resultado = '-';
-      if (tr.interpretation?.resultadoResumen) {
-        // CEAL y BIS-11: un nivel suelto («ALTA», «Moderado») no se entiende
-        // sin decir de qué es.
-        resultado = tr.interpretation.resultadoResumen;
-      } else if (tr.interpretation?.nivel) {
-        resultado = tr.interpretation.nivel;
-      } else if (tr.interpretation?.nivelGlobal) {
-        resultado = tr.interpretation.nivelGlobal;
-      } else if (tr.interpretation?.perfilPredominante) {
-        resultado = `Perfil ${tr.interpretation.perfilPredominante}`;
-      } else if (tr.score !== null && tr.maxScore !== null) {
+      let resultado = this.resultadoParaResumen(tr) ?? '-';
+      if (resultado === '-' && tr.score !== null && tr.maxScore !== null) {
         resultado = `${Math.round((tr.score / tr.maxScore) * 100)}%`;
       }
 
@@ -1755,17 +1745,10 @@ export class DocumentGeneratorService {
     // Hallazgos clave
     const keyFindings: string[] = [];
     workerProcess.testResponses?.forEach(tr => {
-      if (tr.interpretation) {
+      const resultado = this.resultadoParaResumen(tr);
+      if (resultado) {
         const testName = tr.fixedTest?.name || tr.test?.name || 'Test';
-        if (tr.interpretation.resultadoResumen) {
-          keyFindings.push(`${testName}: ${tr.interpretation.resultadoResumen}`);
-        } else if (tr.interpretation.nivel) {
-          keyFindings.push(`${testName}: Nivel ${tr.interpretation.nivel}`);
-        } else if (tr.interpretation.nivelGlobal) {
-          keyFindings.push(`${testName}: ${tr.interpretation.nivelGlobal.replace('_', ' ')}`);
-        } else if (tr.interpretation.perfilPredominante) {
-          keyFindings.push(`${testName}: Perfil ${tr.interpretation.perfilPredominante}`);
-        }
+        keyFindings.push(`${testName}: ${resultado}`);
       }
     });
 
@@ -1999,6 +1982,31 @@ export class DocumentGeneratorService {
       alignment: AlignmentType.CENTER,
       spacing: { before: 200, after: 200 },
     });
+  }
+
+  /**
+   * Resultado de un test en una línea, para la tabla «Resumen de evaluaciones»
+   * y la lista «Resumen de resultados» de las conclusiones. Antes cada una
+   * tenía su propia cadena de `if` y se desalineaban: el 16PF —que no tiene
+   * `nivel`, solo `resumenGlobal`— salía «-» en la tabla y no aparecía en las
+   * conclusiones, y los niveles salían con guion bajo («MUY_BAJO»).
+   */
+  private resultadoParaResumen(tr: TestResponse): string | null {
+    const i = tr.interpretation;
+    if (!i || tr.status === 'insufficient_answers') return null;
+    const legible = (v: string) => String(v).replace(/_/g, ' ');
+    if (i.resultadoResumen) {
+      // CEAL y BIS-11: un nivel suelto («ALTA», «Moderado») no se entiende
+      // sin decir de qué es.
+      return legible(i.resultadoResumen);
+    }
+    if (i.nivel) return `Nivel ${legible(i.nivel)}`;
+    if (i.nivelGlobal) return legible(i.nivelGlobal);
+    if (i.perfilPredominante) return `Perfil ${i.perfilPredominante}`;
+    if (typeof i.resumenGlobal === 'string' && i.resumenGlobal.trim()) {
+      return i.resumenGlobal.trim().replace(/\.$/, '');
+    }
+    return null;
   }
 
   // ========== UTILIDADES ==========
