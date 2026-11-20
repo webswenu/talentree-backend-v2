@@ -38,6 +38,10 @@ import { TestResponse } from '../test-responses/entities/test-response.entity';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { NotificationType } from '../../common/enums/notification-type.enum';
 import { Logger } from '@nestjs/common';
+import {
+  fechaComoDia,
+  procesoVencido,
+} from '../../common/helpers/vigencia-proceso.helper';
 
 @Injectable()
 export class ProcessesService {
@@ -248,7 +252,29 @@ export class ProcessesService {
       }
     }
 
+    const terminoAnterior = fechaComoDia(process.endDate);
+
     Object.assign(process, updateProcessDto);
+
+    // Un proceso que el cierre automático dio por completado vuelve a estar
+    // activo si se le extiende la fecha de término. Solo cuando la fecha
+    // cambió, la nueva aún no vence y nadie eligió otro estado en la misma
+    // edición: el formulario reenvía el estado actual, así que «completado»
+    // repetido no cuenta como una decisión.
+    const terminoNuevo = fechaComoDia(updateProcessDto.endDate);
+    if (
+      oldStatus === ProcessStatus.COMPLETED &&
+      (!updateProcessDto.status || updateProcessDto.status === oldStatus) &&
+      terminoNuevo &&
+      terminoNuevo !== terminoAnterior &&
+      !procesoVencido(terminoNuevo)
+    ) {
+      process.status = ProcessStatus.ACTIVE;
+      this.logger.log(
+        `Proceso "${process.name}" (${process.id}) reabierto: fecha de término ${terminoAnterior} -> ${terminoNuevo}`,
+      );
+    }
+
     const savedProcess = await this.processRepository.save(process);
 
     // Notificar si el estado cambió

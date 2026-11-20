@@ -1,7 +1,8 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThanOrEqual, MoreThan, IsNull } from 'typeorm';
+import { Repository, LessThanOrEqual, LessThan, MoreThan, IsNull } from 'typeorm';
+import { hoyEnChile } from '../../common/helpers/vigencia-proceso.helper';
 import { SelectionProcess } from '../processes/entities/selection-process.entity';
 import { WorkerProcess } from '../workers/entities/worker-process.entity';
 import { TestResponse } from '../test-responses/entities/test-response.entity';
@@ -498,13 +499,14 @@ export class NotificationsSchedulerService {
     this.logger.log('Running cron: closeExpiredProcessesAndGenerateReports');
 
     try {
-      const now = new Date();
+      // Vencido = su fecha de término ya pasó en Chile. El último día
+      // sigue abierto: antes se cerraba a las 00:00 de ese mismo día.
+      const hoy = hoyEnChile();
 
-      // Buscar procesos activos que ya vencieron
       const expiredProcesses = await this.processRepository.find({
         where: {
           status: ProcessStatus.ACTIVE,
-          endDate: LessThanOrEqual(now),
+          endDate: LessThan(hoy as any),
         },
         relations: ['tests', 'fixedTests'],
       });
