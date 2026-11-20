@@ -7,8 +7,15 @@
  * implementa el puntuador. Los textos se corrigieron solo de ortografía
  * (17-09-2026); el contenido sigue siendo el del Excel.
  *
- * Es la versión chilena publicada (Salvo y Castro, 2013): escala 0-1-3-4,
- * 12 ítems inversos, subescalas de 8, 10 y 12 ítems.
+ * Ítems, subescalas (8, 10 y 12) e inversos de la versión en español
+ * (Oquendo et al., 2001; Salvo y Castro, 2013).
+ *
+ * Puntuación 1-2-3-4 (total 30-120), como la BIS-11 original (Patton et al.,
+ * 1995). El Excel puntuaba 0-1-3-4 pero clasificaba el total contra
+ * 63,88 ± 11,32, una media de estudios puntuados 1-2-3-4 (Folino 2006: 63;
+ * Reise 2013: 59,2; Martínez-Loredo 2015: 60,7). Con 0-1-3-4 una misma persona
+ * saca 25 a 28 puntos menos y casi todos caían en «Bajo». Se corrigió la
+ * escala para que puntuación y norma sean la misma (20-11-2026).
  */
 
 export type DimensionBis11 = 'ATENCIONAL' | 'MOTORA' | 'NO_PLANIFICACION';
@@ -18,14 +25,14 @@ export interface ItemBis11 {
   numero: number;
   texto: string;
   dimension: DimensionBis11;
-  /** Columna «Inverso» del cuestionario: el puntaje corregido es 4 - respuesta. */
+  /** Columna «Inverso» del cuestionario: el puntaje corregido es 5 - respuesta. */
   inverso: boolean;
 }
 
 export const BIS11_INSTRUCCIONES =
   'Esta es una escala para medir algunas de las formas en que usted actúa y piensa. No se detenga demasiado tiempo en las oraciones. Responda rápida y honestamente marcando una X en la opción que más le represente';
 
-/** Encabezados del cuestionario: «Raramente o nunca (0)» … «Siempre o casi siempre (4)». */
+/** Raramente o nunca = 1 … Siempre o casi siempre = 4 (escala 1-2-3-4). */
 export const BIS11_OPCIONES: {
   clave: 'A' | 'B' | 'C' | 'D';
   texto: string;
@@ -34,12 +41,12 @@ export const BIS11_OPCIONES: {
   {
     clave: 'A',
     texto: 'Raramente o nunca',
-    valor: 0,
+    valor: 1,
   },
   {
     clave: 'B',
     texto: 'Ocasionalmente',
-    valor: 1,
+    valor: 2,
   },
   {
     clave: 'C',
@@ -261,8 +268,13 @@ export const BIS11_ITEMS: ItemBis11[] = [
   },
 ];
 
+/** Valores extremos de una respuesta. Un inverso vale (mínimo + máximo) - respuesta. */
+export const BIS11_VALOR_MINIMO = 1;
+export const BIS11_VALOR_MAXIMO = 4;
+
 /**
- * Referencia poblacional con la que el Excel clasifica el TOTAL:
+ * Referencia poblacional con la que el Excel clasifica el TOTAL (obtenida con
+ * la escala 1-2-3-4, la misma que se usa aquí):
  * Bajo si < media - DT, Moderado si <= media + DT, Alto si es mayor.
  */
 export const BIS11_REFERENCIA_TOTAL = { media: 63.88, dt: 11.32 };
@@ -299,10 +311,21 @@ export const BIS11_INTERPRETACIONES: Record<
 };
 
 export const BIS11_NOTA_TABULACION =
-  'Puntaje corregido = aplica puntuación inversa a los ítems 1, 5, 6, 7, 8, 10, 11, 13, 17, 19, 22 y 30 (escala 0-1-3-4). El nivel del TOTAL se calcula contra una referencia poblacional publicada (media=63.88, DT=11.32; adaptación española BIS-11, n=703). El nivel de cada subescala es una estimación aproximada por tercios de su puntaje posible, sin normas poblacionales equivalentes.';
+  'Puntaje corregido = aplica puntuación inversa a los ítems 1, 5, 6, 7, 8, 10, 11, 13, 17, 19, 22 y 30 (escala 1-2-3-4; puntaje corregido = 5 - respuesta). El total va de 30 a 120. El nivel del TOTAL se calcula contra una referencia poblacional publicada (media=63.88, DT=11.32; adaptación española BIS-11, n=703), obtenida con la misma escala 1-2-3-4. El nivel de cada subescala es una estimación aproximada por tercios de su rango posible (del mínimo al máximo), sin normas poblacionales equivalentes. Un total menor a 41 (media - 2 DT) se marca como posible respuesta orientada a la deseabilidad social.';
+
+/**
+ * Total menor a media - 2 DT (≈ 41,2): casi nadie responde así con sinceridad.
+ * Suele indicar respuestas orientadas a «quedar bien», y ese «Bajo» no debe
+ * leerse como autocontrol sin contrastarlo en entrevista.
+ */
+export const BIS11_UMBRAL_DESEABILIDAD =
+  BIS11_REFERENCIA_TOTAL.media - 2 * BIS11_REFERENCIA_TOTAL.dt;
+
+export const BIS11_ALERTA_DESEABILIDAD =
+  'Alerta de deseabilidad social: el puntaje total está más de dos desviaciones típicas bajo la media de la población general, un resultado muy poco frecuente. Es posible que la persona haya respondido buscando dar una imagen favorable (por ejemplo, marcando «Siempre» en todo lo que suena positivo y «Nunca» en todo lo que suena negativo). Este resultado no debe leerse por sí solo como un alto autocontrol: se recomienda contrastarlo en entrevista con ejemplos concretos de su conducta.';
 
 export const BIS11_NOTA_CATALOGO =
   'Catálogo de referencia con los 12 resultados posibles (3 dimensiones + total, cada uno en nivel Bajo / Moderado / Alto) y su lectura interpretativa. Uso orientativo, no diagnóstico.';
 
 export const BIS11_NOTA_METODOLOGICA =
-  'Este informe se generó a partir de la Escala de Impulsividad de Barratt (BIS-11), aplicando la estructura oficial de corrección: 8 ítems de impulsividad atencional, 10 de impulsividad motora y 12 de no planificación, con inversión de puntaje en los ítems correspondientes. El nivel del puntaje total se contrasta con una referencia poblacional publicada (media=63.88, DT=11.32; adaptación española del BIS-11, muestra general n=703); las subescalas se presentan con un nivel aproximado, dado que no se cuenta con normas poblacionales igual de difundidas para ellas. Este informe es una herramienta de apoyo a la toma de decisiones y no constituye, por sí sola, un diagnóstico clínico. Se recomienda que su interpretación final y la decisión asociada al proceso de selección sean validadas por un profesional competente, en conjunto con el resto de la batería de evaluación y la información recogida en entrevista.';
+  'Este informe se generó a partir de la Escala de Impulsividad de Barratt (BIS-11), aplicando la estructura oficial de corrección (respuestas puntuadas de 1 a 4, total entre 30 y 120): 8 ítems de impulsividad atencional, 10 de impulsividad motora y 12 de no planificación, con inversión de puntaje en los ítems correspondientes. El nivel del puntaje total se contrasta con una referencia poblacional publicada (media=63.88, DT=11.32; adaptación española del BIS-11, muestra general n=703); las subescalas se presentan con un nivel aproximado, dado que no se cuenta con normas poblacionales igual de difundidas para ellas. Este informe es una herramienta de apoyo a la toma de decisiones y no constituye, por sí sola, un diagnóstico clínico. Se recomienda que su interpretación final y la decisión asociada al proceso de selección sean validadas por un profesional competente, en conjunto con el resto de la batería de evaluación y la información recogida en entrevista.';

@@ -1601,6 +1601,15 @@ export class DocumentGeneratorService {
       }),
     );
 
+    if (interp.alertaDeseabilidad) {
+      sections.push(
+        new Paragraph({
+          children: [new TextRun({ text: interp.alertaDeseabilidad, bold: true, size: 20, color: COLORS.warning })],
+          spacing: { before: 100, after: 200 },
+        }),
+      );
+    }
+
     if (interp.notaMetodologica) {
       sections.push(
         this.createSubHeader('Nota metodológica'),
