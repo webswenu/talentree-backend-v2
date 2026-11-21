@@ -13,6 +13,7 @@ import { StartTestDto } from './dto/start-test.dto';
 import { SubmitTestDto } from './dto/submit-test.dto';
 import { EvaluateAnswerDto } from './dto/evaluate-answer.dto';
 import { SaveEvaluatorNotesDto } from './dto/save-evaluator-notes.dto';
+import { ReactivarTestDto } from './dto/reactivar-test.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -39,6 +40,13 @@ export class TestResponsesController {
   @Roles(UserRole.WORKER, UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
   submitTest(@Param('id') id: string, @Body() submitTestDto: SubmitTestDto, @Request() req: any) {
     return this.testResponsesService.submitTest(id, submitTestDto, req.user);
+  }
+
+  /** El admin reabre un test incompleto y, si quiere, avisa por correo. */
+  @Post(':id/reactivar')
+  @Roles(UserRole.ADMIN_TALENTREE)
+  reactivar(@Param('id') id: string, @Body() dto: ReactivarTestDto) {
+    return this.testResponsesService.reactivarTest(id, dto);
   }
 
   @Post(':id/auto-evaluate')
