@@ -365,16 +365,43 @@ export class TestResponsesService {
         }
       }
     } else {
-      // Mark as insufficient_answers - save metadata about why
-      testResponse.isCompleted = isCompleted;
-      testResponse.completedAt = completedAt;
-      testResponse.status = testStatus;
-      testResponse.metadata = {
+      /**
+       * Test incompleto. Desde el 21-11-2026 (pedido de la clienta) un test
+       * fijo cortado se calcula igual con las respuestas que haya, y el
+       * informe avisa que no se completó. `status` sigue siendo
+       * `insufficient_answers`: es lo que marca «Incompleto» en todas partes.
+       *
+       * `motivo` distingue el corte por tiempo de un envío a medias, para que
+       * el informe diga lo correcto.
+       */
+      const metadata = {
         ...testResponse.metadata,
         answeredQuestions,
         totalQuestions,
         answerPercentage: parseFloat(answerPercentage.toFixed(1)),
+        motivo: tiempoVencido ? 'tiempo' : 'envio_incompleto',
+        duracionMinutos: duracionMinutos ?? null,
       };
+
+      let calculado = false;
+      if (isFixedTest && answeredQuestions > 0) {
+        try {
+          testResponse = await this.autoEvaluate(responseId, completedAt, isCompleted);
+          calculado = true;
+        } catch (error) {
+          // Si un motor no aguanta respuestas faltantes, el test queda como
+          // antes: incompleto y sin resultados. Nunca se pierde el envío.
+          this.logger.error(
+            `No se pudo calcular el test incompleto ${responseId}: ${error instanceof Error ? error.message : String(error)}`,
+          );
+          testResponse = (await this.testResponseRepository.findOne({ where: { id: responseId } }))!;
+        }
+      }
+
+      testResponse.isCompleted = isCompleted;
+      testResponse.completedAt = completedAt;
+      testResponse.status = testStatus;
+      testResponse.metadata = { ...metadata, calculadoParcial: calculado };
       testResponse = await this.testResponseRepository.save(testResponse);
     }
 
@@ -519,7 +546,12 @@ export class TestResponsesService {
       // Sin un solo test con resultado, el informe saldría vacío y llegaría
       // igual a revisión del admin. La postulación queda «completada» y el
       // admin la ve sin informe, que es lo que corresponde.
-      if (completedTestsCount === 0) {
+      // Un incompleto calculado con lo que alcanzó a responder también da
+      // resultado (ver la rama `insufficient_answers` de submitTest).
+      const conResultado = allTestResponses.filter(
+        (tr) => tr.status === 'completed' || (tr.status === 'insufficient_answers' && !!tr.interpretation),
+      ).length;
+      if (conResultado === 0) {
         this.logger.warn(
           `WorkerProcess ${workerProcessId}: ningún test con respuestas suficientes. No se genera informe.`,
         );
@@ -991,6 +1023,10 @@ export class TestResponsesService {
       startedAt: null as unknown as Date,
       score: null as unknown as number,
       passed: false,
+      rawScores: null as unknown as Record<string, any>,
+      scaledScores: null as unknown as Record<string, any>,
+      interpretation: null as unknown as Record<string, any>,
+      metadata: null as unknown as Record<string, any>,
     });
     for (const informe of informes) {
       await this.reportsService.remove(informe.id);
