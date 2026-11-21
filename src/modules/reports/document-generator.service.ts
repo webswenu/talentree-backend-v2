@@ -517,7 +517,7 @@ export class DocumentGeneratorService {
         status = 'Completado';
         statusColor = COLORS.success;
       } else if (tr.status === 'insufficient_answers') {
-        status = 'Incompleto';
+        status = this.porTiempo(tr) ? 'Incompleto (tiempo agotado)' : 'Incompleto';
         statusColor = COLORS.danger;
       }
 
@@ -585,31 +585,32 @@ export class DocumentGeneratorService {
     // Header del test
     sections.push(this.createMainHeader(testName.toUpperCase()));
 
-    // Test incompleto
+    // Test incompleto. Si se calculó con lo respondido (desde el 21-11-2026),
+    // se avisa y se muestran los resultados; si no hay nada que mostrar, solo
+    // el aviso.
     if (testResponse.status === 'insufficient_answers') {
+      const calculado = !!testResponse.interpretation;
       sections.push(
         new Paragraph({
           children: [
-            new TextRun({ text: 'TEST NO COMPLETADO', bold: true, size: 26, color: COLORS.danger }),
+            new TextRun({
+              text: this.porTiempo(testResponse)
+                ? 'TEST NO COMPLETADO EN EL TIEMPO ASIGNADO'
+                : 'TEST NO COMPLETADO',
+              bold: true,
+              size: 26,
+              color: COLORS.danger,
+            }),
           ],
           spacing: { before: 200, after: 200 },
           shading: { type: ShadingType.SOLID, color: 'fee2e2' },
         }),
         new Paragraph({
-          children: [
-            new TextRun({
-              text: `El candidato no completó esta evaluación. ${
-                (testResponse.metadata as any)?.answeredQuestions !== undefined
-                  ? `Se respondieron ${(testResponse.metadata as any).answeredQuestions} de ${(testResponse.metadata as any).totalQuestions} preguntas.`
-                  : ''
-              }`,
-              size: 22,
-            }),
-          ],
+          children: [new TextRun({ text: this.avisoIncompleto(testResponse), size: 22 })],
           spacing: { after: 200 },
         }),
       );
-      return sections;
+      if (!calculado) return sections;
     }
 
     // Descripción del test
@@ -1768,7 +1769,13 @@ export class DocumentGeneratorService {
       const resultado = this.resultadoParaResumen(tr);
       if (resultado) {
         const testName = tr.fixedTest?.name || tr.test?.name || 'Test';
-        keyFindings.push(`${testName}: ${resultado}`);
+        const nota =
+          tr.status === 'insufficient_answers'
+            ? this.porTiempo(tr)
+              ? ' (no completado en el tiempo asignado; calculado con las respuestas entregadas)'
+              : ' (test incompleto; calculado con las respuestas entregadas)'
+            : '';
+        keyFindings.push(`${testName}: ${resultado}${nota}`);
       }
     });
 
@@ -2011,9 +2018,42 @@ export class DocumentGeneratorService {
    * `nivel`, solo `resumenGlobal`— salía «-» en la tabla y no aparecía en las
    * conclusiones, y los niveles salían con guion bajo («MUY_BAJO»).
    */
+  /**
+   * ¿El test incompleto se cortó porque se acabó el tiempo? Los envíos nuevos
+   * lo traen en `metadata.motivo`; para los anteriores se deduce de la
+   * duración del test y de cuánto pasó entre el inicio y el envío.
+   */
+  private porTiempo(tr: TestResponse): boolean {
+    const m = (tr.metadata ?? {}) as Record<string, any>;
+    if (m.motivo) return m.motivo === 'tiempo';
+    const minutos = tr.fixedTest?.duration ?? tr.test?.duration;
+    if (!minutos || !tr.startedAt || !tr.completedAt) return false;
+    const transcurrido = new Date(tr.completedAt).getTime() - new Date(tr.startedAt).getTime();
+    return transcurrido >= minutos * 60 * 1000 - 30 * 1000;
+  }
+
+  private avisoIncompleto(tr: TestResponse): string {
+    const m = (tr.metadata ?? {}) as Record<string, any>;
+    const minutos = m.duracionMinutos ?? tr.fixedTest?.duration ?? tr.test?.duration;
+    const partes: string[] = [
+      this.porTiempo(tr)
+        ? `El candidato no completó el test en el tiempo asignado${minutos ? ` (${minutos} minutos)` : ''}.`
+        : 'El candidato envió el test sin responder todas las preguntas.',
+    ];
+    if (m.answeredQuestions !== undefined && m.totalQuestions) {
+      partes.push(`Respondió ${m.answeredQuestions} de ${m.totalQuestions} preguntas (${String(m.answerPercentage ?? Math.round((m.answeredQuestions / m.totalQuestions) * 100)).replace('.', ',')} %).`);
+    }
+    partes.push(
+      tr.interpretation
+        ? 'Los resultados que siguen se calcularon solo con las respuestas entregadas y deben interpretarse con cautela.'
+        : 'No hay respuestas suficientes para calcular resultados.',
+    );
+    return partes.join(' ');
+  }
+
   private resultadoParaResumen(tr: TestResponse): string | null {
     const i = tr.interpretation;
-    if (!i || tr.status === 'insufficient_answers') return null;
+    if (!i) return null;
     const legible = (v: string) => String(v).replace(/_/g, ' ');
     if (i.resultadoResumen) {
       // CEAL y BIS-11: un nivel suelto («ALTA», «Moderado») no se entiende
