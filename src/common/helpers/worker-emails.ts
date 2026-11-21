@@ -117,7 +117,7 @@ function bulletsText(items: string[]): string {
 }
 
 function stripTags(html: string): string {
-  return html.replace(/<[^>]+>/g, '');
+  return html.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
 }
 
 interface LayoutOptions {
@@ -521,6 +521,79 @@ export function buildTestsCompletedEmail(
 
   return {
     subject: `Completaste las evaluaciones para ${i.position} en ${i.companyName}`,
+    text: layoutText(opciones),
+    html: layoutHtml(opciones),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 4. Test reactivado (lo envía el admin al reabrir un test incompleto)
+// ---------------------------------------------------------------------------
+
+export interface TestReactivadoEmailInput {
+  workerName: string;
+  processName: string;
+  companyName: string;
+  position: string;
+  testName: string;
+  /** Minutos que tendrá para responder; null = sin límite. */
+  duracionMinutos: number | null;
+  /** Mensaje libre del admin. Se escapa: no admite HTML. */
+  mensaje?: string | null;
+  fechaTermino?: Date | string | null;
+}
+
+export function buildTestReactivadoEmail(
+  i: TestReactivadoEmailInput,
+): WorkerEmail {
+  const base = frontendUrl();
+  const urlPostulaciones = `${base}/trabajador/postulaciones`;
+  const fecha = formatearFecha(i.fechaTermino);
+  const tiempo = i.duracionMinutos
+    ? `Tendrás <strong>${i.duracionMinutos} minutos</strong>, que empiezan a contar cuando abras el test.`
+    : 'Este test <strong>no tiene límite de tiempo</strong>: responde con calma.';
+
+  const pasos: Step[] = [
+    {
+      titulo: 'Entra a la plataforma',
+      detalle: 'Inicia sesión con tu correo y tu contraseña de siempre.',
+    },
+    {
+      titulo: 'Ve a "Mis Postulaciones"',
+      detalle: `Abre la postulación <strong>"${escapeHtml(i.processName)}"</strong>.`,
+    },
+    {
+      titulo: `Busca "${escapeHtml(i.testName)}" y pulsa "Continuar Test"`,
+      detalle: `Lo que ya habías respondido sigue guardado: partes desde la primera pregunta pendiente. ${tiempo}`,
+    },
+    {
+      titulo: 'Al terminar, pulsa "Finalizar"',
+      detalle: 'Así queda enviado. Si cierras la página antes, puedes volver a entrar y seguir.',
+    },
+  ];
+
+  const mensaje = i.mensaje?.trim();
+  const opciones: LayoutOptions = {
+    titulo: 'Tu test está disponible de nuevo',
+    subtitulo: `${i.position} en ${i.companyName}`,
+    saludo: `Hola <strong>${escapeHtml(i.workerName)}</strong>,`,
+    intro: `Volvimos a abrir el test <strong>"${escapeHtml(i.testName)}"</strong> del proceso <strong>"${escapeHtml(i.processName)}"</strong> para que puedas terminarlo.`,
+    infoProceso: [
+      { label: 'Proceso', value: i.processName },
+      { label: 'Test', value: i.testName },
+      ...(fecha ? [{ label: 'Plazo', value: `hasta el ${fecha}` }] : []),
+    ],
+    pasosTitulo: 'Cómo terminarlo',
+    pasos,
+    boton: { texto: 'Ir a mis postulaciones', url: urlPostulaciones },
+    aviso: mensaje
+      ? `<strong>Mensaje del equipo de selección:</strong><br>${escapeHtml(mensaje).replace(/\r?\n/g, '<br>')}`
+      : undefined,
+    cierre: 'Si tienes problemas para entrar, comunícate con la persona que te invitó al proceso.',
+  };
+
+  return {
+    subject: `Puedes terminar tu test "${i.testName}" (${i.position} en ${i.companyName})`,
     text: layoutText(opciones),
     html: layoutHtml(opciones),
   };

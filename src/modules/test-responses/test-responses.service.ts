@@ -31,7 +31,11 @@ import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { NotificationType } from '../../common/enums/notification-type.enum';
 import { UsersService } from '../users/users.service';
 import { EmailHelper } from '../../common/helpers/email.helper';
-import { buildTestsCompletedEmail } from '../../common/helpers/worker-emails';
+import { buildTestsCompletedEmail, buildTestReactivadoEmail } from '../../common/helpers/worker-emails';
+import { ReactivarTestDto } from './dto/reactivar-test.dto';
+import { ProcessStatus } from '../../common/enums/process-status.enum';
+import { ReportStatus } from '../../common/enums/report-status.enum';
+import { procesoVencido } from '../../common/helpers/vigencia-proceso.helper';
 import { assertPuedeAccederAPostulacion } from '../../common/helpers/ownership.helper';
 
 @Injectable()
@@ -913,7 +917,123 @@ export class TestResponsesService {
       'este test',
     );
 
+    /**
+     * Un test reabierto a mano queda con `startedAt = NULL` para que su reloj
+     * arranque cuando el candidato vuelva a entrar, no cuando se reabrió.
+     * «Continuar Test» navega directo aquí sin pasar por /start, así que el
+     * inicio se marca en esta lectura, solo si quien lee es el propio
+     * candidato (no la empresa ni el admin mirando).
+     */
+    const esElCandidato =
+      !!user?.id && user.id === testResponse.workerProcess?.worker?.user?.id;
+    if (esElCandidato && !testResponse.isCompleted && !testResponse.startedAt) {
+      testResponse.startedAt = new Date();
+      await this.testResponseRepository.update(testResponse.id, {
+        startedAt: testResponse.startedAt,
+      });
+    }
+
     return testResponse;
+  }
+
+  /**
+   * El admin reabre un test que se cerró incompleto.
+   *
+   * Hace en un paso lo que el 21-11-2026 hubo que hacer a mano con SQL para
+   * cinco 16PF cerrados por tiempo: las respuestas guardadas se conservan, el
+   * reloj vuelve a arrancar cuando la persona entre (`startedAt = NULL`, ver
+   * findOne), la postulación vuelve a «en proceso» y se borra el informe sin
+   * aprobar que se generó con el test a medias.
+   */
+  async reactivarTest(
+    id: string,
+    dto: ReactivarTestDto,
+  ): Promise<{ correoEnviado: boolean; correoError?: string; respuestasConservadas: number }> {
+    const tr = await this.testResponseRepository.findOne({
+      where: { id },
+      relations: {
+        test: true,
+        fixedTest: true,
+        workerProcess: { worker: { user: true }, process: { company: true } },
+      },
+    });
+    if (!tr) throw new NotFoundException('No encontramos ese test.');
+
+    if (tr.status !== 'insufficient_answers' && tr.status !== 'abandoned') {
+      throw new BadRequestException(
+        tr.isCompleted
+          ? 'Solo se pueden reactivar tests incompletos. Este test se completó entero.'
+          : 'Este test todavía está abierto: el postulante puede seguir respondiéndolo.',
+      );
+    }
+
+    const wp = tr.workerProcess;
+    const proceso = wp.process;
+    if (proceso.status !== ProcessStatus.ACTIVE || procesoVencido(proceso.endDate)) {
+      throw new BadRequestException(
+        `El proceso "${proceso.name}" no está activo o ya pasó su fecha de término. Extiende la fecha de término del proceso y vuelve a intentarlo; si no, el cierre automático lo cerraría otra vez.`,
+      );
+    }
+
+    const informes = (await this.reportsService.findByWorker(wp.worker.id)).filter(
+      (r) => r.process?.id === proceso.id,
+    );
+    if (informes.some((r) => r.status === ReportStatus.APPROVED)) {
+      throw new BadRequestException(
+        'Esta postulación ya tiene un informe aprobado. Para reactivar el test, primero hay que devolver ese informe.',
+      );
+    }
+
+    await this.testResponseRepository.update(tr.id, {
+      isCompleted: false,
+      status: null as unknown as string,
+      completedAt: null as unknown as Date,
+      startedAt: null as unknown as Date,
+      score: null as unknown as number,
+      passed: false,
+    });
+    for (const informe of informes) {
+      await this.reportsService.remove(informe.id);
+    }
+    await this.workerProcessRepository.update(wp.id, {
+      status: WorkerStatus.IN_PROCESS,
+      totalScore: null as unknown as number,
+    });
+
+    const respuestasConservadas = await this.testAnswerRepository.count({
+      where: { testResponse: { id: tr.id } },
+    });
+    this.logger.log(
+      `Test ${tr.id} reactivado por admin (${respuestasConservadas} respuestas conservadas, ${informes.length} informes borrados)`,
+    );
+
+    if (!dto.enviarCorreo) return { correoEnviado: false, respuestasConservadas };
+
+    const email = wp.worker.email || wp.worker.user?.email;
+    if (!email) {
+      return { correoEnviado: false, correoError: 'El postulante no tiene correo registrado.', respuestasConservadas };
+    }
+    try {
+      const correo = buildTestReactivadoEmail({
+        workerName: wp.worker.firstName,
+        processName: proceso.name,
+        companyName: proceso.company?.name ?? 'la empresa',
+        position: proceso.position,
+        testName: tr.fixedTest?.name ?? tr.test?.name ?? 'test',
+        duracionMinutos: (tr.fixedTest?.duration ?? tr.test?.duration) || null,
+        mensaje: dto.mensaje,
+        fechaTermino: proceso.endDate,
+      });
+      await EmailHelper.sendEmail(email, correo.subject, correo.text, correo.html);
+      return { correoEnviado: true, respuestasConservadas };
+    } catch (error) {
+      this.logger.error(`No se pudo enviar el correo de test reactivado a ${email}: ${error instanceof Error ? error.message : String(error)}`);
+      return {
+        correoEnviado: false,
+        correoError: 'El test quedó reactivado, pero el correo no se pudo enviar. Avísale por otro medio.',
+        respuestasConservadas,
+      };
+    }
   }
 
   async findByWorkerProcess(
