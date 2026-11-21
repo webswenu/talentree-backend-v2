@@ -277,6 +277,16 @@ export class TestResponsesService {
 
     await this.testAnswerRepository.save(answers);
 
+    /**
+     * `testResponse.answers` se cargó ANTES de guardar las respuestas nuevas,
+     * así que no las trae. Con `cascade: true`, el `save(testResponse)` de más
+     * abajo trataba las que faltan como quitadas de la relación y les ponía
+     * `test_response_id = NULL`. Pasaba en cada test que no se completaba al
+     * 100 % (el camino completo recarga con `autoEvaluate` y se salvaba): el
+     * 20 y 21-11-2026 quedaron 600 respuestas de cinco 16PF sueltas.
+     */
+    testResponse.answers = undefined as unknown as TestAnswer[];
+
     // Determine test status based on answered questions
     const totalQuestions = isFixedTest
       ? testResponse.fixedTest.questions?.length || 0
