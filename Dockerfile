@@ -3,22 +3,17 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# La imagen corre sin root (CKV_DOCKER_3): node es el usuario sin privilegios
-# que trae la imagen oficial.
-RUN chown node:node /app
-
 # Install PostgreSQL client for health checks and FFmpeg for video processing
 RUN apk add --no-cache postgresql-client ffmpeg
 
 # Copy package files
-COPY --chown=node:node package*.json ./
-USER node
+COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
 # Copy source code
-COPY --chown=node:node . .
+COPY . .
 
 # Expose port
 EXPOSE 3000
