@@ -199,10 +199,7 @@ export class CompaniesService {
       this.logger.log(`[UPDATE] Buscando usuario con ID: ${userId}`);
       const user = await this.usersService.findOne(userId);
 
-      this.logger.log(`[UPDATE] Usuario encontrado:`, {
-        id: user.id,
-        email: user.email,
-      });
+      this.logger.log(`[UPDATE] Usuario encontrado: ${user.id}`);
       company.user = user;
     }
 

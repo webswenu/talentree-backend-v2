@@ -30,7 +30,7 @@ function frontendUrl(): string {
   return (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/+$/, '');
 }
 
-function escapeHtml(value: string): string {
+export function escapeHtml(value: string): string {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

@@ -29,6 +29,7 @@ import {
   resolveUserCompanyId,
 } from '../../common/helpers/ownership.helper';
 import { esPdf } from '../../common/helpers/upload.helper';
+import { resolverRutaEnUploads } from '../../common/helpers/ruta-local.helper';
 
 @Injectable()
 export class ReportsService {
@@ -231,8 +232,9 @@ export class ReportsService {
     const report = await this.findOne(id);
 
     // Delete file if exists
-    if (report.fileUrl) {
-      const filePath = path.join(process.cwd(), report.fileUrl);
+    // fileUrl es editable por PATCH: solo se borra si queda dentro de uploads.
+    const filePath = report.fileUrl ? resolverRutaEnUploads(report.fileUrl) : null;
+    if (filePath) {
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
@@ -452,10 +454,10 @@ export class ReportsService {
     } else {
       // Legacy: File is in local filesystem
       this.logger.log(`Attempting to read report from local filesystem: ${fileUrl}`);
-      const filePath = path.join(process.cwd(), fileUrl);
+      const filePath = resolverRutaEnUploads(fileUrl);
 
-      if (!fs.existsSync(filePath)) {
-        this.logger.error(`Local report file not found at path: ${filePath}`);
+      if (!filePath || !fs.existsSync(filePath)) {
+        this.logger.error(`Local report file not found or outside uploads: ${fileUrl}`);
         throw new NotFoundException('El archivo no existe en el servidor');
       }
 

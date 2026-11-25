@@ -369,7 +369,7 @@ export class AuthService {
       );
     } catch (error) {
       this.logger.error(
-        `No se pudo enviar el correo de recuperación a ${user.email}: ${error instanceof Error ? error.message : String(error)}`,
+        `No se pudo enviar el correo de recuperación al usuario ${user.id}: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
 

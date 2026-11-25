@@ -1,6 +1,6 @@
 import * as nodemailer from 'nodemailer';
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import { resolve, sep } from 'path';
 
 export class EmailHelper {
   private static transporter: nodemailer.Transporter | null = null;
@@ -28,8 +28,11 @@ export class EmailHelper {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASSWORD,
       },
+      // El certificado del servidor SMTP se valida siempre (SES y Gmail tienen
+      // certificados válidos). Solo se puede desactivar de forma explícita, p. ej.
+      // para un servidor de pruebas local con certificado autofirmado.
       tls: {
-        rejectUnauthorized: false,
+        rejectUnauthorized: process.env.MAIL_TLS_REJECT_UNAUTHORIZED !== 'false',
       },
     });
 
@@ -67,6 +70,30 @@ export class EmailHelper {
     }
   }
 
+  /**
+   * La plantilla tiene que ser un .html dentro del directorio de la aplicación.
+   */
+  private static resolveTemplatePath(templatePath: string): string {
+    const raiz = resolve(process.cwd());
+    const destino = resolve(raiz, String(templatePath ?? ''));
+    if (!destino.startsWith(raiz + sep) || !destino.toLowerCase().endsWith('.html')) {
+      throw new Error('Ruta de plantilla de correo no permitida');
+    }
+    return destino;
+  }
+
+  /**
+   * Reemplaza {{clave}} por su valor. La clave se trata como texto literal, no
+   * como expresión regular.
+   */
+  static renderTemplate(html: string, variables: Record<string, string>): string {
+    let resultado = html;
+    Object.keys(variables).forEach((key) => {
+      resultado = resultado.split(`{{${key}}}`).join(variables[key]);
+    });
+    return resultado;
+  }
+
   static async sendTemplateEmail(
     to: string,
     subject: string,
@@ -74,13 +101,11 @@ export class EmailHelper {
     variables: Record<string, string>,
   ): Promise<void> {
     try {
-      const templateFilePath = join(process.cwd(), templatePath);
-      let htmlContent = readFileSync(templateFilePath, 'utf8');
-
-      Object.keys(variables).forEach((key) => {
-        const regex = new RegExp(`{{${key}}}`, 'g');
-        htmlContent = htmlContent.replace(regex, variables[key]);
-      });
+      const templateFilePath = this.resolveTemplatePath(templatePath);
+      let htmlContent = this.renderTemplate(
+        readFileSync(templateFilePath, 'utf8'),
+        variables,
+      );
 
       const remainingVars = htmlContent.match(/{{[^{}]+}}/g);
       if (remainingVars) {
@@ -101,7 +126,8 @@ export class EmailHelper {
 
       await this.sendEmail(to, subject, textContent, htmlContent);
     } catch (error) {
-      console.error(`Error sending template email to ${to}:`, error);
+      // Sin el destinatario: el correo es un dato personal (Ley 21.719).
+      console.error('Error sending template email:', error);
       throw error;
     }
   }
