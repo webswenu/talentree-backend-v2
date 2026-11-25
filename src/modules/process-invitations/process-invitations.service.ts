@@ -592,7 +592,7 @@ export class ProcessInvitationsService {
       throw new BadRequestException('Debes tener un perfil de trabajador para aceptar invitaciones');
     }
 
-    console.log(`[acceptById] User email: ${userEmail}, Worker found: ${worker.id} (${worker.email}), Process: ${invitation.process.id}`);
+    console.log(`[acceptById] Worker found: ${worker.id}, Process: ${invitation.process.id}`);
 
     // Verificar si ya está aplicado al proceso
     const existingApplication = await this.workerProcessRepository.findOne({

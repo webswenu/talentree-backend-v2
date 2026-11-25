@@ -1063,7 +1063,7 @@ export class TestResponsesService {
       await EmailHelper.sendEmail(email, correo.subject, correo.text, correo.html);
       return { correoEnviado: true, respuestasConservadas };
     } catch (error) {
-      this.logger.error(`No se pudo enviar el correo de test reactivado a ${email}: ${error instanceof Error ? error.message : String(error)}`);
+      this.logger.error(`No se pudo enviar el correo de test reactivado: ${error instanceof Error ? error.message : String(error)}`);
       return {
         correoEnviado: false,
         correoError: 'El test quedó reactivado, pero el correo no se pudo enviar. Avísale por otro medio.',

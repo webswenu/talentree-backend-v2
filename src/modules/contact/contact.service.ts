@@ -13,9 +13,8 @@ export class ContactService {
    * 2. Notificación al equipo de Talentree
    */
   async sendContactForm(dto: SendContactFormDto): Promise<{ message: string }> {
-    this.logger.log(
-      `Procesando formulario de contacto de ${dto.nombre} (${dto.correo})`,
-    );
+    // Sin nombre ni correo en el log: son datos personales (Ley 21.719).
+    this.logger.log('Procesando formulario de contacto');
 
     try {
       // Enviar correo de confirmación al remitente
@@ -24,9 +23,7 @@ export class ContactService {
       // Enviar notificación al equipo de Talentree
       await this.sendNotificationEmail(dto);
 
-      this.logger.log(
-        `Formulario de contacto procesado exitosamente para ${dto.correo}`,
-      );
+      this.logger.log('Formulario de contacto procesado exitosamente');
 
       return {
         message:

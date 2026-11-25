@@ -399,7 +399,7 @@ export class UsersService {
     // 6. Eliminar todas las invitaciones con el mismo email del usuario de la misma empresa (para evitar duplicados)
     // Esto incluye invitaciones pendientes o aceptadas que puedan tener el mismo email
     if (user.email && user.companyId) {
-      const invitationsByEmail = await this.invitationRepository
+      const cantidadInvitaciones = await this.invitationRepository
         .createQueryBuilder('invitation')
         .where('invitation.email = :email', { email: user.email })
         .andWhere('invitation.company_id = :companyId', {
@@ -407,9 +407,9 @@ export class UsersService {
         })
         .getCount();
 
-      if (invitationsByEmail > 0) {
+      if (cantidadInvitaciones > 0) {
         this.logger.log(
-          `[UsersService.remove] Eliminando ${invitationsByEmail} invitación(es) con el mismo email del usuario (${user.email}) de la empresa ${user.companyId}`,
+          `[UsersService.remove] Eliminando ${cantidadInvitaciones} invitación(es) con el mismo email del usuario ${user.id} de la empresa ${user.companyId}`,
         );
         await this.invitationRepository
           .createQueryBuilder()
@@ -421,14 +421,14 @@ export class UsersService {
       }
     } else if (user.email) {
       // Si no tiene companyId, eliminar todas las invitaciones con ese email (caso menos común)
-      const invitationsByEmail = await this.invitationRepository
+      const cantidadInvitaciones = await this.invitationRepository
         .createQueryBuilder('invitation')
         .where('invitation.email = :email', { email: user.email })
         .getCount();
 
-      if (invitationsByEmail > 0) {
+      if (cantidadInvitaciones > 0) {
         this.logger.log(
-          `[UsersService.remove] Eliminando ${invitationsByEmail} invitación(es) con el mismo email del usuario (${user.email})`,
+          `[UsersService.remove] Eliminando ${cantidadInvitaciones} invitación(es) con el mismo email del usuario ${user.id}`,
         );
         await this.invitationRepository
           .createQueryBuilder()

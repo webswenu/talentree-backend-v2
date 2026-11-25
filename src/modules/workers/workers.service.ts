@@ -26,6 +26,7 @@ import { ReportStatus } from '../../common/enums/report-status.enum';
 import { ProcessStatus } from '../../common/enums/process-status.enum';
 import { UserRole } from '../../common/enums/user-role.enum';
 import { paginate } from '../../common/helpers/pagination.helper';
+import { resolverRutaEnUploads } from '../../common/helpers/ruta-local.helper';
 import {
   isCompanyScopedRole,
   resolveUserCompanyId,
@@ -38,7 +39,10 @@ import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { NotificationType } from '../../common/enums/notification-type.enum';
 import { UsersService } from '../users/users.service';
 import { EmailHelper } from '../../common/helpers/email.helper';
-import { buildWelcomeToProcessEmail } from '../../common/helpers/worker-emails';
+import {
+  buildWelcomeToProcessEmail,
+  escapeHtml,
+} from '../../common/helpers/worker-emails';
 
 @Injectable()
 export class WorkersService {
@@ -719,7 +723,7 @@ Equipo Talentree`;
 <body>
   <div class="container">
     <div class="header">
-      <h1>¡Felicidades, ${workerName}!</h1>
+      <h1>¡Felicidades, ${escapeHtml(workerName)}!</h1>
     </div>
     <div class="content">
       <div style="text-align: center;">
@@ -729,8 +733,8 @@ Equipo Talentree`;
       <p>Nos complace informarte que <strong>has sido seleccionado/a</strong> para el proceso:</p>
 
       <div class="info-box">
-        <p style="margin: 0;"><strong>Proceso:</strong> ${processName}</p>
-        <p style="margin: 10px 0 0 0;"><strong>Empresa:</strong> ${companyName}</p>
+        <p style="margin: 0;"><strong>Proceso:</strong> ${escapeHtml(processName)}</p>
+        <p style="margin: 10px 0 0 0;"><strong>Empresa:</strong> ${escapeHtml(companyName)}</p>
       </div>
 
       <p>Tu perfil y desempeño en las evaluaciones han cumplido con los requisitos del cargo.</p>
@@ -750,9 +754,13 @@ Equipo Talentree`;
 
     try {
       await EmailHelper.sendEmail(email, subject, textContent, htmlContent);
-      this.logger.log(`Email de aprobación enviado a ${email} para proceso ${processName}`);
+      this.logger.log(
+        `Email de aprobación enviado para proceso ${processName}`,
+      );
     } catch (error) {
-      this.logger.error(`Error enviando email de aprobación a ${email}: ${error.message}`);
+      this.logger.error(
+        `Error enviando email de aprobación (proceso ${processName}): ${error.message}`,
+      );
     }
   }
 
@@ -802,13 +810,13 @@ Equipo Talentree`;
       <h1>Actualización de tu Postulación</h1>
     </div>
     <div class="content">
-      <p>Hola <strong>${workerName}</strong>,</p>
+      <p>Hola <strong>${escapeHtml(workerName)}</strong>,</p>
 
       <p>Gracias por tu interés en participar en el proceso de selección:</p>
 
       <div class="info-box">
-        <p style="margin: 0;"><strong>Proceso:</strong> ${processName}</p>
-        <p style="margin: 10px 0 0 0;"><strong>Empresa:</strong> ${companyName}</p>
+        <p style="margin: 0;"><strong>Proceso:</strong> ${escapeHtml(processName)}</p>
+        <p style="margin: 10px 0 0 0;"><strong>Empresa:</strong> ${escapeHtml(companyName)}</p>
       </div>
 
       <p>Después de una cuidadosa evaluación, lamentamos informarte que en esta ocasión hemos decidido continuar con otros candidatos cuyo perfil se ajusta más a los requerimientos específicos del cargo.</p>
@@ -833,9 +841,11 @@ Equipo Talentree`;
 
     try {
       await EmailHelper.sendEmail(email, subject, textContent, htmlContent);
-      this.logger.log(`Email de rechazo enviado a ${email} para proceso ${processName}`);
+      this.logger.log(`Email de rechazo enviado para proceso ${processName}`);
     } catch (error) {
-      this.logger.error(`Error enviando email de rechazo a ${email}: ${error.message}`);
+      this.logger.error(
+        `Error enviando email de rechazo (proceso ${processName}): ${error.message}`,
+      );
     }
   }
 
@@ -867,9 +877,13 @@ Equipo Talentree`;
 
     try {
       await EmailHelper.sendEmail(datos.email, correo.subject, correo.text, correo.html);
-      this.logger.log(`Email de bienvenida enviado a ${datos.email} para proceso ${datos.processName}`);
+      this.logger.log(
+        `Email de bienvenida enviado (postulación ${datos.workerProcessId ?? '-'}) para proceso ${datos.processName}`,
+      );
     } catch (error) {
-      this.logger.error(`Error enviando email de bienvenida a ${datos.email}: ${error.message}`);
+      this.logger.error(
+        `Error enviando email de bienvenida (postulación ${datos.workerProcessId ?? '-'}): ${error.message}`,
+      );
     }
   }
 
@@ -994,8 +1008,9 @@ Equipo Talentree`;
       throw new BadRequestException('El trabajador no tiene un CV cargado');
     }
 
-    const cvPath = path.join(process.cwd(), worker.cvUrl);
-    if (fs.existsSync(cvPath)) {
+    // cvUrl es editable por PATCH: solo se borra si queda dentro de uploads.
+    const cvPath = resolverRutaEnUploads(worker.cvUrl);
+    if (cvPath && fs.existsSync(cvPath)) {
       fs.unlinkSync(cvPath);
     }
 
@@ -1034,9 +1049,13 @@ Equipo Talentree`;
 
     // If it's a local file (legacy), read from filesystem
     this.logger.log(`Attempting to read CV from local filesystem: ${worker.cvUrl}`);
-    const cvPath = path.join(process.cwd(), worker.cvUrl);
-    if (!fs.existsSync(cvPath)) {
-      this.logger.error(`Local CV file not found at path: ${cvPath}`);
+    // cvUrl es editable por PATCH (también por el propio postulante): sin este
+    // control "../.env" devolvía cualquier archivo del servidor.
+    const cvPath = resolverRutaEnUploads(worker.cvUrl);
+    if (!cvPath || !fs.existsSync(cvPath)) {
+      this.logger.error(
+        `Local CV file not found or outside uploads for worker ${workerId}`,
+      );
       throw new NotFoundException('El archivo CV no existe en el servidor');
     }
 
