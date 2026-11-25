@@ -26,6 +26,7 @@ import { paginate } from '../../common/helpers/pagination.helper';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
 import * as bcrypt from 'bcrypt';
 import { S3Service } from '../../common/services/s3.service';
+import { emailIgual } from '../../common/helpers/email-normalizado.helper';
 import { uploadFileAndGetPublicUrl } from '../../common/helpers/s3.helper';
 
 @Injectable()
@@ -196,7 +197,7 @@ export class UsersService {
 
   async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({
-      where: { email },
+      where: { email: emailIgual(email) },
       relations: ['worker', 'companies', 'belongsToCompany'],
       select: [
         'id',

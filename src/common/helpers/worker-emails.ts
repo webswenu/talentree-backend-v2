@@ -598,3 +598,51 @@ export function buildTestReactivadoEmail(
     html: layoutHtml(opciones),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Recuperación de contraseña (sirve para cualquier rol, no solo trabajadores)
+// ---------------------------------------------------------------------------
+
+export interface RecuperarClaveEmailInput {
+  nombre: string;
+  token: string;
+}
+
+export function buildRecuperarClaveEmail(
+  i: RecuperarClaveEmailInput,
+): WorkerEmail {
+  const url = `${frontendUrl()}/restablecer-clave?token=${encodeURIComponent(i.token)}`;
+
+  const opciones: LayoutOptions = {
+    titulo: 'Crea una nueva contraseña',
+    saludo: i.nombre ? `Hola <strong>${escapeHtml(i.nombre)}</strong>,` : 'Hola,',
+    intro:
+      'Recibimos una solicitud para cambiar la contraseña de tu cuenta en Talentree.',
+    pasosTitulo: 'Qué hacer',
+    pasos: [
+      {
+        titulo: 'Pulsa "Crear nueva contraseña"',
+        detalle: 'El enlace sirve una sola vez y vence en 1 hora.',
+      },
+      {
+        titulo: 'Escribe tu nueva contraseña',
+        detalle: 'Debe tener al menos 8 caracteres, con letras y números.',
+      },
+      {
+        titulo: 'Inicia sesión',
+        detalle: 'Usa este mismo correo y la contraseña nueva.',
+      },
+    ],
+    boton: { texto: 'Crear nueva contraseña', url },
+    aviso:
+      'Si tú no pediste este cambio, ignora este correo: tu contraseña actual sigue funcionando.',
+    cierre:
+      'Si tienes problemas, comunícate con la persona que te invitó al proceso.',
+  };
+
+  return {
+    subject: 'Crea una nueva contraseña para Talentree',
+    text: layoutText(opciones),
+    html: layoutHtml(opciones),
+  };
+}

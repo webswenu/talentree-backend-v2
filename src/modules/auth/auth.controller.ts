@@ -14,6 +14,10 @@ import {
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterWorkerDto } from './dto/register-worker.dto';
+import {
+  RestablecerClaveDto,
+  SolicitarRecuperacionDto,
+} from './dto/recuperar-clave.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 @Controller('auth')
@@ -33,6 +37,18 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   async registerWorker(@Body() registerDto: RegisterWorkerDto) {
     return this.authService.registerWorker(registerDto);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async solicitarRecuperacion(@Body() dto: SolicitarRecuperacionDto) {
+    return this.authService.solicitarRecuperacion(dto);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async restablecerClave(@Body() dto: RestablecerClaveDto) {
+    return this.authService.restablecerClave(dto);
   }
 
   @Post('refresh')
