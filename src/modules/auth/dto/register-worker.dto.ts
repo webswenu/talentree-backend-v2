@@ -8,8 +8,10 @@ import {
 } from 'class-validator';
 import { IsRut, NormalizeRut } from '../../../common/validators/rut.validator';
 import { IsStrongPassword } from '../../../common/validators/password.validator';
+import { NormalizeEmail } from '../../../common/helpers/email-normalizado.helper';
 
 export class RegisterWorkerDto {
+  @NormalizeEmail()
   @IsEmail({}, { message: 'Email inválido' })
   email: string;
 

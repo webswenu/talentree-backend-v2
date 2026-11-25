@@ -20,6 +20,19 @@ import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { NotificationType } from '../../common/enums/notification-type.enum';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../../common/enums/audit-action.enum';
+import {
+  emailIgual,
+  enmascararEmail,
+} from '../../common/helpers/email-normalizado.helper';
+import { EmailHelper } from '../../common/helpers/email.helper';
+import { buildRecuperarClaveEmail } from '../../common/helpers/worker-emails';
+import {
+  RestablecerClaveDto,
+  SolicitarRecuperacionDto,
+} from './dto/recuperar-clave.dto';
+
+/** Cuanto dura el enlace para restablecer la contraseña. */
+const VIGENCIA_ENLACE_CLAVE = '1h';
 
 @Injectable()
 export class AuthService {
@@ -196,21 +209,29 @@ export class AuthService {
 
   async registerWorker(registerDto: RegisterWorkerDto) {
     const existingUserByEmail = await this.userRepository.findOne({
-      where: { email: registerDto.email },
+      where: { email: emailIgual(registerDto.email) },
     });
     if (existingUserByEmail) {
-      throw new ConflictException('El email ya está registrado');
+      throw new ConflictException(
+        'Ya existe una cuenta con este correo. Inicia sesión o usa "¿Olvidaste tu contraseña?".',
+      );
     }
 
     const existingWorkerByRut = await this.workerRepository.findOne({
       where: { rut: registerDto.rut },
     });
     if (existingWorkerByRut) {
-      throw new ConflictException('El RUT ya está registrado');
+      // Antes decia solo "El RUT ya está registrado". Quien se habia
+      // registrado con un correo mal escrito no tenia como darse cuenta y
+      // seguia intentando registrarse (32 intentos el 24-11-2026). Mostrar el
+      // correo enmascarado le deja reconocer el error sin exponerlo entero.
+      throw new ConflictException(
+        `Ya existe una cuenta con este RUT, registrada con el correo ${enmascararEmail(existingWorkerByRut.email)}. Inicia sesión con ese correo o usa "¿Olvidaste tu contraseña?". Si ese correo está mal escrito, pide ayuda a la persona que te invitó.`,
+      );
     }
 
     const existingWorkerByEmail = await this.workerRepository.findOne({
-      where: { email: registerDto.email },
+      where: { email: emailIgual(registerDto.email) },
     });
     if (existingWorkerByEmail) {
       throw new ConflictException(
@@ -306,5 +327,112 @@ export class AuthService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  /**
+   * Envia el enlace para restablecer la contraseña.
+   *
+   * Responde siempre lo mismo, exista o no la cuenta: si no, este endpoint
+   * serviria para averiguar que correos estan registrados.
+   */
+  async solicitarRecuperacion(dto: SolicitarRecuperacionDto) {
+    const respuesta = {
+      message:
+        'Si el correo está registrado, te enviamos un enlace para crear una nueva contraseña. Revisa también la carpeta de spam.',
+    };
+
+    const user = await this.userRepository.findOne({
+      where: { email: emailIgual(dto.email) },
+    });
+    if (!user || !user.isActive) {
+      return respuesta;
+    }
+
+    const token = this.jwtService.sign(
+      { sub: user.id, purpose: 'reset-password' },
+      {
+        secret: this.secretoRecuperacion(user.password),
+        expiresIn: VIGENCIA_ENLACE_CLAVE,
+      },
+    );
+
+    try {
+      const correo = buildRecuperarClaveEmail({
+        nombre: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(),
+        token,
+      });
+      await EmailHelper.sendEmail(
+        user.email,
+        correo.subject,
+        correo.text,
+        correo.html,
+      );
+    } catch (error) {
+      this.logger.error(
+        `No se pudo enviar el correo de recuperación a ${user.email}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+
+    this.auditService
+      .log(AuditAction.UPDATE, 'auth', user.id, user.id, {
+        description: 'Solicitud de recuperación de contraseña',
+      })
+      .catch(() => undefined);
+
+    return respuesta;
+  }
+
+  /**
+   * Cambia la contraseña con el enlace del correo.
+   *
+   * El token se firma con el hash de la contraseña actual dentro del secreto,
+   * asi que deja de servir apenas se usa (el hash cambia) y no hace falta
+   * guardarlo en la base.
+   */
+  async restablecerClave(dto: RestablecerClaveDto) {
+    const invalido = new BadRequestException(
+      'El enlace no es válido o ya expiró. Pide uno nuevo desde "¿Olvidaste tu contraseña?".',
+    );
+
+    const sinVerificar = this.jwtService.decode(dto.token) as {
+      sub?: string;
+      purpose?: string;
+    } | null;
+    if (!sinVerificar?.sub || sinVerificar.purpose !== 'reset-password') {
+      throw invalido;
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { id: sinVerificar.sub },
+    });
+    if (!user || !user.isActive) {
+      throw invalido;
+    }
+
+    try {
+      this.jwtService.verify(dto.token, {
+        secret: this.secretoRecuperacion(user.password),
+      });
+    } catch {
+      throw invalido;
+    }
+
+    const hash = await bcrypt.hash(dto.password, 10);
+    await this.userRepository.update(user.id, { password: hash });
+
+    this.auditService
+      .log(AuditAction.UPDATE, 'auth', user.id, user.id, {
+        description: 'Contraseña restablecida con el enlace de recuperación',
+      })
+      .catch(() => undefined);
+
+    return {
+      message: 'Tu contraseña se cambió. Ya puedes iniciar sesión.',
+      email: user.email,
+    };
+  }
+
+  private secretoRecuperacion(passwordHash: string): string {
+    return `${this.configService.get<string>('JWT_SECRET')}::${passwordHash}`;
   }
 }
