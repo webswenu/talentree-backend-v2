@@ -8,28 +8,14 @@ import { TodasLasExcepcionesFilter } from './common/filters/todas-las-excepcione
 import { excepcionDeValidacionEnEspanol } from './common/validators/validation-messages';
 import { AuditService } from './modules/audit/audit.service';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Serve static files from uploads directory with proper MIME types
-  // IMPORTANT: This must be BEFORE setGlobalPrefix to serve files without /api/v1 prefix
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
-    prefix: '/uploads/',
-    setHeaders: (res, filePath) => {
-      // Set proper Content-Type for video files
-      if (filePath.endsWith('.mp4')) {
-        res.setHeader('Content-Type', 'video/mp4');
-        res.setHeader('Accept-Ranges', 'bytes');
-        res.setHeader('Cache-Control', 'public, max-age=3600');
-      } else if (filePath.endsWith('.webm')) {
-        res.setHeader('Content-Type', 'video/webm');
-        res.setHeader('Accept-Ranges', 'bytes');
-        res.setHeader('Cache-Control', 'public, max-age=3600');
-      }
-    },
-  });
+  // `uploads/` ya no se sirve como estático público: guardaba CVs e informes
+  // (datos personales) descargables sin autenticación con solo conocer el
+  // nombre. Los archivos viven en S3 y se entregan por endpoints con control
+  // de acceso (GET /workers/:id/cv, /reports/:id/download, videos).
 
   // Get Config Service
   const configService = app.get(ConfigService);
