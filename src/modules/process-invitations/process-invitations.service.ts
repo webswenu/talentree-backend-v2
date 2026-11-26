@@ -5,8 +5,12 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Raw, Repository } from 'typeorm';
 import * as crypto from 'crypto';
+
+/** Condición de correo sin distinguir mayúsculas (hay correos viejos guardados con mayúsculas). */
+const mismoCorreo = (email: string) =>
+  Raw((columna) => `LOWER(${columna}) = :correo`, { correo: email.trim().toLowerCase() });
 import {
   ProcessInvitation,
   ProcessInvitationStatus,
@@ -129,6 +133,21 @@ export class ProcessInvitationsService {
     if (existingInvitation) {
       throw new ConflictException(
         'Ya existe una invitación pendiente para este email en este proceso',
+      );
+    }
+
+    // Invitar a alguien que ya postula a este proceso no sirve de nada: al
+    // abrir el enlace solo veía «Ya estás aplicado» (21-11-2026).
+    const yaPostula =
+      (await this.workerProcessRepository.count({
+        where: {
+          worker: { email: mismoCorreo(createDto.email) },
+          process: { id: createDto.processId },
+        },
+      })) > 0;
+    if (yaPostula) {
+      throw new ConflictException(
+        `${createDto.email.toLowerCase()} ya está postulando a "${process.name}". No hace falta invitarlo de nuevo.`,
       );
     }
 
@@ -332,7 +351,17 @@ export class ProcessInvitationsService {
     });
 
     if (existingApplication) {
-      throw new BadRequestException('Ya estás aplicado a este proceso');
+      // Igual que acceptById: no es un error, la persona ya está dentro. Se
+      // marca la invitación y la pantalla la lleva a su postulación.
+      invitation.status = ProcessInvitationStatus.ACCEPTED;
+      invitation.acceptedAt = new Date();
+      await this.invitationRepository.save(invitation);
+      return {
+        status: 'applied',
+        message: 'Ya estás postulando a este proceso',
+        invitation: this.mapToResponseDto(invitation),
+        processId: invitation.process.id,
+      };
     }
 
     // Crear la aplicación al proceso
@@ -493,7 +522,15 @@ export class ProcessInvitationsService {
       await this.invitationRepository.save(invitation);
     }
 
-    return this.mapToResponseDto(invitation);
+    // Quien tiene el token es la persona invitada (le llegó a ese correo):
+    // decirle si ese correo ya tiene cuenta evita que intente registrarse de
+    // nuevo, que es lo que pasó el 24-11-2026 (decenas de 409 seguidos).
+    const tieneCuenta =
+      (await this.userRepository.count({
+        where: { email: mismoCorreo(invitation.email) },
+      })) > 0;
+
+    return { ...this.mapToResponseDto(invitation), tieneCuenta };
   }
 
   /**
