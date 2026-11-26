@@ -17,6 +17,7 @@ import { TestCEALScoringService } from './scoring/test-ceal-scoring.service';
 import { TestBIS11ScoringService } from './scoring/test-bis11-scoring.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { UsersModule } from '../users/users.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UsersModule } from '../users/users.module';
     forwardRef(() => ReportsModule),
     NotificationsModule,
     UsersModule,
+    AuditModule,
   ],
   controllers: [TestResponsesController],
   providers: [TestResponsesService, TestCFRScoringService, Test16PFScoringService, TestDISCScoringService, TestILScoringService, TestICScoringService, TestTACScoringService, TestCEALScoringService, TestBIS11ScoringService],
