@@ -667,6 +667,69 @@ export function buildParticipacionReiniciadaEmail(
 }
 
 // ---------------------------------------------------------------------------
+// Un solo test reiniciado por el admin
+// ---------------------------------------------------------------------------
+
+export interface TestReiniciadoEmailInput extends ParticipacionReiniciadaEmailInput {
+  testName: string;
+  duracionMinutos?: number | null;
+}
+
+export function buildTestReiniciadoEmail(i: TestReiniciadoEmailInput): WorkerEmail {
+  const base = frontendUrl();
+  const urlPostulaciones = `${base}/trabajador/postulaciones`;
+  const fecha = formatearFecha(i.fechaTermino);
+  const tiempo = i.duracionMinutos
+    ? `Tendrás <strong>${i.duracionMinutos} minutos</strong>, que empiezan a contar cuando abras el test.`
+    : 'Este test <strong>no tiene límite de tiempo</strong>: responde con calma.';
+
+  const pasos: Step[] = [
+    {
+      titulo: 'Entra a la plataforma',
+      detalle: 'Inicia sesión con tu correo y tu contraseña de siempre.',
+    },
+    {
+      titulo: 'Ve a "Mis Postulaciones"',
+      detalle: `Abre la postulación <strong>"${escapeHtml(i.processName)}"</strong>.`,
+    },
+    {
+      titulo: `Busca "${escapeHtml(i.testName)}" y pulsa "Iniciar Test"`,
+      detalle: `Tus respuestas anteriores de este test ya no cuentan: parte desde la primera pregunta. ${tiempo}`,
+    },
+    {
+      titulo: 'Al terminar, pulsa "Finalizar"',
+      detalle: 'Así queda enviado. Si cierras la página antes, puedes volver a entrar y seguir.',
+    },
+  ];
+
+  const mensaje = i.mensaje?.trim();
+  const opciones: LayoutOptions = {
+    titulo: 'Puedes rendir tu test de nuevo',
+    subtitulo: `${i.position} en ${i.companyName}`,
+    saludo: `Hola <strong>${escapeHtml(i.workerName)}</strong>,`,
+    intro: `El equipo de selección reinició el test <strong>"${escapeHtml(i.testName)}"</strong> del proceso <strong>"${escapeHtml(i.processName)}"</strong> para que lo rindas de nuevo desde cero.`,
+    infoProceso: [
+      { label: 'Proceso', value: i.processName },
+      { label: 'Test', value: i.testName },
+      ...(fecha ? [{ label: 'Plazo', value: `hasta el ${fecha}` }] : []),
+    ],
+    pasosTitulo: 'Cómo hacerlo',
+    pasos,
+    boton: { texto: 'Ir a mis postulaciones', url: urlPostulaciones },
+    aviso: mensaje
+      ? `<strong>Mensaje del equipo de selección:</strong><br>${escapeHtml(mensaje).replace(/\r?\n/g, '<br>')}`
+      : undefined,
+    cierre: 'Si tienes problemas para entrar, comunícate con la persona que te invitó al proceso.',
+  };
+
+  return {
+    subject: `Puedes rendir de nuevo el test "${i.testName}" (${i.position} en ${i.companyName})`,
+    text: layoutText(opciones),
+    html: layoutHtml(opciones),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Recuperación de contraseña (sirve para cualquier rol, no solo trabajadores)
 // ---------------------------------------------------------------------------
 

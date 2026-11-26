@@ -2040,7 +2040,8 @@ export class DocumentGeneratorService {
         ? `El candidato no completó el test en el tiempo asignado${minutos ? ` (${minutos} minutos)` : ''}.`
         : 'El candidato envió el test sin responder todas las preguntas.',
     ];
-    if (m.answeredQuestions !== undefined && m.totalQuestions) {
+    // En un test de una sola pregunta (IC) «Respondió 1 de 1» no dice nada.
+    if (m.answeredQuestions !== undefined && m.totalQuestions > 1) {
       partes.push(`Respondió ${m.answeredQuestions} de ${m.totalQuestions} preguntas (${String(m.answerPercentage ?? Math.round((m.answeredQuestions / m.totalQuestions) * 100)).replace('.', ',')} %).`);
     }
     partes.push(
