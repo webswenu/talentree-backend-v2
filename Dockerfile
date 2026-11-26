@@ -16,6 +16,9 @@ COPY . .
 # Compilado una vez al construir: antes corría `nest start --watch` (modo desarrollo) en producción
 RUN npx nest build
 
+# Sin root (CKV_DOCKER_3): la app no escribe en disco (BD y S3), solo lee /app.
+USER node
+
 EXPOSE 3000
 
 CMD ["node", "dist/main"]
