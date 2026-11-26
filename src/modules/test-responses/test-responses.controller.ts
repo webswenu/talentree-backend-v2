@@ -16,6 +16,7 @@ import { EvaluateAnswerDto } from './dto/evaluate-answer.dto';
 import { SaveEvaluatorNotesDto } from './dto/save-evaluator-notes.dto';
 import { ReactivarTestDto } from './dto/reactivar-test.dto';
 import { ReiniciarParticipacionDto } from './dto/reiniciar-participacion.dto';
+import { ReiniciarTestDto } from './dto/reiniciar-test.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -63,6 +64,20 @@ export class TestResponsesController {
     @Request() req: any,
   ) {
     return this.testResponsesService.reiniciarParticipacion(workerProcessId, dto, req.user);
+  }
+
+  /**
+   * Solo el admin de Talentree: borra UN test de la postulación (completo,
+   * incompleto o abierto) para que la persona lo rinda de nuevo desde cero.
+   */
+  @Post(':id/reiniciar')
+  @Roles(UserRole.ADMIN_TALENTREE)
+  reiniciarTest(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: ReiniciarTestDto,
+    @Request() req: any,
+  ) {
+    return this.testResponsesService.reiniciarTest(id, dto, req.user);
   }
 
   @Post(':id/auto-evaluate')

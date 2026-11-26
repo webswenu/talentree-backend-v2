@@ -35,9 +35,11 @@ import {
   buildTestsCompletedEmail,
   buildTestReactivadoEmail,
   buildParticipacionReiniciadaEmail,
+  buildTestReiniciadoEmail,
 } from '../../common/helpers/worker-emails';
 import { ReactivarTestDto } from './dto/reactivar-test.dto';
 import { ReiniciarParticipacionDto } from './dto/reiniciar-participacion.dto';
+import { ReiniciarTestDto } from './dto/reiniciar-test.dto';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../../common/enums/audit-action.enum';
 import { ProcessStatus } from '../../common/enums/process-status.enum';
@@ -318,8 +320,25 @@ export class TestResponsesService {
     ).size;
     const answerPercentage = totalQuestions > 0 ? (answeredQuestions / totalQuestions) * 100 : 0;
 
-    // Determine status: 'completed' ONLY if 100% answered, 'insufficient_answers' otherwise
-    const testStatus = answerPercentage === 100 ? 'completed' : 'insufficient_answers';
+    /**
+     * El test lo cerró el reloj, no la persona. Si el front avisa que la
+     * persona pulsó «Finalizar» (`cierreAutomatico: false`) se le cree aunque
+     * esté dentro del margen; un front antiguo no manda el campo y decide el
+     * reloj del servidor.
+     */
+    const cerradoPorTiempo = tiempoVencido && submitTestDto.cierreAutomatico !== false;
+
+    /**
+     * 'completed' solo si respondió el 100 %. Además, un test de UNA sola
+     * pregunta que cerró el reloj nunca cuenta como completo: el IC es una
+     * planilla en una sola pregunta, y basta marcar una casilla para que
+     * «responda el 100 %». El 26-11-2026 un IC cerrado a los 12 min con 2
+     * casillas marcadas quedó «Completado» y el admin no pudo reactivarlo.
+     */
+    const testStatus =
+      answerPercentage === 100 && !(cerradoPorTiempo && totalQuestions === 1)
+        ? 'completed'
+        : 'insufficient_answers';
     const completedAt = new Date();
     const isCompleted = true; // Always true when submitted
 
@@ -387,7 +406,7 @@ export class TestResponsesService {
         answeredQuestions,
         totalQuestions,
         answerPercentage: parseFloat(answerPercentage.toFixed(1)),
-        motivo: tiempoVencido ? 'tiempo' : 'envio_incompleto',
+        motivo: cerradoPorTiempo ? 'tiempo' : 'envio_incompleto',
         duracionMinutos: duracionMinutos ?? null,
       };
 
@@ -1235,6 +1254,152 @@ export class TestResponsesService {
         ...resultado,
         correoEnviado: false,
         correoError: 'La participación quedó reiniciada, pero el correo no se pudo enviar. Avísale por otro medio.',
+      };
+    }
+  }
+
+  /**
+   * El admin reinicia UN test de una persona dentro de un proceso.
+   *
+   * Es el término medio entre `reactivarTest` (conserva las respuestas, solo
+   * tests incompletos) y `reiniciarParticipacion` (borra todos los tests):
+   * sirve para cualquier test —completo, incompleto o abierto— y borra solo
+   * ese. Se borra la fila entera, no solo las respuestas, para que al volver a
+   * abrirlo nazca con otro id: el navegador del candidato guarda el avance por
+   * id, y con el mismo id le devolvería las respuestas viejas.
+   *
+   * Los informes del proceso se borran (salieron con el intento anterior) y la
+   * postulación vuelve a «en proceso» (o a «pendiente» si no le queda ningún
+   * otro test). El intento anterior queda respaldado en la auditoría.
+   */
+  async reiniciarTest(
+    id: string,
+    dto: ReiniciarTestDto,
+    admin: { id?: string } | undefined,
+  ): Promise<{
+    respuestasArchivadas: number;
+    informesBorrados: number;
+    correoEnviado: boolean;
+    correoError?: string;
+  }> {
+    const tr = await this.testResponseRepository.findOne({
+      where: { id },
+      relations: {
+        test: true,
+        fixedTest: true,
+        answers: { question: true },
+        workerProcess: { worker: { user: true }, process: { company: true } },
+      },
+    });
+    if (!tr) throw new NotFoundException('No encontramos ese test.');
+
+    const wp = tr.workerProcess;
+    const proceso = wp.process;
+    if (proceso.status !== ProcessStatus.ACTIVE || procesoVencido(proceso.endDate)) {
+      throw new BadRequestException(
+        `El proceso "${proceso.name}" no está activo o ya pasó su fecha de término. Extiende la fecha de término del proceso y vuelve a intentarlo; si no, la persona no podría rendir el test.`,
+      );
+    }
+
+    const informes = (await this.reportsService.findByWorker(wp.worker.id)).filter(
+      (r) => r.process?.id === proceso.id,
+    );
+    const nombreTest = tr.fixedTest?.name ?? tr.test?.name ?? 'test';
+    const respuestas = tr.answers ?? [];
+
+    // El respaldo va primero: si falla, no se borra nada.
+    await this.auditService.log(
+      AuditAction.DELETE,
+      'test_response_reinicio',
+      tr.id,
+      admin?.id as string,
+      {
+        oldValues: {
+          postulacion: { id: wp.id, status: wp.status, totalScore: wp.totalScore, evaluatedAt: wp.evaluatedAt },
+          proceso: { id: proceso.id, name: proceso.name },
+          test: {
+            id: tr.id,
+            testId: tr.test?.id ?? null,
+            fixedTestId: tr.fixedTest?.id ?? tr.fixedTestId ?? null,
+            nombre: nombreTest,
+            status: tr.status,
+            isCompleted: tr.isCompleted,
+            startedAt: tr.startedAt,
+            completedAt: tr.completedAt,
+            score: tr.score,
+            maxScore: tr.maxScore,
+            passed: tr.passed,
+            rawScores: tr.rawScores,
+            scaledScores: tr.scaledScores,
+            interpretation: tr.interpretation,
+            metadata: tr.metadata,
+            evaluatorNotes: tr.evaluatorNotes,
+            respuestas: respuestas.map((a) => ({
+              questionId: a.question?.id ?? null,
+              fixedTestQuestionId: a.fixedTestQuestionId ?? null,
+              answer: a.answer,
+              score: a.score,
+              isCorrect: a.isCorrect,
+              evaluatorComment: a.evaluatorComment,
+            })),
+          },
+          informes: informes.map((r) => ({ id: r.id, status: r.status })),
+        },
+        description: `Test "${nombreTest}" reiniciado por admin (${respuestas.length} respuestas, ${informes.length} informes borrados). Motivo: ${dto.motivo}`,
+      },
+    );
+
+    await this.testResponseRepository.manager.transaction(async (m) => {
+      await m
+        .createQueryBuilder()
+        .delete()
+        .from(TestAnswer)
+        .where('test_response_id = :id', { id: tr.id })
+        .execute();
+      await m.delete(TestResponse, tr.id);
+      const quedan = await m.count(TestResponse, { where: { workerProcess: { id: wp.id } } });
+      await m.update(WorkerProcess, wp.id, {
+        status: quedan > 0 ? WorkerStatus.IN_PROCESS : WorkerStatus.PENDING,
+        totalScore: null as unknown as number,
+        evaluatedAt: null as unknown as Date,
+      });
+    });
+    for (const informe of informes) {
+      await this.reportsService.remove(informe.id);
+    }
+
+    this.logger.log(
+      `Test ${tr.id} (${nombreTest}) reiniciado por admin (${respuestas.length} respuestas archivadas, ${informes.length} informes borrados)`,
+    );
+
+    const resultado = { respuestasArchivadas: respuestas.length, informesBorrados: informes.length };
+    if (!dto.enviarCorreo) return { ...resultado, correoEnviado: false };
+
+    const email = wp.worker.email || wp.worker.user?.email;
+    if (!email) {
+      return { ...resultado, correoEnviado: false, correoError: 'La persona no tiene correo registrado.' };
+    }
+    try {
+      const correo = buildTestReiniciadoEmail({
+        workerName: wp.worker.firstName,
+        processName: proceso.name,
+        companyName: proceso.company?.name ?? 'la empresa',
+        position: proceso.position,
+        testName: nombreTest,
+        duracionMinutos: (tr.fixedTest?.duration ?? tr.test?.duration) || null,
+        mensaje: dto.mensaje,
+        fechaTermino: proceso.endDate,
+      });
+      await EmailHelper.sendEmail(email, correo.subject, correo.text, correo.html);
+      return { ...resultado, correoEnviado: true };
+    } catch (error) {
+      this.logger.error(
+        `No se pudo enviar el correo de test reiniciado: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return {
+        ...resultado,
+        correoEnviado: false,
+        correoError: 'El test quedó reiniciado, pero el correo no se pudo enviar. Avísale por otro medio.',
       };
     }
   }
