@@ -31,8 +31,15 @@ import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { NotificationType } from '../../common/enums/notification-type.enum';
 import { UsersService } from '../users/users.service';
 import { EmailHelper } from '../../common/helpers/email.helper';
-import { buildTestsCompletedEmail, buildTestReactivadoEmail } from '../../common/helpers/worker-emails';
+import {
+  buildTestsCompletedEmail,
+  buildTestReactivadoEmail,
+  buildParticipacionReiniciadaEmail,
+} from '../../common/helpers/worker-emails';
 import { ReactivarTestDto } from './dto/reactivar-test.dto';
+import { ReiniciarParticipacionDto } from './dto/reiniciar-participacion.dto';
+import { AuditService } from '../audit/audit.service';
+import { AuditAction } from '../../common/enums/audit-action.enum';
 import { ProcessStatus } from '../../common/enums/process-status.enum';
 import { ReportStatus } from '../../common/enums/report-status.enum';
 import { procesoVencido } from '../../common/helpers/vigencia-proceso.helper';
@@ -63,6 +70,7 @@ export class TestResponsesService {
     private readonly testBIS11ScoringService: TestBIS11ScoringService,
     private readonly notificationsGateway: NotificationsGateway,
     private readonly usersService: UsersService,
+    private readonly auditService: AuditService,
   ) {}
 
   /**
@@ -1068,6 +1076,165 @@ export class TestResponsesService {
         correoEnviado: false,
         correoError: 'El test quedó reactivado, pero el correo no se pudo enviar. Avísale por otro medio.',
         respuestasConservadas,
+      };
+    }
+  }
+
+  /**
+   * El admin reinicia la participación de una persona en un proceso para que
+   * rinda todos los tests de nuevo desde cero.
+   *
+   * A diferencia de `reactivarTest` (un test incompleto, conserva respuestas),
+   * aquí se borran todos los tests de la postulación, sus respuestas y todos
+   * los informes del proceso (también uno aprobado), y la postulación vuelve a
+   * «pendiente». Los videos no se tocan.
+   *
+   * Antes de borrar, el intento anterior completo (puntajes y respuestas) queda
+   * respaldado en la auditoría junto con quién reinició y por qué.
+   */
+  async reiniciarParticipacion(
+    workerProcessId: string,
+    dto: ReiniciarParticipacionDto,
+    admin: { id?: string } | undefined,
+  ): Promise<{
+    testsBorrados: number;
+    respuestasArchivadas: number;
+    informesBorrados: number;
+    correoEnviado: boolean;
+    correoError?: string;
+  }> {
+    const wp = await this.workerProcessRepository.findOne({
+      where: { id: workerProcessId },
+      relations: {
+        worker: { user: true },
+        process: { company: true },
+        testResponses: { test: true, fixedTest: true, answers: { question: true } },
+      },
+    });
+    if (!wp) throw new NotFoundException('No encontramos esa postulación.');
+
+    const proceso = wp.process;
+    if (proceso.status !== ProcessStatus.ACTIVE || procesoVencido(proceso.endDate)) {
+      throw new BadRequestException(
+        `El proceso "${proceso.name}" no está activo o ya pasó su fecha de término. Extiende la fecha de término del proceso y vuelve a intentarlo; si no, la persona no podría rendir los tests.`,
+      );
+    }
+
+    const tests = wp.testResponses ?? [];
+    const informes = (await this.reportsService.findByWorker(wp.worker.id)).filter(
+      (r) => r.process?.id === proceso.id,
+    );
+    if (tests.length === 0 && informes.length === 0) {
+      throw new BadRequestException(
+        'Esta postulación no tiene tests ni informes: no hay nada que reiniciar.',
+      );
+    }
+
+    const respuestasArchivadas = tests.reduce((n, t) => n + (t.answers?.length ?? 0), 0);
+    const respaldo = {
+      postulacion: {
+        id: wp.id,
+        status: wp.status,
+        totalScore: wp.totalScore,
+        evaluatedAt: wp.evaluatedAt,
+      },
+      proceso: { id: proceso.id, name: proceso.name },
+      tests: tests.map((t) => ({
+        id: t.id,
+        testId: t.test?.id ?? null,
+        fixedTestId: t.fixedTest?.id ?? t.fixedTestId ?? null,
+        nombre: t.fixedTest?.name ?? t.test?.name ?? null,
+        status: t.status,
+        isCompleted: t.isCompleted,
+        startedAt: t.startedAt,
+        completedAt: t.completedAt,
+        score: t.score,
+        maxScore: t.maxScore,
+        passed: t.passed,
+        rawScores: t.rawScores,
+        scaledScores: t.scaledScores,
+        interpretation: t.interpretation,
+        evaluatorNotes: t.evaluatorNotes,
+        respuestas: (t.answers ?? []).map((a) => ({
+          questionId: a.question?.id ?? null,
+          fixedTestQuestionId: a.fixedTestQuestionId ?? null,
+          answer: a.answer,
+          score: a.score,
+          isCorrect: a.isCorrect,
+          evaluatorComment: a.evaluatorComment,
+        })),
+      })),
+      informes: informes.map((r) => ({ id: r.id, status: r.status })),
+    };
+
+    // El respaldo va primero: si falla, no se borra nada.
+    await this.auditService.log(
+      AuditAction.DELETE,
+      'worker_process_reinicio',
+      wp.id,
+      admin?.id as string,
+      {
+        oldValues: respaldo,
+        newValues: { status: WorkerStatus.PENDING },
+        description: `Participación reiniciada por admin: ${tests.length} tests y ${informes.length} informes borrados. Motivo: ${dto.motivo}`,
+      },
+    );
+
+    const idsTests = tests.map((t) => t.id);
+    await this.testResponseRepository.manager.transaction(async (m) => {
+      if (idsTests.length > 0) {
+        await m
+          .createQueryBuilder()
+          .delete()
+          .from(TestAnswer)
+          .where('test_response_id IN (:...ids)', { ids: idsTests })
+          .execute();
+        await m.delete(TestResponse, idsTests);
+      }
+      await m.update(WorkerProcess, wp.id, {
+        status: WorkerStatus.PENDING,
+        totalScore: null as unknown as number,
+        evaluatedAt: null as unknown as Date,
+      });
+    });
+    for (const informe of informes) {
+      await this.reportsService.remove(informe.id);
+    }
+
+    this.logger.log(
+      `Postulación ${wp.id} reiniciada por admin (${tests.length} tests, ${respuestasArchivadas} respuestas archivadas, ${informes.length} informes borrados)`,
+    );
+
+    const resultado = {
+      testsBorrados: tests.length,
+      respuestasArchivadas,
+      informesBorrados: informes.length,
+    };
+    if (!dto.enviarCorreo) return { ...resultado, correoEnviado: false };
+
+    const email = wp.worker.email || wp.worker.user?.email;
+    if (!email) {
+      return { ...resultado, correoEnviado: false, correoError: 'La persona no tiene correo registrado.' };
+    }
+    try {
+      const correo = buildParticipacionReiniciadaEmail({
+        workerName: wp.worker.firstName,
+        processName: proceso.name,
+        companyName: proceso.company?.name ?? 'la empresa',
+        position: proceso.position,
+        mensaje: dto.mensaje,
+        fechaTermino: proceso.endDate,
+      });
+      await EmailHelper.sendEmail(email, correo.subject, correo.text, correo.html);
+      return { ...resultado, correoEnviado: true };
+    } catch (error) {
+      this.logger.error(
+        `No se pudo enviar el correo de participación reiniciada: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return {
+        ...resultado,
+        correoEnviado: false,
+        correoError: 'La participación quedó reiniciada, pero el correo no se pudo enviar. Avísale por otro medio.',
       };
     }
   }
