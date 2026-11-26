@@ -41,12 +41,12 @@ import { ContactModule } from './modules/contact/contact.module';
         const ttl = Number(rawTtl);
         const validTtl = Number.isFinite(ttl) && ttl > 0 ? ttl : undefined;
 
-        const rawMax = config.get<string>('CACHE_MAX');
-        const max = Math.max(1, Number(rawMax) || 1000);
-
+        // @nestjs/cache-manager 3 / cache-manager 7 guardan en un Keyv en
+        // memoria y ya no aceptan `max` (CACHE_MAX quedo sin efecto). Hoy
+        // ningun modulo inyecta CACHE_MANAGER ni usa CacheInterceptor, asi
+        // que el cache no guarda nada y no hace falta un limite.
         return {
           ...(validTtl ? { ttl: validTtl } : {}),
-          max,
         };
       },
     }),

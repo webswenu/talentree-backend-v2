@@ -5,7 +5,7 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -202,8 +202,8 @@ export class AuthService {
     const payload = { sub: userId };
     return this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-      expiresIn:
-        this.configService.get<string>('JWT_REFRESH_EXPIRATION') || '7d',
+      expiresIn: (this.configService.get<string>('JWT_REFRESH_EXPIRATION') ||
+        '7d') as JwtSignOptions['expiresIn'],
     });
   }
 

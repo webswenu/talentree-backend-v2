@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -26,7 +26,10 @@ import { AuditModule } from '../audit/audit.module';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRATION') || '1d',
+          // @nestjs/jwt 11 tipa expiresIn con el `StringValue` de `ms` ('1d',
+          // '15m'...). El valor viene de la configuracion, igual que antes.
+          expiresIn: (configService.get<string>('JWT_EXPIRATION') ||
+            '1d') as JwtSignOptions['expiresIn'],
         },
       }),
     }),

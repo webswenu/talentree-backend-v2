@@ -149,6 +149,32 @@ export class TodasLasExcepcionesFilter implements ExceptionFilter {
     }
 
     /**
+     * body-parser (y todo lo que usa http-errors) lanza errores que no son
+     * HttpException pero traen su codigo: un cuerpo sobre el limite es 413
+     * `entity.too.large`, un charset raro es 415. `expose: true` marca que el
+     * error es del cliente y se puede contar. Sin esto salian como 500 "el
+     * problema es nuestro" (verificado 2026-11-26).
+     */
+    const status4xx = (exception as { status?: unknown; expose?: unknown } | null)?.status;
+    if (
+      exception instanceof Error &&
+      (exception as { expose?: unknown }).expose === true &&
+      typeof status4xx === 'number' &&
+      status4xx >= 400 &&
+      status4xx < 500
+    ) {
+      const reemplazo = this.traducirTextoPorDefecto(exception.message, status4xx);
+      this.logger.warn(
+        `Error ${status4xx} del lector del cuerpo en ${request.method} ${request.url}: "${exception.message}"`,
+      );
+      return response.status(status4xx).json({
+        statusCode: status4xx,
+        message: reemplazo ?? exception.message,
+        error: HttpStatus[status4xx] ?? 'Error',
+      });
+    }
+
+    /**
      * Cualquier cosa que no sea una excepcion HTTP es un fallo nuestro: un
      * TypeError, una promesa rechazada, una libreria que revienta. La persona
      * no tiene nada que corregir, y decirle "verifica los datos" la manda a
