@@ -32,6 +32,38 @@ describe('TodasLasExcepcionesFilter', () => {
     jest.spyOn(filtro['logger'], 'error').mockImplementation(() => undefined);
   });
 
+  describe('errores 4xx de body-parser que no son HttpException', () => {
+    /** Forma del error que lanza body-parser (http-errors): status, expose y type. */
+    const errorDeBodyParser = (status: number, type: string, message: string) =>
+      Object.assign(new Error(message), { status, statusCode: status, expose: true, type });
+
+    it('cuerpo sobre el limite: 413 traducido, no 500', () => {
+      const { host, status, cuerpo } = armarHost();
+
+      filtro.catch(errorDeBodyParser(413, 'entity.too.large', 'request entity too large'), host);
+
+      expect(status).toHaveBeenCalledWith(HttpStatus.PAYLOAD_TOO_LARGE);
+      expect(cuerpo().message).toContain('demasiado grande');
+      expect(cuerpo().statusCode).toBe(413);
+    });
+
+    it('otro 4xx expuesto conserva su codigo', () => {
+      const { host, status } = armarHost();
+
+      filtro.catch(errorDeBodyParser(415, 'encoding.unsupported', 'unsupported charset "X"'), host);
+
+      expect(status).toHaveBeenCalledWith(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+    });
+
+    it('un error sin expose sigue siendo 500 generico', () => {
+      const { host, status } = armarHost();
+
+      filtro.catch(Object.assign(new Error('boom'), { status: 400, expose: false }), host);
+
+      expect(status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
+    });
+  });
+
   describe('textos por defecto del framework, verificados en produccion', () => {
     it('traduce el error del lector de JSON', () => {
       const { host, status, cuerpo } = armarHost();
